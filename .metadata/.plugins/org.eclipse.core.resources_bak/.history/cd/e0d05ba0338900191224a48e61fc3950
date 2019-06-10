@@ -1,0 +1,323 @@
+package splassh.views;
+
+import java.awt.BorderLayout;
+import java.awt.EventQueue;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
+import java.awt.Toolkit;
+import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Alignment;
+import javax.swing.JLabel;
+import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.JInternalFrame;
+import javax.swing.JSlider;
+import javax.swing.SwingConstants;
+import javax.swing.border.MatteBorder;
+import java.awt.Color;
+import javax.swing.JTextField;
+import javax.swing.UIManager;
+import javax.swing.JComboBox;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JRadioButton;
+import javax.swing.JCheckBox;
+import javax.swing.JList;
+import javax.swing.JToggleButton;
+
+public class SPLASSH_GUI extends JFrame {
+
+	private JPanel contentPane;
+	String functionResponse = "Experiment Directory Successfully Opened!";
+	private JTextField framerate;
+	private JTextField setHeight;
+	private JTextField exposureTime;
+	private JTextField setWidth;
+
+	/**
+	 * Launch the application.
+	 */
+	public static void main(String[] args) {
+		try {
+			UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+		} catch (Throwable e) {
+			e.printStackTrace();
+		}
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					SPLASSH_GUI frame = new SPLASSH_GUI();
+					frame.setVisible(true);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+
+	/**
+	 * Create the frame.
+	 */
+	public SPLASSH_GUI() {
+		initComponents();
+		createEvents();
+	}
+	private void initComponents() {
+		setTitle("SPLASSH");
+		setIconImage(Toolkit.getDefaultToolkit().getImage(SPLASSH_GUI.class.getResource("/splassh/resources/1027308.png")));
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setBounds(100, 100, 326, 734);
+		contentPane = new JPanel();
+		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+		setContentPane(contentPane);
+		
+		JLabel lblFunctionResponses = new JLabel("Function Responses");
+		
+		JLabel lblResponse = new JLabel(functionResponse);
+		
+		JLabel lblSolisParameters = new JLabel("SOLIS Parameters");
+		
+		JSlider slider = new JSlider();
+		slider.setPaintTicks(true);
+		slider.setSnapToTicks(true);
+		slider.setToolTipText("");
+		slider.setOrientation(SwingConstants.VERTICAL);
+		slider.setMajorTickSpacing(1);
+		slider.setMaximum(4);
+		slider.setMinimum(1);
+		
+		JLabel lblBinning = new JLabel("Binning");
+		
+		JLabel lblSetFramerate = new JLabel("Set Framerate (fps)");
+		lblSetFramerate.setEnabled(false);
+		
+		framerate = new JTextField();
+		framerate.setEnabled(false);
+		framerate.setText("50.70");
+		framerate.setColumns(10);
+		
+		JLabel lblSetHeight = new JLabel("Set Height");
+		
+		setHeight = new JTextField();
+		setHeight.setText("2048");
+		setHeight.setColumns(10);
+		
+		JLabel lblExposureTimes = new JLabel("Exposure Time (s)");
+		
+		exposureTime = new JTextField();
+		exposureTime.setText("0.00");
+		exposureTime.setColumns(10);
+		
+		JLabel lblSetWidth = new JLabel("Set Width");
+		
+		setWidth = new JTextField();
+		setWidth.setText("2048");
+		setWidth.setColumns(10);
+		
+		JLabel lblx = new JLabel("1x1");
+		
+		JLabel lblx_1 = new JLabel("2x2");
+		
+		JLabel lblx_2 = new JLabel("4x4");
+		
+		JLabel lblx_3 = new JLabel("8x8");
+		
+		JLabel lblLedControl = new JLabel("LED Control");
+		
+		JLabel lblColor = new JLabel("Color");
+		
+		JLabel lblOrder = new JLabel("Order");
+		
+		JLabel lblOnoff = new JLabel("On/Off");
+		
+		JLabel lblBlue = new JLabel("Blue");
+		lblBlue.setForeground(Color.BLUE);
+		lblBlue.setBackground(Color.BLUE);
+		
+		JLabel lblGreen = new JLabel("Green");
+		lblGreen.setForeground(Color.GREEN);
+		
+		JLabel lblRed = new JLabel("Red");
+		lblRed.setForeground(Color.RED);
+		
+		JLabel lblSpeckle = new JLabel("Speckle");
+		lblSpeckle.setForeground(Color.DARK_GRAY);
+		
+		JComboBox blueOrder = new JComboBox();
+		blueOrder.setModel(new DefaultComboBoxModel(new String[] {"OFF", "1", "2", "3", "4"}));
+		
+		JComboBox greenOrder = new JComboBox();
+		greenOrder.setModel(new DefaultComboBoxModel(new String[] {"OFF", "1", "2", "3", "4"}));
+		
+		JComboBox redOrder = new JComboBox();
+		redOrder.setModel(new DefaultComboBoxModel(new String[] {"OFF", "1", "2", "3", "4"}));
+		
+		JComboBox speckleOrder = new JComboBox();
+		speckleOrder.setModel(new DefaultComboBoxModel(new String[] {"OFF", "1", "2", "3", "4"}));
+		
+		JCheckBox greenOn = new JCheckBox("On");
+		
+		JCheckBox redOn = new JCheckBox("On");
+		
+		JCheckBox speckleOn = new JCheckBox("On");
+		
+		JLabel label = new JLabel("LED Control");
+		
+		JList list = new JList();
+		
+		JToggleButton tglbtnOne = new JToggleButton("One");
+		GroupLayout gl_contentPane = new GroupLayout(contentPane);
+		gl_contentPane.setHorizontalGroup(
+			gl_contentPane.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_contentPane.createSequentialGroup()
+					.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
+						.addComponent(lblFunctionResponses)
+						.addComponent(lblResponse)
+						.addGroup(gl_contentPane.createSequentialGroup()
+							.addGroup(gl_contentPane.createParallelGroup(Alignment.TRAILING, false)
+								.addGroup(gl_contentPane.createSequentialGroup()
+									.addContainerGap()
+									.addComponent(slider, GroupLayout.PREFERRED_SIZE, 43, GroupLayout.PREFERRED_SIZE)
+									.addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+									.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
+										.addComponent(lblx_3)
+										.addComponent(lblx_2)
+										.addComponent(lblx_1)
+										.addComponent(lblx)))
+								.addGroup(gl_contentPane.createSequentialGroup()
+									.addGap(30)
+									.addComponent(lblBinning))
+								.addGroup(gl_contentPane.createSequentialGroup()
+									.addContainerGap()
+									.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
+										.addComponent(lblBlue)
+										.addComponent(lblColor)
+										.addComponent(lblGreen)
+										.addComponent(lblRed)
+										.addComponent(lblSpeckle))
+									.addPreferredGap(ComponentPlacement.RELATED)))
+							.addGroup(gl_contentPane.createParallelGroup(Alignment.TRAILING, false)
+								.addGroup(gl_contentPane.createSequentialGroup()
+									.addGap(27)
+									.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
+										.addComponent(lblExposureTimes)
+										.addComponent(framerate, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+										.addGroup(gl_contentPane.createSequentialGroup()
+											.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
+												.addComponent(lblSetFramerate)
+												.addComponent(exposureTime, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+											.addGap(18)
+											.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
+												.addComponent(setWidth, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+												.addComponent(setHeight, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+												.addComponent(lblSetHeight)
+												.addComponent(lblSetWidth)))))
+								.addGroup(gl_contentPane.createSequentialGroup()
+									.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
+										.addGroup(gl_contentPane.createSequentialGroup()
+											.addGap(58)
+											.addComponent(lblOrder))
+										.addGroup(gl_contentPane.createSequentialGroup()
+											.addGap(50)
+											.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
+												.addComponent(greenOrder, GroupLayout.PREFERRED_SIZE, 45, GroupLayout.PREFERRED_SIZE)
+												.addComponent(blueOrder, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+												.addComponent(redOrder, GroupLayout.PREFERRED_SIZE, 45, GroupLayout.PREFERRED_SIZE)
+												.addComponent(speckleOrder, GroupLayout.PREFERRED_SIZE, 45, GroupLayout.PREFERRED_SIZE))))
+									.addPreferredGap(ComponentPlacement.RELATED, 49, Short.MAX_VALUE)
+									.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
+										.addComponent(tglbtnOne)
+										.addComponent(lblOnoff)
+										.addComponent(greenOn, GroupLayout.PREFERRED_SIZE, 39, GroupLayout.PREFERRED_SIZE)
+										.addComponent(redOn, GroupLayout.PREFERRED_SIZE, 39, GroupLayout.PREFERRED_SIZE)
+										.addComponent(speckleOn, GroupLayout.PREFERRED_SIZE, 39, GroupLayout.PREFERRED_SIZE))
+									.addGap(84))))
+						.addGroup(gl_contentPane.createSequentialGroup()
+							.addContainerGap()
+							.addComponent(lblLedControl))
+						.addComponent(lblSolisParameters)
+						.addGroup(gl_contentPane.createSequentialGroup()
+							.addContainerGap()
+							.addComponent(label, GroupLayout.PREFERRED_SIZE, 56, GroupLayout.PREFERRED_SIZE))
+						.addGroup(gl_contentPane.createSequentialGroup()
+							.addContainerGap()
+							.addComponent(list, GroupLayout.PREFERRED_SIZE, 262, GroupLayout.PREFERRED_SIZE)))
+					.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+		);
+		gl_contentPane.setVerticalGroup(
+			gl_contentPane.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_contentPane.createSequentialGroup()
+					.addComponent(lblFunctionResponses)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(lblResponse)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(lblSolisParameters)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addGroup(gl_contentPane.createParallelGroup(Alignment.BASELINE)
+						.addComponent(lblBinning)
+						.addComponent(lblSetFramerate)
+						.addComponent(lblSetHeight))
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING, false)
+						.addGroup(gl_contentPane.createSequentialGroup()
+							.addGroup(gl_contentPane.createParallelGroup(Alignment.BASELINE)
+								.addComponent(lblx)
+								.addComponent(framerate, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+								.addComponent(setHeight, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+							.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
+								.addGroup(gl_contentPane.createSequentialGroup()
+									.addGap(18)
+									.addComponent(lblx_1)
+									.addGap(18)
+									.addComponent(lblx_2)
+									.addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+									.addComponent(lblx_3))
+								.addGroup(gl_contentPane.createSequentialGroup()
+									.addGap(7)
+									.addGroup(gl_contentPane.createParallelGroup(Alignment.BASELINE)
+										.addComponent(lblExposureTimes)
+										.addComponent(lblSetWidth))
+									.addPreferredGap(ComponentPlacement.RELATED)
+									.addGroup(gl_contentPane.createParallelGroup(Alignment.BASELINE)
+										.addComponent(exposureTime, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+										.addComponent(setWidth, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))))
+						.addComponent(slider, GroupLayout.PREFERRED_SIZE, 111, GroupLayout.PREFERRED_SIZE))
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(lblLedControl)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addGroup(gl_contentPane.createParallelGroup(Alignment.BASELINE)
+						.addComponent(lblColor)
+						.addComponent(lblOnoff)
+						.addComponent(lblOrder))
+					.addPreferredGap(ComponentPlacement.UNRELATED)
+					.addGroup(gl_contentPane.createParallelGroup(Alignment.BASELINE)
+						.addComponent(lblBlue)
+						.addComponent(blueOrder, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(tglbtnOne))
+					.addGap(18)
+					.addGroup(gl_contentPane.createParallelGroup(Alignment.BASELINE)
+						.addComponent(lblGreen)
+						.addComponent(greenOrder, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(greenOn))
+					.addGap(18)
+					.addGroup(gl_contentPane.createParallelGroup(Alignment.BASELINE)
+						.addComponent(lblRed)
+						.addComponent(redOrder, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(redOn))
+					.addGap(18)
+					.addGroup(gl_contentPane.createParallelGroup(Alignment.BASELINE)
+						.addComponent(lblSpeckle)
+						.addComponent(speckleOrder, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(speckleOn))
+					.addPreferredGap(ComponentPlacement.UNRELATED)
+					.addComponent(label)
+					.addPreferredGap(ComponentPlacement.UNRELATED)
+					.addComponent(list, GroupLayout.PREFERRED_SIZE, 130, GroupLayout.PREFERRED_SIZE)
+					.addGap(134))
+		);
+		contentPane.setLayout(gl_contentPane);
+	}
+	private void createEvents() {
+		
+	}
+}

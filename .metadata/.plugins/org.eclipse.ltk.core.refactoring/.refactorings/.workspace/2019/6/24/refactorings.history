@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Delete resource &apos;SPLASSH&apos;" deleteContents="false" description="Delete resource &apos;SPLASSH&apos;" element1="/SPLASSH" flags="7" id="org.eclipse.ltk.core.refactoring.delete.resources" resources="1" stamp="1560200644410"/>
+</session>
