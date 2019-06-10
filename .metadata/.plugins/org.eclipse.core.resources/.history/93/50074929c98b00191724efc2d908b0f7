@@ -55,9 +55,6 @@ import java.awt.Canvas;
 import java.awt.Panel;
 import java.awt.Label;
 import javax.swing.ImageIcon;
-import javax.swing.JSpinner;
-import javax.swing.SpinnerNumberModel;
-import javax.swing.JTextPane;
 
 public class jsplassh_window extends JFrame {
 	
@@ -111,7 +108,7 @@ public class jsplassh_window extends JFrame {
 		setTitle("SPLASSH");
 		setIconImage(Toolkit.getDefaultToolkit().getImage(jsplassh_window.class.getResource("/jsplassh/resources/1027308.png")));
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 326, 774);
+		setBounds(100, 100, 326, 817);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
@@ -178,6 +175,8 @@ public class jsplassh_window extends JFrame {
 		JLabel lblNewLabel = new JLabel("LED Set State");
 		
 		JLabel lblSolisState = new JLabel("SOLIS State");
+		
+		JButton btnDeploySettingsTo = new JButton("Deploy Settings to SOLIS");
 		
 		JLabel arduinoStatusLbl = new JLabel("");
 		
@@ -271,52 +270,6 @@ public class jsplassh_window extends JFrame {
 		});
 		btnSpeckle.setForeground(new Color(0, 255, 0));
 		
-		JLabel lblStimFunctionality = new JLabel("Stim Functionality?");
-		
-		JToggleButton tglbtnTes = new JToggleButton("On");
-		
-		JLabel lblRunningTime = new JLabel("Running Time");
-		
-		JSpinner spinner = new JSpinner();
-		spinner.setModel(new SpinnerNumberModel(new Float(5), null, null, new Float(0)));
-		
-		JLabel lblOfStims = new JLabel("# of Stims");
-		
-		JSpinner spinner_1 = new JSpinner();
-		spinner_1.setModel(new SpinnerNumberModel(new Integer(1), new Integer(1), null, new Integer(1)));
-		
-		JLabel lblPrestim = new JLabel("Pre-Stim");
-		
-		JLabel lblStim = new JLabel("Stim");
-		
-		JLabel lblPoststim = new JLabel("Post-Stim");
-		
-		JSpinner spinner_2 = new JSpinner();
-		spinner_2.setEnabled(false);
-		
-		JSpinner spinner_3 = new JSpinner();
-		spinner_3.setEnabled(false);
-		
-		JSpinner spinner_4 = new JSpinner();
-		spinner_4.setEnabled(false);
-		
-		JLabel lblFilename = new JLabel("Filename");
-		
-		JTextPane txtpnRuna = new JTextPane();
-		txtpnRuna.setText("runA");
-		
-		JLabel lblFileSavedAs = new JLabel("File Saved As");
-		
-		JTextPane textPane = new JTextPane();
-		textPane.setBackground(Color.LIGHT_GRAY);
-		
-		JLabel lblExperimentDirectory = new JLabel("Experiment Directory");
-		
-		JTextPane textPane_1 = new JTextPane();
-		textPane_1.setBackground(Color.LIGHT_GRAY);
-		
-		JButton btnCloseSplassh = new JButton("Close SPLASSH");
-		
 		GroupLayout gl_contentPane = new GroupLayout(contentPane);
 		gl_contentPane.setHorizontalGroup(
 			gl_contentPane.createParallelGroup(Alignment.TRAILING)
@@ -350,10 +303,10 @@ public class jsplassh_window extends JFrame {
 										.addComponent(exposureTime, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 									.addPreferredGap(ComponentPlacement.RELATED, 11, Short.MAX_VALUE)
 									.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
+										.addComponent(setWidth, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 										.addComponent(setHeight, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 										.addComponent(lblSetHeight)
-										.addComponent(lblSetWidth)
-										.addComponent(setWidth, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))))
+										.addComponent(lblSetWidth)))))
 						.addGroup(gl_contentPane.createSequentialGroup()
 							.addGap(21)
 							.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
@@ -392,6 +345,15 @@ public class jsplassh_window extends JFrame {
 					.addComponent(btnBlue)
 					.addContainerGap(237, Short.MAX_VALUE))
 				.addGroup(gl_contentPane.createSequentialGroup()
+					.addContainerGap(77, Short.MAX_VALUE)
+					.addGroup(gl_contentPane.createParallelGroup(Alignment.TRAILING)
+						.addComponent(btnDeploySettingsTo_1)
+						.addGroup(gl_contentPane.createSequentialGroup()
+							.addComponent(checkStatusBtn)
+							.addGap(24))
+						.addComponent(btnDeploySettingsTo))
+					.addGap(70))
+				.addGroup(gl_contentPane.createSequentialGroup()
 					.addGap(48)
 					.addComponent(arduinoStatusLbl, GroupLayout.PREFERRED_SIZE, 20, GroupLayout.PREFERRED_SIZE)
 					.addPreferredGap(ComponentPlacement.RELATED, 75, Short.MAX_VALUE)
@@ -399,71 +361,6 @@ public class jsplassh_window extends JFrame {
 					.addGap(74)
 					.addComponent(solidStatusLbl, GroupLayout.PREFERRED_SIZE, 20, GroupLayout.PREFERRED_SIZE)
 					.addGap(43))
-				.addGroup(gl_contentPane.createSequentialGroup()
-					.addContainerGap(111, Short.MAX_VALUE)
-					.addComponent(checkStatusBtn)
-					.addGap(94))
-				.addGroup(gl_contentPane.createSequentialGroup()
-					.addContainerGap(81, Short.MAX_VALUE)
-					.addComponent(btnDeploySettingsTo_1)
-					.addGap(66))
-				.addGroup(gl_contentPane.createSequentialGroup()
-					.addContainerGap()
-					.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
-						.addGroup(gl_contentPane.createSequentialGroup()
-							.addComponent(lblStimFunctionality, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-							.addGap(18))
-						.addGroup(gl_contentPane.createSequentialGroup()
-							.addGap(10)
-							.addGroup(gl_contentPane.createParallelGroup(Alignment.TRAILING)
-								.addComponent(tglbtnTes)
-								.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
-									.addComponent(spinner_2, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-									.addComponent(lblPrestim)))
-							.addGap(50)))
-					.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
-						.addComponent(lblRunningTime)
-						.addGroup(gl_contentPane.createSequentialGroup()
-							.addGap(10)
-							.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
-								.addComponent(lblStim, GroupLayout.PREFERRED_SIZE, 40, GroupLayout.PREFERRED_SIZE)
-								.addComponent(spinner, GroupLayout.PREFERRED_SIZE, 49, GroupLayout.PREFERRED_SIZE)
-								.addComponent(spinner_3, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))))
-					.addGap(45)
-					.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
-						.addComponent(spinner_1, GroupLayout.PREFERRED_SIZE, 49, GroupLayout.PREFERRED_SIZE)
-						.addComponent(lblOfStims, GroupLayout.PREFERRED_SIZE, 64, GroupLayout.PREFERRED_SIZE)
-						.addComponent(lblPoststim)
-						.addComponent(spinner_4, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-					.addContainerGap())
-				.addGroup(Alignment.LEADING, gl_contentPane.createSequentialGroup()
-					.addContainerGap()
-					.addComponent(lblFilename, GroupLayout.DEFAULT_SIZE, 89, Short.MAX_VALUE)
-					.addGap(201))
-				.addGroup(Alignment.LEADING, gl_contentPane.createSequentialGroup()
-					.addContainerGap()
-					.addComponent(txtpnRuna, GroupLayout.DEFAULT_SIZE, 280, Short.MAX_VALUE)
-					.addContainerGap())
-				.addGroup(Alignment.LEADING, gl_contentPane.createSequentialGroup()
-					.addContainerGap()
-					.addComponent(lblFileSavedAs, GroupLayout.PREFERRED_SIZE, 89, GroupLayout.PREFERRED_SIZE)
-					.addContainerGap(201, Short.MAX_VALUE))
-				.addGroup(Alignment.LEADING, gl_contentPane.createSequentialGroup()
-					.addContainerGap()
-					.addComponent(textPane, GroupLayout.DEFAULT_SIZE, 280, Short.MAX_VALUE)
-					.addContainerGap())
-				.addGroup(Alignment.LEADING, gl_contentPane.createSequentialGroup()
-					.addContainerGap()
-					.addComponent(lblExperimentDirectory)
-					.addContainerGap(189, Short.MAX_VALUE))
-				.addGroup(Alignment.LEADING, gl_contentPane.createSequentialGroup()
-					.addContainerGap()
-					.addComponent(textPane_1, GroupLayout.DEFAULT_SIZE, 280, Short.MAX_VALUE)
-					.addContainerGap())
-				.addGroup(Alignment.LEADING, gl_contentPane.createSequentialGroup()
-					.addGap(87)
-					.addComponent(btnCloseSplassh, GroupLayout.PREFERRED_SIZE, 117, GroupLayout.PREFERRED_SIZE)
-					.addContainerGap(96, Short.MAX_VALUE))
 		);
 		gl_contentPane.setVerticalGroup(
 			gl_contentPane.createParallelGroup(Alignment.LEADING)
@@ -530,45 +427,13 @@ public class jsplassh_window extends JFrame {
 						.addComponent(solidStatusLbl, GroupLayout.PREFERRED_SIZE, 20, GroupLayout.PREFERRED_SIZE)
 						.addComponent(arduinoStatusLbl, GroupLayout.PREFERRED_SIZE, 20, GroupLayout.PREFERRED_SIZE)
 						.addComponent(ledStatusLbl, GroupLayout.PREFERRED_SIZE, 20, GroupLayout.PREFERRED_SIZE))
-					.addPreferredGap(ComponentPlacement.RELATED)
+					.addGap(40)
 					.addComponent(checkStatusBtn)
-					.addPreferredGap(ComponentPlacement.RELATED)
+					.addPreferredGap(ComponentPlacement.UNRELATED)
 					.addComponent(btnDeploySettingsTo_1)
-					.addPreferredGap(ComponentPlacement.RELATED)
-					.addGroup(gl_contentPane.createParallelGroup(Alignment.BASELINE)
-						.addComponent(lblStimFunctionality)
-						.addComponent(lblRunningTime)
-						.addComponent(lblOfStims))
-					.addPreferredGap(ComponentPlacement.RELATED)
-					.addGroup(gl_contentPane.createParallelGroup(Alignment.BASELINE)
-						.addComponent(tglbtnTes)
-						.addComponent(spinner_1, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(spinner, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-					.addPreferredGap(ComponentPlacement.RELATED)
-					.addGroup(gl_contentPane.createParallelGroup(Alignment.BASELINE)
-						.addComponent(lblPrestim)
-						.addComponent(lblStim)
-						.addComponent(lblPoststim))
-					.addPreferredGap(ComponentPlacement.RELATED)
-					.addGroup(gl_contentPane.createParallelGroup(Alignment.BASELINE)
-						.addComponent(spinner_2, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(spinner_3, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(spinner_4, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(lblFilename)
-					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(txtpnRuna, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(lblFileSavedAs)
-					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(textPane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(lblExperimentDirectory)
-					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(textPane_1, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(btnCloseSplassh)
-					.addGap(89))
+					.addGap(278)
+					.addComponent(btnDeploySettingsTo)
+					.addGap(71))
 		);
 		contentPane.setLayout(gl_contentPane);
 	}

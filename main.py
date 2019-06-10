@@ -1,34 +1,23 @@
-import psutil, time, subprocess
+import time
 from arduino import Arduino
-
-def check_for_SOLIS():
-    print("Checking if SOLIS is running")
-    return "AndorSolis.exe" in (p.name() for p in psutil.process_iter())
-
-
-def open_GUI():
-    print("Opening the Java GUI")
-    subprocess.call(["java", "-jar","gui.jar"])
-    pass
+from solis import Solis
+from gui import Gui
+from led import Led
 
 def user_find_experiment_directory():
     print("Finding specified user directory")
 
 
 if __name__ == '__main__':
+    status = []
     # ------------------GUI---------------------
-    open_GUI()
+    Gui.open_GUI()
+    # ------------------ARDUINO---------------------
+    status.append(Arduino.check_arduino())
+    # ------------------LED---------------------
+    status.append(Led.check_led())
     # ------------------SOLIS---------------------
-    if not check_for_SOLIS():
-        print("SOLIS is not connected!")
-        print("Opening SOLIS")
-        subprocess.Popen(["C:\Program Files\Andor SOLIS\AndorSolis.exe"])
-        while not ("AndorSolis.exe" in (p.name() for p in psutil.process_iter())):
-            print("Waiting for SOLIS to open...")
-    else:
-        pass
+    status.append(Solis.check_for_SOLIS())
     # ------------------DIRECTORY---------------------
     user_find_experiment_directory()
-    # ------------------ARDUINO---------------------
-    ard = Arduino()
-    ard.initialize_arduino()
+    print(status)
