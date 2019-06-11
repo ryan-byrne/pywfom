@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <section name="Workbench">
+	<item value="C:\Users\rbyrne\Downloads" key="org.eclipse.jdt.ui.lastextjar"/>
 	<section name="FatJarPackageWizard">
 		<item value="C:\Users\rbyrne\eclipse-workspace" key="FatJarPackageWizardPage.ANTSCRIPT_LOCATION"/>
-		<item value="SPLASSH_GUI - SPLASSH" key="FatJarPackageWizardPage.LAUNCH_CONFIGURATION_SELECTION_NAME"/>
-		<item value="G:\My Drive\hillman\LFOI - WFOM Build (1)\Software\SPLASSH\SPLASSH_Ryan\gui.jar" key="FatJarPackageWizardPage.DESTINATION_PATH_SELECTION"/>
+		<item value="jsplassh_window - JSPLASSH" key="FatJarPackageWizardPage.LAUNCH_CONFIGURATION_SELECTION_NAME"/>
+		<item value="C:\Users\rbyrne\eclipse-workspace\splassh\gui.jar" key="FatJarPackageWizardPage.DESTINATION_PATH_SELECTION"/>
 		<item value="false" key="FatJarPackageWizardPage.ANTSCRIPT_SAVE"/>
 		<item value="1" key="FatJarPackageWizardPage.LIBRARY_HANDLING"/>
 		<list key="FatJarPackageWizardPage.DESTINATION_NAMES_ID">
+			<item value="C:\Users\rbyrne\eclipse-workspace\splassh\gui.jar"/>
 			<item value="G:\My Drive\hillman\LFOI - WFOM Build (1)\Software\SPLASSH\SPLASSH_Ryan\gui.jar"/>
 		</list>
 		<list key="FatJarPackageWizardPage.ANTSCRIPT_LOCATION_HISTORY">
@@ -24,7 +26,7 @@
 	<section name="quick_assist_proposal_size">
 	</section>
 	<section name="BuildPathsPropertyPage">
-		<item value="3" key="pageIndex"/>
+		<item value="2" key="pageIndex"/>
 	</section>
 	<section name="completion_proposal_size">
 	</section>

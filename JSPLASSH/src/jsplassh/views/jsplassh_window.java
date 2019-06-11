@@ -2,7 +2,7 @@ package jsplassh.views;
 
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
-
+import org.json.*;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
@@ -44,6 +44,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.beans.PropertyChangeEvent;
@@ -186,6 +187,17 @@ public class jsplassh_window extends JFrame {
 		JLabel solidStatusLbl = new JLabel("");
 		
 		JButton btnDeploySettingsTo_1 = new JButton("Deploy Settings to SOLIS");
+		btnDeploySettingsTo_1.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				int b = binning.getValue();
+				String h = setHeight.getText();
+				String w = setWidth.getText();
+				String e = exposureTime.getText();
+				String s = orderString;
+				String f = framerate.getText();
+				writeJsonSettings(b, f, h, e, w, s);
+			}
+		});
 		btnDeploySettingsTo_1.setEnabled(false);
 		JButton checkStatusBtn = new JButton("Check States");
 		checkStatusBtn.addActionListener(new ActionListener() {
@@ -290,6 +302,8 @@ public class jsplassh_window extends JFrame {
 		JLabel lblStim = new JLabel("Stim");
 		
 		JLabel lblPoststim = new JLabel("Post-Stim");
+		
+		tglbtnTes.isSelected();
 		
 		JSpinner spinner_2 = new JSpinner();
 		spinner_2.setEnabled(false);
@@ -604,5 +618,23 @@ public class jsplassh_window extends JFrame {
 		}
 		return statusArray;
 		
+	}
+
+	private void writeJsonSettings(int b, String f, String h, String e, String w, String s) {
+		JSONObject settings = new JSONObject();
+		settings.put("strobe_order", s);
+		settings.put("binning", b);
+		settings.put("framerate", f);
+		settings.put("height", h);
+		settings.put("width", w);
+		settings.put("exposure", e);
+		try {
+			PrintWriter out = new PrintWriter("settings.json");
+			out.println(settings.toString());
+			out.close();
+		} catch (FileNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 	}
 }
