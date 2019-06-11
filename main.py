@@ -8,7 +8,7 @@ from led import Led
 
 def create_camera_file_folder(user):
     date = str(datetime.now())[:10]
-    path = "S:/cm_"+user+"_"+date
+    path = "C:/cm_"+user[:-1]+"_"+date
     runs = string.ascii_uppercase
     try:
         os.mkdir(path)
