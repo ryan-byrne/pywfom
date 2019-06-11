@@ -12,5 +12,5 @@ class Arduino():
             arduinoData = Serial("COM4", "9600")
             return 1
         except serialutil.SerialException:
-            print("Arduino is not connected...")
+            print("Arduino is not connected...", end='\r')
             return 0
