@@ -5,7 +5,7 @@ from solis import Solis
 from gui import Gui
 from led import Led
 
-def user_find_experiment_directory():
+def create_camera_file_folder():
     print("Finding specified user directory")
 
 def update_status():

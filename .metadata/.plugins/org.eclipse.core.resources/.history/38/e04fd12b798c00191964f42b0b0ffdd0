@@ -601,7 +601,7 @@ public class jsplassh_window extends JFrame {
 		String[] statusArray = new String[3];
 		try{
 			List<String> status = new ArrayList<String>();
-			BufferedReader in = new BufferedReader(new FileReader("status.txt"));
+			BufferedReader in = new BufferedReader(new FileReader("C:\\Users\\rbyrne\\eclipse-workspace\\splassh\\JSPLASSH\\status.txt"));
 			String line;
 			while ((line = in.readLine()) != null) {
 				status.add(line);
