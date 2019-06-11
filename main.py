@@ -6,10 +6,7 @@ from solis import Solis
 from gui import Gui
 from led import Led
 
-def create_camera_file_folder():
-    with open("settings.json") as f:
-        settings = json.load(f)
-    user = settings["uni"]
+def create_camera_file_folder(user):
     date = str(datetime.now())[:10]
     path = "S:/cm_"+user+"_"+date
     runs = string.ascii_uppercase
@@ -28,7 +25,6 @@ def create_camera_file_folder():
             return path+"/CCD/"+"run"+runs[num_of_runs]
     print("Error establishing path ("+path+") to store data")
     exit()
-
 
 
 def exit():
@@ -66,7 +62,7 @@ def update_status():
 if __name__ == '__main__':
     banner("WFOM", "isometric1")
     banner("WELCOME TO SPLASSH", "contessa")
-    run_path = create_camera_file_folder()
-    Gui.open_GUI()
+    user = Gui.open_GUI()
+    run_path = create_camera_file_folder(user)
     Gui.solis_GUI()
     update_status()

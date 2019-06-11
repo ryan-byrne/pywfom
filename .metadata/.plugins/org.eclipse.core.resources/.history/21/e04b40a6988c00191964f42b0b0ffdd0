@@ -69,16 +69,8 @@ public class openScreen extends JFrame {
 		btnBegin.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				String uni = textField.getText();;
-				try {
-					PrintWriter out = new PrintWriter("uni.txt");
-					out.println(uni);
-					System.out.println(uni);
-					out.close();
-					System.exit(0);
-				} catch (FileNotFoundException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				System.out.println(uni);
+				System.exit(0);
 			}
 		});
 		GroupLayout gl_contentPane = new GroupLayout(contentPane);

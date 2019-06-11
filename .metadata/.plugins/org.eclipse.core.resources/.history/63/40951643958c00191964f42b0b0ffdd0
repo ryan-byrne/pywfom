@@ -72,7 +72,6 @@ public class openScreen extends JFrame {
 				try {
 					PrintWriter out = new PrintWriter("uni.txt");
 					out.println(uni);
-					System.out.println(uni);
 					out.close();
 					System.exit(0);
 				} catch (FileNotFoundException e) {
