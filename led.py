@@ -5,4 +5,4 @@ class Led(object):
         pass
 
     def check_led():
-        return 0
+        return 1
