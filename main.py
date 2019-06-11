@@ -8,23 +8,21 @@ from led import Led
 
 def create_camera_file_folder(user):
     date = str(datetime.now())[:10]
-    path = "S:/cm_"+user[:-1]+"_"+date
+    path = "C:/WFOM/data/cm_"+user[:-1]+"_"+date
     runs = string.ascii_uppercase
-    try:
-        os.mkdir(path)
-    except FileNotFoundError:
-        print("Oh no! We couldn't make the directory: "+path+" \n\
-        Are you using the right computer?")
-        exit()
-    except FileExistsError:
+    if not os.path.isdir(path):
         try:
+            os.mkdir(path)
+        except FileNotFoundError:
+            print("Oh no! We couldn't make the directory: "+path+" \n\
+            Are you using the right computer?")
+            exit()
+    else:
+        if not os.path.isdir(path+"/CCD/"):
             os.mkdir(path+"/CCD/")
-        except FileExistsError:
             num_of_runs = len(os.listdir(path+"/CCD/"))
             os.mkdir(path+"/CCD/"+"run"+runs[num_of_runs])
             return path+"/CCD/"+"run"+runs[num_of_runs]
-    print("Error establishing path ("+path+") to store data")
-    exit()
 
 
 def exit():
