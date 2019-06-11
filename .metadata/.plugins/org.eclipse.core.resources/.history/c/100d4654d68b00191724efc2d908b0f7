@@ -218,7 +218,7 @@ public class jsplassh_window extends JFrame {
 					solidStatusLbl.setIcon(new ImageIcon(jsplassh_window.class.getResource("/jsplassh/resources/x.png")));
 				}
 				
-				if (solisState== 1 && ledState == 1 && arduinoState == 1){
+				if (solisState==1 && ledState == 1 && arduinoState ==1){
 					btnDeploySettingsTo_1.setEnabled(true);
 				}
 				else {
@@ -587,13 +587,13 @@ public class jsplassh_window extends JFrame {
 		String[] statusArray = new String[3];
 		try{
 			List<String> status = new ArrayList<String>();
-			BufferedReader in = new BufferedReader(new FileReader("C:\\Users\\rbyrne\\eclipse-workspace\\splassh\\JSPLASSH\\status.txt"));
+			BufferedReader in = new BufferedReader(new FileReader("C:\\Users\\rbyrne\\eclipse-workspace\\JSPLASSH\\status.txt"));
 			String line;
 			while ((line = in.readLine()) != null) {
 				status.add(line);
 			}
 			status.toArray(statusArray);
-			System.out.println(status.toString());
+			
 			return statusArray;
 		}
 		catch (FileNotFoundException err) {

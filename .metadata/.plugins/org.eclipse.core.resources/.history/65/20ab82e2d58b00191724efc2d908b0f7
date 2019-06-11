@@ -218,7 +218,7 @@ public class jsplassh_window extends JFrame {
 					solidStatusLbl.setIcon(new ImageIcon(jsplassh_window.class.getResource("/jsplassh/resources/x.png")));
 				}
 				
-				if (solisState== 1 && ledState == 1 && arduinoState == 1){
+				if (solisState==1 && ledState == 1 && arduinoState ==1){
 					btnDeploySettingsTo_1.setEnabled(true);
 				}
 				else {
@@ -333,11 +333,10 @@ public class jsplassh_window extends JFrame {
 									.addComponent(binning, GroupLayout.PREFERRED_SIZE, 43, GroupLayout.PREFERRED_SIZE)
 									.addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 									.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
+										.addComponent(lblx_3)
 										.addComponent(lblx_2)
 										.addComponent(lblx_1)
-										.addGroup(gl_contentPane.createParallelGroup(Alignment.TRAILING)
-											.addComponent(lblx_3)
-											.addComponent(lblx))))
+										.addComponent(lblx)))
 								.addGroup(gl_contentPane.createSequentialGroup()
 									.addGap(30)
 									.addComponent(lblBinning)))
@@ -480,12 +479,11 @@ public class jsplassh_window extends JFrame {
 					.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING, false)
 						.addComponent(binning, GroupLayout.PREFERRED_SIZE, 111, GroupLayout.PREFERRED_SIZE)
 						.addGroup(gl_contentPane.createSequentialGroup()
-							.addGroup(gl_contentPane.createParallelGroup(Alignment.BASELINE)
-								.addComponent(lblSetFramerate)
-								.addComponent(lblSetHeight)
-								.addComponent(lblx))
-							.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
+							.addGroup(gl_contentPane.createParallelGroup(Alignment.TRAILING)
 								.addGroup(gl_contentPane.createSequentialGroup()
+									.addGroup(gl_contentPane.createParallelGroup(Alignment.BASELINE)
+										.addComponent(lblSetFramerate)
+										.addComponent(lblSetHeight))
 									.addPreferredGap(ComponentPlacement.RELATED)
 									.addGroup(gl_contentPane.createParallelGroup(Alignment.BASELINE)
 										.addComponent(framerate, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
@@ -499,6 +497,7 @@ public class jsplassh_window extends JFrame {
 										.addComponent(exposureTime, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 										.addComponent(setWidth, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
 								.addGroup(gl_contentPane.createSequentialGroup()
+									.addComponent(lblx)
 									.addGap(18)
 									.addComponent(lblx_1)
 									.addGap(18)
@@ -587,13 +586,13 @@ public class jsplassh_window extends JFrame {
 		String[] statusArray = new String[3];
 		try{
 			List<String> status = new ArrayList<String>();
-			BufferedReader in = new BufferedReader(new FileReader("C:\\Users\\rbyrne\\eclipse-workspace\\splassh\\JSPLASSH\\status.txt"));
+			BufferedReader in = new BufferedReader(new FileReader("C:\\Users\\rbyrne\\eclipse-workspace\\JSPLASSH\\status.txt"));
 			String line;
 			while ((line = in.readLine()) != null) {
 				status.add(line);
 			}
 			status.toArray(statusArray);
-			System.out.println(status.toString());
+			
 			return statusArray;
 		}
 		catch (FileNotFoundException err) {
