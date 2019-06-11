@@ -26,7 +26,7 @@ def create_camera_file_folder():
             num_of_runs = len(os.listdir(path+"/CCD/"))
             os.mkdir(path+"/CCD/"+"run"+runs[num_of_runs])
             return path+"/CCD/"+"run"+runs[num_of_runs]
-    print("Error establishing path to store data")
+    print("Error establishing path ("+path+") to store data")
     exit()
 
 
