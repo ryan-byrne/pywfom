@@ -7,7 +7,8 @@ class Solis():
 
     def check_for_SOLIS():
         if "AndorSolis.exe" not in (p.name() for p in psutil.process_iter()):
-            print("SOLIS is Running!", end='\r')
+            print(" "*100, end="\r")
+            print("SOLIS is Not Running!", end='\r')
             return 0
         else:
             return 1

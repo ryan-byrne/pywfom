@@ -41,3 +41,5 @@ org.eclipse.core.runtime.OperationCanceledException: null
 	at org.eclipse.m2e.core.ui.internal.views.MavenRepositoryView$8$1.run(MavenRepositoryView.java:392) [org.eclipse.m2e.core.ui_1.8.3.20180227-2137.jar:na]
 	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:56) [org.eclipse.core.jobs_3.9.3.v20180115-1757.jar:na]
 2019-06-11 11:29:30,088 [Worker-1] INFO  c.g.t.t.d.PublishedGradleVersions - Gradle version information cache is up-to-date. Trying to read.
+2019-06-14 15:25:05,371 [Worker-1] INFO  c.g.t.t.d.PublishedGradleVersions - Gradle version information cache is out-of-date. Trying to update.
+2019-06-14 16:02:13,615 [Worker-1] INFO  c.g.t.t.d.PublishedGradleVersions - Gradle version information cache is up-to-date. Trying to read.

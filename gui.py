@@ -1,4 +1,4 @@
-import subprocess
+import subprocess, json
 
 class Gui():
 
@@ -6,12 +6,14 @@ class Gui():
         pass
 
     def open_GUI():
-        print("Waiting for UNI")
+        print("Waiting for UNI and Mouse Name")
         subprocess.call(["java", "-jar", "open.jar"])
-        with open("uni.txt") as f:
-            uni = f.read()
+        with open("JSPLASSH/settings.json") as f:
+            settings = json.load(f)
+            uni = settings["uni"]
+            mouse = settings["mouse"]
         f.close()
-        return uni
+        return uni, mouse
 
     def solis_GUI():
         print("Opening the Java GUI", end='\r')

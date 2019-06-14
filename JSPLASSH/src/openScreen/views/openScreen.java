@@ -5,7 +5,13 @@ import java.awt.EventQueue;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.json.JSONTokener;
+
 import javax.swing.JTextField;
 import javax.swing.JButton;
 import java.awt.GridLayout;
@@ -18,15 +24,30 @@ import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.awt.event.ActionEvent;
+import javax.swing.JToggleButton;
+import javax.swing.SwingConstants;
+import javax.swing.JCheckBox;
+import javax.swing.JList;
+import javax.swing.AbstractListModel;
+import javax.swing.ListSelectionModel;
+import javax.swing.JScrollBar;
+import javax.swing.JTable;
+import java.awt.Scrollbar;
+import javax.swing.JComboBox;
+import javax.swing.DefaultComboBoxModel;
 
 public class openScreen extends JFrame {
 
 	private JPanel contentPane;
 	private JTextField textField;
+	private JLabel lblEnterTheMouse;
+	private JTextField textField_1;
 
 	/**
 	 * Launch the application.
@@ -55,7 +76,7 @@ public class openScreen extends JFrame {
 	public openScreen() {
 		setTitle("SPLASSH - Enter Your Uni");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 250, 250);
+		setBounds(100, 100, 150, 240);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
@@ -64,49 +85,126 @@ public class openScreen extends JFrame {
 		textField.setColumns(10);
 		
 		JLabel lblEnterYourUni = new JLabel("Enter Your UNI:");
+	
 		
-		JButton btnBegin = new JButton("Begin");
-		btnBegin.addActionListener(new ActionListener() {
+		lblEnterTheMouse = new JLabel("Enter the Mouse Name:");
+		
+		textField_1 = new JTextField();
+		textField_1.setColumns(10);
+		JLabel lblSelectTheMouse = new JLabel("Select the Mouse");
+		FileReader reader;
+		JSONArray jarray = new JSONArray();
+		try {
+			reader = new FileReader("JSPLASSH/archive.json");
+			JSONTokener tokener = new JSONTokener(reader);
+			JSONObject obj = new JSONObject(tokener);
+			jarray = obj.getJSONObject("mice").names();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		String[] values = new String[jarray.length()];
+		jarray.toList().toArray(values);
+		JCheckBox chckbxNewMouse = new JCheckBox("New Mouse?");
+		
+		JComboBox comboBox = new JComboBox();
+		comboBox.setModel(new DefaultComboBoxModel(values));
+		chckbxNewMouse.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				String uni = textField.getText();;
-				try {
-					PrintWriter out = new PrintWriter("uni.txt");
-					out.println(uni);
-					System.out.println(uni);
-					out.close();
-					System.exit(0);
-				} catch (FileNotFoundException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+				if (chckbxNewMouse.isSelected()) {
+					comboBox.setEnabled(false);
+					lblSelectTheMouse.setEnabled(false);
+					textField_1.setEnabled(true);
+					lblEnterTheMouse.setEnabled(true);
+				}
+				else {
+					comboBox.setEnabled(true);
+					lblSelectTheMouse.setEnabled(true);
+					textField_1.setEnabled(false);
+					lblEnterTheMouse.setEnabled(false);
 				}
 			}
 		});
+
+		textField_1.setEnabled(false);
+		lblEnterTheMouse.setEnabled(false);
+
+		JButton btnBegin = new JButton("Begin");
+		btnBegin.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				try {
+					String mouse = new String();
+					FileReader reader = new FileReader("JSPLASSH/settings.json");
+					JSONTokener tokener = new JSONTokener(reader);
+					JSONObject obj = new JSONObject(tokener);
+					String uni = textField.getText();
+					if (chckbxNewMouse.isSelected()){
+						mouse = textField_1.getText();
+						FileReader r = new FileReader("JSPLASSH/archive.json");
+						JSONTokener t = new JSONTokener(r);
+						JSONObject o = new JSONObject(t);
+						JSONObject jobj = o.getJSONObject("mice");
+						JSONObject l = new JSONObject();
+						l.put("last_trial", 0);
+						jobj.put(mouse, l);
+						FileWriter f = new FileWriter("JSPLASSH/archive.json");
+						f.write(o.toString());
+						f.flush();
+						f.close();
+					}
+					else {
+						mouse = comboBox.getSelectedItem().toString();
+					}
+					obj.put("uni", uni);
+					obj.put("mouse", mouse);
+					FileWriter file = new FileWriter("JSPLASSH/settings.json");
+				    file.write(obj.toString());
+				    file.flush();
+				    file.close();
+				    System.exit(0);
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+		});
+		
 		GroupLayout gl_contentPane = new GroupLayout(contentPane);
 		gl_contentPane.setHorizontalGroup(
 			gl_contentPane.createParallelGroup(Alignment.LEADING)
-				.addGroup(gl_contentPane.createSequentialGroup()
-					.addContainerGap(77, Short.MAX_VALUE)
+				.addGroup(Alignment.TRAILING, gl_contentPane.createSequentialGroup()
+					.addContainerGap()
 					.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
-						.addGroup(Alignment.TRAILING, gl_contentPane.createSequentialGroup()
-							.addComponent(lblEnterYourUni)
-							.addGap(69))
-						.addGroup(Alignment.TRAILING, gl_contentPane.createSequentialGroup()
-							.addComponent(textField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-							.addGap(61))
-						.addGroup(Alignment.TRAILING, gl_contentPane.createSequentialGroup()
-							.addComponent(btnBegin)
-							.addGap(77))))
+						.addComponent(lblEnterYourUni)
+						.addComponent(textField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(chckbxNewMouse)
+						.addComponent(lblSelectTheMouse, GroupLayout.DEFAULT_SIZE, 92, Short.MAX_VALUE)
+						.addComponent(comboBox, GroupLayout.PREFERRED_SIZE, 96, GroupLayout.PREFERRED_SIZE)
+						.addComponent(lblEnterTheMouse)
+						.addComponent(textField_1, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(btnBegin))
+					.addContainerGap())
 		);
 		gl_contentPane.setVerticalGroup(
 			gl_contentPane.createParallelGroup(Alignment.LEADING)
-				.addGroup(Alignment.TRAILING, gl_contentPane.createSequentialGroup()
-					.addContainerGap(75, Short.MAX_VALUE)
+				.addGroup(gl_contentPane.createSequentialGroup()
+					.addContainerGap()
 					.addComponent(lblEnterYourUni)
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addComponent(textField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(chckbxNewMouse)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(lblSelectTheMouse)
+					.addGap(2)
+					.addComponent(comboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(lblEnterTheMouse)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(textField_1, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+					.addPreferredGap(ComponentPlacement.RELATED)
 					.addComponent(btnBegin)
-					.addGap(57))
+					.addContainerGap(62, Short.MAX_VALUE))
 		);
 		contentPane.setLayout(gl_contentPane);
 	}

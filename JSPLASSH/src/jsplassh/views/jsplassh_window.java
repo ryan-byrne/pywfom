@@ -189,11 +189,16 @@ public class jsplassh_window extends JFrame {
 		JButton btnDeploySettingsTo_1 = new JButton("Deploy Settings to SOLIS");
 		btnDeploySettingsTo_1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				String uni = new String();
+				List<String> uni = new ArrayList<String>();
+				String[] uniArray = new String[2];
 				try {
 					BufferedReader in = new BufferedReader(new FileReader("uni.txt"));
-					uni = in.readLine();
+					String line = null;
+					while ((line = in.readLine()) != null) {
+						uni.add(line);
+					}
 					in.close();
+					uni.toArray(uniArray);
 				} catch (IOException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
@@ -204,8 +209,9 @@ public class jsplassh_window extends JFrame {
 				String e = exposureTime.getText();
 				String s = orderString;
 				String f = framerate.getText();
-				String u = uni;
-				writeJsonSettings(b, f, h, e, w, s, u);
+				String u = uniArray[0];
+				String m = uniArray[1];
+				writeJsonSettings(b, f, h, e, w, s, u, m);
 			}
 		});
 		btnDeploySettingsTo_1.setEnabled(false);
@@ -213,10 +219,10 @@ public class jsplassh_window extends JFrame {
 		checkStatusBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				
-				String[] statusArray = updateStatesActionPerformed(arg0);
-				arduinoState = Integer.parseInt(statusArray[0]);
-				ledState = Integer.parseInt(statusArray[1]);
-				solisState = Integer.parseInt(statusArray[2]);
+				Integer[] statusArray = updateStatesActionPerformed(arg0);
+				arduinoState = statusArray[0];
+				ledState = statusArray[1];
+				solisState = statusArray[2];
 				
 				if (arduinoState == 1) {
 					arduinoStatusLbl.setIcon(new ImageIcon(jsplassh_window.class.getResource("/jsplassh/resources/check.png")));
@@ -463,17 +469,13 @@ public class jsplassh_window extends JFrame {
 
 	}
 	
-	private String[] updateStatesActionPerformed(java.awt.event.ActionEvent e) {
-		String[] statusArray = new String[3];
+	private Integer[] updateStatesActionPerformed(java.awt.event.ActionEvent e) {
+		Integer[] statusArray = new Integer[3];
 		try{
-			List<String> status = new ArrayList<String>();
-			BufferedReader in = new BufferedReader(new FileReader("status.txt"));
-			String line;
-			while ((line = in.readLine()) != null) {
-				status.add(line);
-			}
-			in.close();
-			status.toArray(statusArray);
+			FileReader reader = new FileReader("settings.json");
+			JSONTokener tokener = new JSONTokener(reader);
+			JSONObject obj = new JSONObject(tokener);
+			obj.getJSONArray("status").toList().toArray(statusArray);
 			return statusArray;
 		}
 		catch (FileNotFoundException err) {
@@ -482,11 +484,11 @@ public class jsplassh_window extends JFrame {
 		catch (IOException err) {
 			err.printStackTrace();
 		}
-		return statusArray;
+		return (new Integer[3]) ;
 		
 	}
 
-	private void writeJsonSettings(int b, String f, String h, String e, String w, String s, String u) {
+	private void writeJsonSettings(int b, String f, String h, String e, String w, String s, String u, String m) {
 		JSONObject settings = new JSONObject();
 		settings.put("strobe_order", s);
 		settings.put("binning", b);
@@ -495,6 +497,7 @@ public class jsplassh_window extends JFrame {
 		settings.put("width", w);
 		settings.put("exposure", e);
 		settings.put("uni", u);
+		settings.put("mouse", m);
 		try {
 			PrintWriter out = new PrintWriter("settings.json");
 			out.println(settings.toString());
