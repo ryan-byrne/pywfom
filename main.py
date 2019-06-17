@@ -78,7 +78,7 @@ def update_status():
         time.sleep(1)
 
 def deploy_settings(path):
-    print path
+    print(path)
 
 if __name__ == '__main__':
     banner("WFOM", "isometric1")
