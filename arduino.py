@@ -6,11 +6,3 @@ class Arduino():
 
     def __init__(self):
         pass
-
-    def check_arduino():
-        try:
-            arduinoData = Serial("COM4", "9600")
-            return 1
-        except serialutil.SerialException:
-            print("Arduino is not connected...", end='\r')
-            return 0

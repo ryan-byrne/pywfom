@@ -1,4 +1,5 @@
 import subprocess, json
+from pyfiglet import Figlet
 
 class Gui():
 
@@ -18,4 +19,14 @@ class Gui():
     def solis_GUI():
         print("Opening the Java GUI", end='\r')
         subprocess.call(["java", "-jar","solis.jar"])
-        pass
+
+    def exit():
+        for i in [9,8,7,6,5,4,3,2,1]:
+            print("Exiting in: ", sep=' ', end=': ')
+            print(i, sep=' ', end='\r')
+            time.sleep(1)
+        sys.exit()
+
+    def banner(text, font):
+        custom_fig = Figlet(font=font, direction='auto', justify='auto', width=80)
+        print(custom_fig.renderText(text))
