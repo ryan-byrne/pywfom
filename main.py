@@ -78,12 +78,7 @@ def update_status():
         time.sleep(1)
 
 def deploy_settings(path):
-    try:
-        command = "move JSPLASSH/settings.json "+ path
-        os.system(command)
-    except Exception as e:
-        print(e.message)
-        raise
+    print path
 
 if __name__ == '__main__':
     banner("WFOM", "isometric1")
@@ -92,5 +87,4 @@ if __name__ == '__main__':
     path = create_camera_file_folder(mouse)
     Gui.solis_GUI()
     update_status()
-    print(path)
     deploy_settings(path)
