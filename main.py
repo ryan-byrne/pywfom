@@ -76,6 +76,7 @@ def update_status():
         else:
             ready = True
         time.sleep(1)
+    input("Ready to deploy! Press Enter to Continue")
 
 def deploy_settings(path):
     command = "move JSPLASSH/settings.json "+path
@@ -88,4 +89,5 @@ if __name__ == '__main__':
     path = create_camera_file_folder(mouse)
     Gui.solis_GUI()
     update_status()
+    print(path)
     deploy_settings(path)
