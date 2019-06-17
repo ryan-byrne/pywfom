@@ -17,5 +17,5 @@ class Gui():
 
     def solis_GUI():
         print("Opening the Java GUI", end='\r')
-        subprocess.Popen(["java", "-jar","solis.jar"])
+        subprocess.call(["java", "-jar","solis.jar"])
         pass

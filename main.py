@@ -1,4 +1,5 @@
 import time, subprocess, os, datetime, json, sys, string
+from shutil import copyfile
 from pyfiglet import Figlet
 from datetime import datetime
 from arduino import Arduino
@@ -55,7 +56,10 @@ def banner(text, font):
     print(custom_fig.renderText(text))
 
 def deploy_settings(path):
-    print(path)
+    print("Copying JSPLASSH/settings.json to "+path+"/settings.json")
+    src = "C:/Users/rbyrne/eclipse-workspace/splassh/JSPLASSH/settings.json"
+    dst = path+"/settings.json"
+    copyfile(src, dst)
 
 if __name__ == '__main__':
     banner("WFOM", "isometric1")
@@ -67,4 +71,7 @@ if __name__ == '__main__':
         print(e.with_traceback)
         exit()
     Gui.solis_GUI()
-    deploy_settings(path)
+    try:
+        deploy_settings(path)
+    except FileNotFoundError as e:
+        print(e.filename)

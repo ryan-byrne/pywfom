@@ -196,7 +196,6 @@ public class jsplassh_window extends JFrame {
 				String u = uni;
 				String m = mouse;
 				writeJsonSettings(b, f, h, e, w, s, u, m);
-				System.exit(0);
 			}
 		});
 		//btnDeploySettingsTo_1.setEnabled(false);
