@@ -1,3 +1,5 @@
+import visa
+
 class Led(object):
     """docstring for Led."""
 
@@ -5,4 +7,6 @@ class Led(object):
         pass
 
     def check_led():
+        rm = visa.ResourceManager()
+        print(rm.list_resources())
         return 1
