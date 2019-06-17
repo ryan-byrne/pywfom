@@ -54,30 +54,6 @@ def banner(text, font):
     custom_fig = Figlet(font=font, direction='auto', justify='auto', width=80)
     print(custom_fig.renderText(text))
 
-def update_status():
-    ready = False
-    while not ready:
-        status = []
-        # ------------------ARDUINO---------------------
-        status.append(Arduino.check_arduino())
-        # ------------------LED---------------------
-        status.append(Led.check_led())
-        # ------------------SOLIS---------------------
-        status.append(Solis.check_for_SOLIS())
-        with open("JSPLASSH/settings.json") as f:
-            settings = json.load(f)
-            settings["status"] = status
-        f.close()
-        with open("JSPLASSH/settings.json", "w+") as f:
-            f.write(json.dumps(settings))
-        f.close()
-        if 0 in status:
-            pass
-        else:
-            ready = True
-        time.sleep(1)
-    print("Settings are ready to be deployed! Press check settings in the GUI")
-
 def deploy_settings(path):
     print(path)
 
@@ -85,7 +61,10 @@ if __name__ == '__main__':
     banner("WFOM", "isometric1")
     banner("WELCOME TO SPLASSH", "contessa")
     uni, mouse = Gui.open_GUI()
-    path = create_camera_file_folder(mouse)
+    try:
+        path = create_camera_file_folder(mouse)
+    except FileExistsError as e:
+        print(e.with_traceback)
+        exit()
     Gui.solis_GUI()
-    update_status()
     deploy_settings(path)
