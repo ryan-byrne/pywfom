@@ -57,7 +57,7 @@ def banner(text, font):
 
 def deploy_settings(path):
     print("Copying JSPLASSH/settings.json to "+path+"/settings.json")
-    src = "C:/Users/rbyrne/eclipse-workspace/splassh/JSPLASSH/settings.json"
+    src = "JSPLASSH/settings.json"
     dst = path+"/settings.json"
     copyfile(src, dst)
 

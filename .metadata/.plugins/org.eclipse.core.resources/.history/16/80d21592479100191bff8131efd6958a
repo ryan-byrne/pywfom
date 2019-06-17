@@ -199,7 +199,7 @@ public class jsplassh_window extends JFrame {
 				System.exit(0);
 			}
 		});
-		btnDeploySettingsTo_1.setEnabled(false);
+		//btnDeploySettingsTo_1.setEnabled(false);
 		JButton checkStatusBtn = new JButton("Check States");
 		checkStatusBtn.setBounds(107, 423, 95, 23);
 		checkStatusBtn.addActionListener(new ActionListener() {
