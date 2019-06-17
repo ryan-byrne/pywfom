@@ -64,9 +64,12 @@ def update_status():
         status.append(Led.check_led())
         # ------------------SOLIS---------------------
         status.append(Solis.check_for_SOLIS())
-        with open("status.txt", "w+") as f:
-            for s in status:
-                f.write(str(s)+"\n")
+        with open("JSPLASSH/settings.json") as f:
+            settings = json.load(f)
+            settings["status"] = status
+        f.close()
+        with open("JSPLASSH/settings.json", "w+") as f:
+            f.write(json.dumps(settings))
         f.close()
         if 0 in status:
             pass

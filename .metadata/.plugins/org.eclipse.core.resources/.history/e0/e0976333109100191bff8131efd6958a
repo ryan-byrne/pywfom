@@ -459,7 +459,7 @@ public class jsplassh_window extends JFrame {
 	private Integer[] updateStatesActionPerformed(java.awt.event.ActionEvent e) {
 		Integer[] statusArray = new Integer[3];
 		try{
-			FileReader reader = new FileReader("JSPLASSH/settings.json");
+			FileReader reader = new FileReader("settings.json");
 			JSONTokener tokener = new JSONTokener(reader);
 			JSONObject obj = new JSONObject(tokener);
 			obj.getJSONArray("status").toList().toArray(statusArray);

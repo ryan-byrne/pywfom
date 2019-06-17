@@ -9,7 +9,7 @@ class Arduino():
 
     def check_arduino():
         try:
-            arduinoData = Serial("COM4", "9600")
+            arduinoData = Serial("COM6", "9600")
             return 1
         except serialutil.SerialException:
             print("Arduino is not connected...", end='\r')

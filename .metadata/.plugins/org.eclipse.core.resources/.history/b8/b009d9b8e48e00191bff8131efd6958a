@@ -117,6 +117,10 @@ public class jsplassh_window extends JFrame {
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 		
+		JLabel functionResponsesLbl = new JLabel("Function Responses");
+		
+		JLabel lblResponse = new JLabel(functionResponse);
+		
 		JLabel lblSolisParameters = new JLabel("SOLIS Parameters");
 		
 		JSlider binning = new JSlider();
@@ -296,7 +300,7 @@ public class jsplassh_window extends JFrame {
 		
 		GroupLayout gl_contentPane = new GroupLayout(contentPane);
 		gl_contentPane.setHorizontalGroup(
-			gl_contentPane.createParallelGroup(Alignment.TRAILING)
+			gl_contentPane.createParallelGroup(Alignment.LEADING)
 				.addGroup(gl_contentPane.createSequentialGroup()
 					.addContainerGap()
 					.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
@@ -305,7 +309,7 @@ public class jsplassh_window extends JFrame {
 						.addComponent(btnBlue)
 						.addComponent(btnSpeckle))
 					.addContainerGap(229, Short.MAX_VALUE))
-				.addGroup(gl_contentPane.createSequentialGroup()
+				.addGroup(Alignment.TRAILING, gl_contentPane.createSequentialGroup()
 					.addContainerGap(108, Short.MAX_VALUE)
 					.addComponent(checkStatusBtn)
 					.addGap(97))
@@ -330,8 +334,10 @@ public class jsplassh_window extends JFrame {
 					.addComponent(lblSolisState)
 					.addGap(27))
 				.addGroup(gl_contentPane.createSequentialGroup()
-					.addComponent(lblSolisParameters)
-					.addContainerGap(213, Short.MAX_VALUE))
+					.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
+						.addComponent(lblResponse)
+						.addComponent(lblSolisParameters))
+					.addContainerGap(93, Short.MAX_VALUE))
 				.addGroup(gl_contentPane.createSequentialGroup()
 					.addGap(21)
 					.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
@@ -374,11 +380,17 @@ public class jsplassh_window extends JFrame {
 						.addComponent(lblSetWidth)
 						.addComponent(lblSetHeight))
 					.addGap(15))
+				.addGroup(gl_contentPane.createSequentialGroup()
+					.addComponent(functionResponsesLbl)
+					.addGap(204))
 		);
 		gl_contentPane.setVerticalGroup(
 			gl_contentPane.createParallelGroup(Alignment.LEADING)
 				.addGroup(gl_contentPane.createSequentialGroup()
-					.addGap(40)
+					.addComponent(functionResponsesLbl)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(lblResponse)
+					.addPreferredGap(ComponentPlacement.RELATED)
 					.addComponent(lblSolisParameters)
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addComponent(lblBinning)
@@ -417,9 +429,9 @@ public class jsplassh_window extends JFrame {
 					.addGroup(gl_contentPane.createParallelGroup(Alignment.BASELINE)
 						.addComponent(lblOrder_1)
 						.addComponent(lblLeds))
-					.addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-					.addGroup(gl_contentPane.createParallelGroup(Alignment.TRAILING, false)
+					.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING, false)
 						.addGroup(gl_contentPane.createSequentialGroup()
+							.addPreferredGap(ComponentPlacement.RELATED)
 							.addGroup(gl_contentPane.createParallelGroup(Alignment.BASELINE)
 								.addComponent(btnRed)
 								.addComponent(lblStrobeOrder))
@@ -434,7 +446,8 @@ public class jsplassh_window extends JFrame {
 								.addComponent(lblArduinoState)
 								.addComponent(lblSolisState))
 							.addPreferredGap(ComponentPlacement.RELATED))
-						.addGroup(gl_contentPane.createSequentialGroup()
+						.addGroup(Alignment.TRAILING, gl_contentPane.createSequentialGroup()
+							.addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 							.addComponent(lblNewLabel)
 							.addGap(6)))
 					.addGroup(gl_contentPane.createParallelGroup(Alignment.TRAILING)
@@ -459,7 +472,7 @@ public class jsplassh_window extends JFrame {
 	private Integer[] updateStatesActionPerformed(java.awt.event.ActionEvent e) {
 		Integer[] statusArray = new Integer[3];
 		try{
-			FileReader reader = new FileReader("JSPLASSH/settings.json");
+			FileReader reader = new FileReader("settings.json");
 			JSONTokener tokener = new JSONTokener(reader);
 			JSONObject obj = new JSONObject(tokener);
 			obj.getJSONArray("status").toList().toArray(statusArray);
