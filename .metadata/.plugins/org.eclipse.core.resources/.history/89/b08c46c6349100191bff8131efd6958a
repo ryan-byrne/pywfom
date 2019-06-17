@@ -198,7 +198,7 @@ public class jsplassh_window extends JFrame {
 				writeJsonSettings(b, f, h, e, w, s, u, m);
 			}
 		});
-		//btnDeploySettingsTo_1.setEnabled(false);
+		btnDeploySettingsTo_1.setEnabled(false);
 		JButton checkStatusBtn = new JButton("Check States");
 		checkStatusBtn.setBounds(107, 423, 95, 23);
 		checkStatusBtn.addActionListener(new ActionListener() {
@@ -484,41 +484,30 @@ public class jsplassh_window extends JFrame {
 		try {
 			reader = new FileReader("JSPLASSH/settings.json");
 			JSONTokener tokener = new JSONTokener(reader);
-			JSONObject settings = new JSONObject(tokener);
-			reader.close();
-			JSONObject camera = new JSONObject();
-			camera.put("strobe_order", s);
-			camera.put("binning", b);
-			camera.put("framerate", f);
-			camera.put("height", h);
-			camera.put("width", w);
-			camera.put("exposure", e);
-			settings.put("camera", camera);
-			PrintWriter out = new PrintWriter("JSPLASSH/settings.json");
+			JSONObject obj = new JSONObject(tokener);
+			
+		} catch (FileNotFoundException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		}
+		JSONObject settings = new JSONObject();
+		JSONObject camera = new JSONObject();
+		camera.put("strobe_order", s);
+		camera.put("binning", b);
+		camera.put("framerate", f);
+		camera.put("height", h);
+		camera.put("width", w);
+		camera.put("exposure", e);
+		settings.put("camera", camera);
+		settings.put("uni", u);
+		settings.put("mouse", m);
+		try {
+			PrintWriter out = new PrintWriter("settings.json");
 			out.println(settings.toString());
 			out.close();
-		} catch (IOException e2) {
+		} catch (FileNotFoundException e1) {
 			// TODO Auto-generated catch block
-			try {
-				reader = new FileReader("settings.json");
-				JSONTokener tokener = new JSONTokener(reader);
-				JSONObject settings = new JSONObject(tokener);
-				reader.close();
-				JSONObject camera = new JSONObject();
-				camera.put("strobe_order", s);
-				camera.put("binning", b);
-				camera.put("framerate", f);
-				camera.put("height", h);
-				camera.put("width", w);
-				camera.put("exposure", e);
-				settings.put("camera", camera);
-				PrintWriter out = new PrintWriter("settings.json");
-				out.println(settings.toString());
-				out.close();
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
+			e1.printStackTrace();
 		}
 	}
 }

@@ -76,6 +76,7 @@ def update_status():
         else:
             ready = True
         time.sleep(1)
+    print("Settings are ready to be deployed! Press check settings in the GUI")
 
 def deploy_settings(path):
     print(path)

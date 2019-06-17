@@ -28,7 +28,6 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import javax.swing.ImageIcon;
 import javax.swing.JSeparator;
@@ -48,8 +47,6 @@ public class jsplassh_window extends JFrame {
 	int mode = 1;
 	boolean ledOn[] = {false, false, false, false};
 	String colors[] = {"Red","Blue","Green","Lime"};
-	String mouse = new String();
-	String uni = new String();
 	boolean readyToDeploy = false;
 	private JTextField framerate;
 	private JTextField setHeight;
@@ -193,19 +190,21 @@ public class jsplassh_window extends JFrame {
 				String e = exposureTime.getText();
 				String s = orderString;
 				String f = framerate.getText();
-				String u = uni;
-				String m = mouse;
+				String u = "";
+				String m = "";
 				writeJsonSettings(b, f, h, e, w, s, u, m);
 			}
 		});
-		//btnDeploySettingsTo_1.setEnabled(false);
+		btnDeploySettingsTo_1.setEnabled(false);
 		JButton checkStatusBtn = new JButton("Check States");
 		checkStatusBtn.setBounds(107, 423, 95, 23);
 		checkStatusBtn.addActionListener(new ActionListener() {
-			int ledState = 1;
 			public void actionPerformed(ActionEvent arg0) {
 				
-				if (checkArduino() == 1) {
+				SerialPort arduino = new SerialPort("COM4");
+				updateStatesActionPerformed();
+				
+				if (arduinoState == 1) {
 					arduinoStatusLbl.setIcon(new ImageIcon(jsplassh_window.class.getResource("/jsplassh/resources/check.png")));
 				}
 				else {
@@ -219,14 +218,14 @@ public class jsplassh_window extends JFrame {
 					ledStatusLbl.setIcon(new ImageIcon(jsplassh_window.class.getResource("/jsplassh/resources/x.png")));
 				}
 				
-				if (checkSolis() == 1) {
+				if (solisState == 1) {
 					solidStatusLbl.setIcon(new ImageIcon(jsplassh_window.class.getResource("/jsplassh/resources/check.png")));
 				}
 				else {
 					solidStatusLbl.setIcon(new ImageIcon(jsplassh_window.class.getResource("/jsplassh/resources/x.png")));
 				}
 				
-				if (checkSolis()== 1 && ledState == 1 && checkArduino() == 1){
+				if (solisState== 1 && ledState == 1 && arduinoState == 1){
 					btnDeploySettingsTo_1.setEnabled(true);
 				}
 				else {
@@ -442,83 +441,35 @@ public class jsplassh_window extends JFrame {
 		
 	}
 
-	private Integer checkArduino() {
+	private void updateStatesActionPerformed() {
+		SerialPort arduino = new SerialPort("COM4");
 		try {
-			SerialPort arduino = new SerialPort("COM4");
-			arduino.openPort();
-			arduino.closePort();
-			return 1;
+			System.out.println(arduino.openPort());
 		} catch (SerialPortException e) {
-			// TODO Auto-generated catch block
-			return 0;
-		}
-	}
-	
-	private Integer checkSolis() {
-		String line;
-		String pidInfo ="";
-		try {
-			Process p =Runtime.getRuntime().exec(System.getenv("windir") +"\\system32\\"+"tasklist.exe");
-			BufferedReader input =  new BufferedReader(new InputStreamReader(p.getInputStream()));
-			while ((line = input.readLine()) != null) {
-			    pidInfo+=line; 
-			}
-			input.close();
-			if(pidInfo.contains("AndorSolis.exe"))
-			{
-			    return 1;
-			}
-			else {
-				return 0;
-			}
-		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return 0;
-		
 	}
 
 	private void writeJsonSettings(int b, String f, String h, String e, String w, String s, String u, String m) {
-		FileReader reader;
+		JSONObject settings = new JSONObject();
+		JSONObject camera = new JSONObject();
+		camera.put("strobe_order", s);
+		camera.put("binning", b);
+		camera.put("framerate", f);
+		camera.put("height", h);
+		camera.put("width", w);
+		camera.put("exposure", e);
+		settings.put("camera", camera);
+		settings.put("uni", u);
+		settings.put("mouse", m);
 		try {
-			reader = new FileReader("JSPLASSH/settings.json");
-			JSONTokener tokener = new JSONTokener(reader);
-			JSONObject settings = new JSONObject(tokener);
-			reader.close();
-			JSONObject camera = new JSONObject();
-			camera.put("strobe_order", s);
-			camera.put("binning", b);
-			camera.put("framerate", f);
-			camera.put("height", h);
-			camera.put("width", w);
-			camera.put("exposure", e);
-			settings.put("camera", camera);
-			PrintWriter out = new PrintWriter("JSPLASSH/settings.json");
+			PrintWriter out = new PrintWriter("settings.json");
 			out.println(settings.toString());
 			out.close();
-		} catch (IOException e2) {
+		} catch (FileNotFoundException e1) {
 			// TODO Auto-generated catch block
-			try {
-				reader = new FileReader("settings.json");
-				JSONTokener tokener = new JSONTokener(reader);
-				JSONObject settings = new JSONObject(tokener);
-				reader.close();
-				JSONObject camera = new JSONObject();
-				camera.put("strobe_order", s);
-				camera.put("binning", b);
-				camera.put("framerate", f);
-				camera.put("height", h);
-				camera.put("width", w);
-				camera.put("exposure", e);
-				settings.put("camera", camera);
-				PrintWriter out = new PrintWriter("settings.json");
-				out.println(settings.toString());
-				out.close();
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
+			e1.printStackTrace();
 		}
 	}
 }

@@ -48,8 +48,6 @@ public class jsplassh_window extends JFrame {
 	int mode = 1;
 	boolean ledOn[] = {false, false, false, false};
 	String colors[] = {"Red","Blue","Green","Lime"};
-	String mouse = new String();
-	String uni = new String();
 	boolean readyToDeploy = false;
 	private JTextField framerate;
 	private JTextField setHeight;
@@ -193,12 +191,12 @@ public class jsplassh_window extends JFrame {
 				String e = exposureTime.getText();
 				String s = orderString;
 				String f = framerate.getText();
-				String u = uni;
-				String m = mouse;
+				String u = "";
+				String m = "";
 				writeJsonSettings(b, f, h, e, w, s, u, m);
 			}
 		});
-		//btnDeploySettingsTo_1.setEnabled(false);
+		btnDeploySettingsTo_1.setEnabled(false);
 		JButton checkStatusBtn = new JButton("Check States");
 		checkStatusBtn.setBounds(107, 423, 95, 23);
 		checkStatusBtn.addActionListener(new ActionListener() {
@@ -446,7 +444,6 @@ public class jsplassh_window extends JFrame {
 		try {
 			SerialPort arduino = new SerialPort("COM4");
 			arduino.openPort();
-			arduino.closePort();
 			return 1;
 		} catch (SerialPortException e) {
 			// TODO Auto-generated catch block
@@ -463,7 +460,6 @@ public class jsplassh_window extends JFrame {
 			while ((line = input.readLine()) != null) {
 			    pidInfo+=line; 
 			}
-			input.close();
 			if(pidInfo.contains("AndorSolis.exe"))
 			{
 			    return 1;
@@ -471,54 +467,34 @@ public class jsplassh_window extends JFrame {
 			else {
 				return 0;
 			}
+
+			input.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return 0;
 		
 	}
 
 	private void writeJsonSettings(int b, String f, String h, String e, String w, String s, String u, String m) {
-		FileReader reader;
+		JSONObject settings = new JSONObject();
+		JSONObject camera = new JSONObject();
+		camera.put("strobe_order", s);
+		camera.put("binning", b);
+		camera.put("framerate", f);
+		camera.put("height", h);
+		camera.put("width", w);
+		camera.put("exposure", e);
+		settings.put("camera", camera);
+		settings.put("uni", u);
+		settings.put("mouse", m);
 		try {
-			reader = new FileReader("JSPLASSH/settings.json");
-			JSONTokener tokener = new JSONTokener(reader);
-			JSONObject settings = new JSONObject(tokener);
-			reader.close();
-			JSONObject camera = new JSONObject();
-			camera.put("strobe_order", s);
-			camera.put("binning", b);
-			camera.put("framerate", f);
-			camera.put("height", h);
-			camera.put("width", w);
-			camera.put("exposure", e);
-			settings.put("camera", camera);
-			PrintWriter out = new PrintWriter("JSPLASSH/settings.json");
+			PrintWriter out = new PrintWriter("settings.json");
 			out.println(settings.toString());
 			out.close();
-		} catch (IOException e2) {
+		} catch (FileNotFoundException e1) {
 			// TODO Auto-generated catch block
-			try {
-				reader = new FileReader("settings.json");
-				JSONTokener tokener = new JSONTokener(reader);
-				JSONObject settings = new JSONObject(tokener);
-				reader.close();
-				JSONObject camera = new JSONObject();
-				camera.put("strobe_order", s);
-				camera.put("binning", b);
-				camera.put("framerate", f);
-				camera.put("height", h);
-				camera.put("width", w);
-				camera.put("exposure", e);
-				settings.put("camera", camera);
-				PrintWriter out = new PrintWriter("settings.json");
-				out.println(settings.toString());
-				out.close();
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
+			e1.printStackTrace();
 		}
 	}
 }
