@@ -1,11 +1,17 @@
 const int greenLed = 11;
 const int redLed = 10;
-const int yellowLed = 9;
+const int blueLed = 9;
+const int limeLed = 8;
+int ledArray[4] = {redLed,blueLed,greenLed,limeLed};
+int i;
 
 void setup() {
-  pinMode(greenLed, OUTPUT);
-  pinMode(redLed, OUTPUT);
-  pinMode(yellowLed, OUTPUT);
+  for (int i = 0; i<4 ; i++){
+    pinMode(ledArray[i], OUTPUT);
+    digitalWrite(ledArray[i], 1);
+    delay(1000);
+    digitalWrite(ledArray[i], 0);
+  }
   Serial.begin(9600);
   while (!Serial) {
     ;
@@ -13,14 +19,11 @@ void setup() {
 }
 
 void loop() {
-  if (Serial.available()>0){
-    byte i = Serial.read();
-    if (i > 0){
-      digitalWrite(greenLed, HIGH);
-    }
-    else{
-      digitalWrite(greenLed, LOW);
-    }
+  i = 0;
+  while (Serial.available() > 0){
+    int recieved = Serial.read();
+    digitalWrite(ledArray[i], recieved - 48);
+    i++;
+    delay(10);
   }
-  
 }

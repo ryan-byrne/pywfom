@@ -88,6 +88,7 @@ public class jsplassh_window extends JFrame {
 		initComponents();
 	}
 	private void initComponents() {
+		OutputStream out = initializeArduino();
 		setTitle("SPLASSH");
 		setIconImage(Toolkit.getDefaultToolkit().getImage(jsplassh_window.class.getResource("/jsplassh/resources/1027308.png")));
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -210,7 +211,7 @@ public class jsplassh_window extends JFrame {
 			int ledState = 1;
 			public void actionPerformed(ActionEvent arg0) {
 				
-				if (checkArduino() == 1) {
+				if (checkArduino(out) == 1) {
 					arduinoStatusLbl.setIcon(new ImageIcon(jsplassh_window.class.getResource("/jsplassh/resources/check.png")));
 				}
 				else {
@@ -234,7 +235,7 @@ public class jsplassh_window extends JFrame {
 					System.out.println("SOLIS is Not Running!");
 				}
 				
-				if (checkSolis()== 1 && ledState == 1 && checkArduino() == 1){
+				if (checkSolis()== 1 && ledState == 1 && checkArduino(out) == 1){
 					btnDeploySettingsTo_1.setEnabled(true);
 				}
 				else {
@@ -253,10 +254,10 @@ public class jsplassh_window extends JFrame {
 		btnRed.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				if (mode == 0) {
-					controlLeds(arg0);
+					controlLeds(arg0, out);
 				}
 				else {
-					updateStrobeOrder(arg0, list);
+					updateStrobeOrder(arg0, list, out);
 					btnRed.setEnabled(false);
 					lblStrobeOrder.setText(orderString);	
 				}
@@ -269,10 +270,10 @@ public class jsplassh_window extends JFrame {
 		btnGreen.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				if (mode == 0) {
-					controlLeds(arg0);
+					controlLeds(arg0, out);
 				}
 				else {
-					updateStrobeOrder(arg0, list);
+					updateStrobeOrder(arg0, list, out);
 					btnGreen.setEnabled(false);
 					lblStrobeOrder.setText(orderString);	
 				}
@@ -285,10 +286,10 @@ public class jsplassh_window extends JFrame {
 		btnBlue.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				if (mode == 0) {
-					controlLeds(arg0);
+					controlLeds(arg0, out);
 				}
 				else {
-					updateStrobeOrder(arg0, list);
+					updateStrobeOrder(arg0, list, out);
 					btnBlue.setEnabled(false);
 					lblStrobeOrder.setText(orderString);	
 				}
@@ -301,10 +302,10 @@ public class jsplassh_window extends JFrame {
 		btnSpeckle.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				if (mode == 0) {
-					controlLeds(arg0);
+					controlLeds(arg0, out);
 				}
 				else {
-					updateStrobeOrder(arg0, list);
+					updateStrobeOrder(arg0, list, out);
 					btnSpeckle.setEnabled(false);
 					lblStrobeOrder.setText(orderString);	
 				}
@@ -371,7 +372,7 @@ public class jsplassh_window extends JFrame {
 		JButton btnClear = new JButton("Clear");
 		btnClear.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				updateStrobeOrder(arg0,list);
+				updateStrobeOrder(arg0,list, out);
 				btnBlue.setEnabled(true);
 				btnGreen.setEnabled(true);
 				btnRed.setEnabled(true);
@@ -418,13 +419,26 @@ public class jsplassh_window extends JFrame {
 		contentPane.add(slider);
 	}
 	
-	private void updateStrobeOrder(java.awt.event.ActionEvent e, JList l) {
+	private OutputStream initializeArduino() {
+		SerialPort sp = SerialPort.getCommPort("COM7");
+		sp.setComPortParameters(9600, 8, 1, 0);
+		sp.setComPortTimeouts(SerialPort.TIMEOUT_WRITE_BLOCKING, 0, 0);
+		if (sp.openPort()) {
+			System.out.println("Port is opened");
+		}
+		else {
+			System.out.println("Port is not opened");
+		}
+		return sp.getOutputStream();
+	}
+
+	private void updateStrobeOrder(java.awt.event.ActionEvent e, JList l, OutputStream out) {
 		
 		if(e.getActionCommand().toString() == "Clear"){
 			orderList.clear();
 		}
 		else if ((mode == 0)) {
-			controlLeds(e);
+			controlLeds(e, out);
 		}
 		else {
 			orderList.add(e.getActionCommand().toString());
@@ -442,7 +456,7 @@ public class jsplassh_window extends JFrame {
 
 	}
 	
-	private void controlLeds(ActionEvent e) {
+	private void controlLeds(ActionEvent e, OutputStream out) {
 		String button = e.getActionCommand().toString();
 		int i = Arrays.asList(colors).indexOf(button);
 		ledOn[i] = !ledOn[i];
@@ -455,40 +469,24 @@ public class jsplassh_window extends JFrame {
 				message += "1";
 			}
 		}
-		SerialPort sp = SerialPort.getCommPort("COM1");
-		sp.setComPortParameters(9600, 8, 1, 0);
-		sp.setComPortTimeouts(SerialPort.TIMEOUT_WRITE_BLOCKING, 0, 0);
-		if (sp.openPort()) {
-			System.out.println("Port is opened");
-		}
-		else {
-			System.out.println("Port is not opened");
-			return;
-		}
-		String m = "1011";
-		//Integer m = Character.getNumericValue(message.charAt(0));
-		for (Integer i1 = 0; i1 < m.length(); i1++) {
-			Integer n = Integer.parseInt(m);
-			try {
-				System.out.println("Sending "+n+" to arduino");
-				sp.getOutputStream().write(n.byteValue());;
-				sp.getOutputStream().flush();
-				Thread.sleep(1000);
-			} catch (IOException | InterruptedException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-		}
-		if (sp.closePort()) {
-			System.out.println("Port is closed");
-		}
-		else {
-			System.out.println("Port is not closed");
+		try {
+			System.out.println("Sending "+ message +" to arduino");
+			out.write(message.getBytes());
+			out.flush();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
 		}
 	}
-	private Integer checkArduino() {
-		return 1;
-	}
+	
+	private Integer checkArduino(OutputStream out) {
+		if (out != null) {
+			return 1;
+		}
+		else {
+			return 0;
+		}
+	}	
 	
 	private Integer checkSolis() {
 		String line;
