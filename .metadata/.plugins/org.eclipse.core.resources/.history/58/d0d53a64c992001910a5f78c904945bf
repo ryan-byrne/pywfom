@@ -397,14 +397,13 @@ public class jsplassh_window extends JFrame {
 					else {
 						message = "LED Test";
 						orderList.clear();
-						String[] orderArray = new String[orderList.size()];
-						orderList.toArray(orderArray);
 						list.setModel(new AbstractListModel() {
+							String[] a = {""};
 							public int getSize() {
-								return orderArray.length;
+								return a.length;
 							}
 							public Object getElementAt(int index) {
-								return((index+1)+". "+orderArray[index]);
+								return((index+1)+". "+a[index]);
 							}
 						});
 					}

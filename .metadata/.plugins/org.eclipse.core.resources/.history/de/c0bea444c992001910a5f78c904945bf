@@ -396,17 +396,19 @@ public class jsplassh_window extends JFrame {
 					}
 					else {
 						message = "LED Test";
-						orderList.clear();
-						String[] orderArray = new String[orderList.size()];
-						orderList.toArray(orderArray);
 						list.setModel(new AbstractListModel() {
+
+							@Override
+							public Object getElementAt(int arg0) {
+								// TODO Auto-generated method stub
+								return null;
+							}
+
+							@Override
 							public int getSize() {
-								return orderArray.length;
-							}
-							public Object getElementAt(int index) {
-								return((index+1)+". "+orderArray[index]);
-							}
-						});
+								// TODO Auto-generated method stub
+								return 0;
+							}});
 					}
 					System.out.println("Mode set to: "+message);
 				}
