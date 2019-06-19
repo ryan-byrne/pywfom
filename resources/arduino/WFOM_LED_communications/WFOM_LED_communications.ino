@@ -8,9 +8,6 @@ int i;
 void setup() {
   for (int i = 0; i<4 ; i++){
     pinMode(ledArray[i], OUTPUT);
-    digitalWrite(ledArray[i], 1);
-    delay(1000);
-    digitalWrite(ledArray[i], 0);
   }
   Serial.begin(9600);
   while (!Serial) {
