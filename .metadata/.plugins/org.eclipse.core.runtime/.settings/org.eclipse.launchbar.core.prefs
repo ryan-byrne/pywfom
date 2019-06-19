@@ -8,3 +8,4 @@ org.eclipse.launchbar.core.descriptorType.default\:FirstWbGui/activeLaunchTarget
 org.eclipse.launchbar.core.descriptorType.default\:SPLASSH_GUI/activeLaunchMode=run
 org.eclipse.launchbar.core.descriptorType.default\:gui/activeLaunchMode=run
 org.eclipse.launchbar.core.descriptorType.default\:gui/activeLaunchTarget=org.eclipse.launchbar.core.launchTargetType.local\:Local
+org.eclipse.launchbar.core.descriptorType.default\:jsplassh_window/activeLaunchMode=run

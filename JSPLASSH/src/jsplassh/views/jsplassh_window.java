@@ -1,40 +1,44 @@
 package jsplassh.views;
 
-import java.awt.EventQueue;
-import org.json.*;
-
-import jssc.SerialPort;
-import jssc.SerialPortException;
-
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.border.EmptyBorder;
-import java.awt.Toolkit;
-import javax.swing.JLabel;
-import javax.swing.JSlider;
-import javax.swing.SwingConstants;
+import com.fazecast.jSerialComm.SerialPort;
 import java.awt.Color;
-import javax.swing.JTextField;
-import javax.swing.UIManager;
-import javax.swing.JList;
-import javax.swing.AbstractListModel;
-import javax.swing.JButton;
+import java.awt.EventQueue;
+import java.awt.Font;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.awt.event.ActionEvent;
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+
+import javax.swing.AbstractListModel;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
 import javax.swing.JSeparator;
-import java.awt.Font;
-import javax.swing.event.ChangeListener;
+import javax.swing.JSlider;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
+import javax.swing.UIManager;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
+import org.json.JSONObject;
+import org.json.JSONTokener;
 
 public class jsplassh_window extends JFrame {
 	
@@ -211,13 +215,15 @@ public class jsplassh_window extends JFrame {
 				}
 				else {
 					arduinoStatusLbl.setIcon(new ImageIcon(jsplassh_window.class.getResource("/jsplassh/resources/x.png")));
+					System.out.println("Arduino is Not Connected!");
 				}
 				
-				if (ledState == 1) {
+				if (orderList.size()>0) {
 					ledStatusLbl.setIcon(new ImageIcon(jsplassh_window.class.getResource("/jsplassh/resources/check.png")));
 				}
 				else {
 					ledStatusLbl.setIcon(new ImageIcon(jsplassh_window.class.getResource("/jsplassh/resources/x.png")));
+					System.out.println("LED Strobe Order Not Set!");
 				}
 				
 				if (checkSolis() == 1) {
@@ -225,6 +231,7 @@ public class jsplassh_window extends JFrame {
 				}
 				else {
 					solidStatusLbl.setIcon(new ImageIcon(jsplassh_window.class.getResource("/jsplassh/resources/x.png")));
+					System.out.println("SOLIS is Not Running!");
 				}
 				
 				if (checkSolis()== 1 && ledState == 1 && checkArduino() == 1){
@@ -439,20 +446,48 @@ public class jsplassh_window extends JFrame {
 		String button = e.getActionCommand().toString();
 		int i = Arrays.asList(colors).indexOf(button);
 		ledOn[i] = !ledOn[i];
-		System.out.println(button+" is on: "+ledOn[i]);
-		
-	}
-
-	private Integer checkArduino() {
-		try {
-			SerialPort arduino = new SerialPort("COM4");
-			arduino.openPort();
-			arduino.closePort();
-			return 1;
-		} catch (SerialPortException e) {
-			// TODO Auto-generated catch block
-			return 0;
+		String message = new String();
+		for(boolean b:ledOn) {
+			if (!b) {
+				message += "0";
+			}
+			else {
+				message += "1";
+			}
 		}
+		SerialPort sp = SerialPort.getCommPort("COM1");
+		sp.setComPortParameters(9600, 8, 1, 0);
+		sp.setComPortTimeouts(SerialPort.TIMEOUT_WRITE_BLOCKING, 0, 0);
+		if (sp.openPort()) {
+			System.out.println("Port is opened");
+		}
+		else {
+			System.out.println("Port is not opened");
+			return;
+		}
+		String m = "1011";
+		//Integer m = Character.getNumericValue(message.charAt(0));
+		for (Integer i1 = 0; i1 < m.length(); i1++) {
+			Integer n = Integer.parseInt(m);
+			try {
+				System.out.println("Sending "+n+" to arduino");
+				sp.getOutputStream().write(n.byteValue());;
+				sp.getOutputStream().flush();
+				Thread.sleep(1000);
+			} catch (IOException | InterruptedException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}
+		if (sp.closePort()) {
+			System.out.println("Port is closed");
+		}
+		else {
+			System.out.println("Port is not closed");
+		}
+	}
+	private Integer checkArduino() {
+		return 1;
 	}
 	
 	private Integer checkSolis() {
@@ -480,6 +515,7 @@ public class jsplassh_window extends JFrame {
 		
 	}
 
+	
 	private void writeJsonSettings(int b, String f, String h, String e, String w, String s, String u, String m) {
 		FileReader reader;
 		try {

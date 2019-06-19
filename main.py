@@ -2,7 +2,6 @@ import time, subprocess, os, datetime, json, sys, string
 from arduino import Arduino
 from solis import Solis
 from gui import Gui
-from led import Led
 
 if __name__ == '__main__':
     Gui.banner("WFOM", "isometric1")
