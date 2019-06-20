@@ -1,22 +1,19 @@
 {
     "mice": {
         "cm122": {
-            "last_trial": 39
+            "last_trial": 40
         },
         "cm121": {
             "last_trial": 16
         },
         "cm132": {
-            "last_trial": 4
+            "last_trial": 5
         },
         "cmru": {
             "last_trial": 3
         },
         "ghf": {
-            "last_trial": 2
-        },
-        "fjrhhrf": {
-            "last_trial": 3
+            "last_trial": 4
         },
         "cm150": {
             "last_trial": 1
@@ -35,6 +32,12 @@
         },
         "dhfb": {
             "last_trial": 0
+        },
+        "fjrhhrf": {
+            "last_trial": 4
+        },
+        "chbfc": {
+            "last_trial": 1
         }
     }
 }
