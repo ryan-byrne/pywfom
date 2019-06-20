@@ -208,6 +208,7 @@ public class jsplassh_window extends JFrame {
 		JButton checkStatusBtn = new JButton("Check States");
 		checkStatusBtn.setBounds(107, 423, 95, 23);
 		checkStatusBtn.addActionListener(new ActionListener() {
+			int ledState = 1;
 			public void actionPerformed(ActionEvent arg0) {
 				if (checkArduino(out) == 1) {
 					arduinoStatusLbl.setIcon(new ImageIcon(jsplassh_window.class.getResource("/jsplassh/resources/check.png")));

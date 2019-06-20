@@ -208,7 +208,9 @@ public class jsplassh_window extends JFrame {
 		JButton checkStatusBtn = new JButton("Check States");
 		checkStatusBtn.setBounds(107, 423, 95, 23);
 		checkStatusBtn.addActionListener(new ActionListener() {
+			int ledState = 1;
 			public void actionPerformed(ActionEvent arg0) {
+				
 				if (checkArduino(out) == 1) {
 					arduinoStatusLbl.setIcon(new ImageIcon(jsplassh_window.class.getResource("/jsplassh/resources/check.png")));
 				}
@@ -428,7 +430,7 @@ public class jsplassh_window extends JFrame {
 		contentPane.add(slider);
 	}
 	
-	public OutputStream initializeArduino() {
+	private OutputStream initializeArduino() {
 		SerialPort sp = SerialPort.getCommPort("COM7");
 		sp.setComPortParameters(9600, 8, 1, 0);
 		sp.setComPortTimeouts(SerialPort.TIMEOUT_WRITE_BLOCKING, 0, 0);
@@ -497,7 +499,7 @@ public class jsplassh_window extends JFrame {
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			System.out.println("Test byte failed to send...");
-			System.out.print(e.getMessage());
+			e.printStackTrace();
 			return 0;
 		}
 	}	

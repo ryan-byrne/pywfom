@@ -9,7 +9,7 @@ void setup() {
   for (int i = 0; i<4 ; i++){
     pinMode(ledArray[i], OUTPUT);
   }
-  Serial.begin(9600);
+  Serial.begin(115200);
   while (!Serial) {
     ;
   }
@@ -21,6 +21,6 @@ void loop() {
     int recieved = Serial.read();
     digitalWrite(ledArray[i], recieved - 48);
     i++;
-    delay(10);
+    delayMicroseconds(100);
   }
 }

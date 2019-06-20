@@ -8,14 +8,10 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.ByteArrayOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,6 +39,10 @@ import org.json.JSONTokener;
 public class jsplassh_window extends JFrame {
 	
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
 	List<String> orderList = new ArrayList<String>();
 	String orderString = new String();
@@ -208,7 +208,9 @@ public class jsplassh_window extends JFrame {
 		JButton checkStatusBtn = new JButton("Check States");
 		checkStatusBtn.setBounds(107, 423, 95, 23);
 		checkStatusBtn.addActionListener(new ActionListener() {
+			int ledState = 1;
 			public void actionPerformed(ActionEvent arg0) {
+				
 				if (checkArduino(out) == 1) {
 					arduinoStatusLbl.setIcon(new ImageIcon(jsplassh_window.class.getResource("/jsplassh/resources/check.png")));
 				}
@@ -243,7 +245,7 @@ public class jsplassh_window extends JFrame {
 				
 			}
 		});
-		JList list = new JList();
+		JList<?> list = new JList<Object>();
 		JLabel lblStrobeOrder = new JLabel();
 		lblStrobeOrder.setBounds(264, 235, 0, 0);
 		
@@ -397,7 +399,11 @@ public class jsplassh_window extends JFrame {
 						orderList.clear();
 						String[] orderArray = new String[orderList.size()];
 						orderList.toArray(orderArray);
-						list.setModel(new AbstractListModel() {
+						list.setModel(new AbstractListModel<Object>() {
+							/**
+							 * 
+							 */
+							private static final long serialVersionUID = 1L;
 							public int getSize() {
 								return orderArray.length;
 							}
@@ -428,20 +434,34 @@ public class jsplassh_window extends JFrame {
 		contentPane.add(slider);
 	}
 	
-	public OutputStream initializeArduino() {
-		SerialPort sp = SerialPort.getCommPort("COM7");
+	private OutputStream initializeArduino() {
+		System.out.println("Initializing the Arduino...");
+		SerialPort sp = SerialPort.getCommPort("COM4");
 		sp.setComPortParameters(9600, 8, 1, 0);
 		sp.setComPortTimeouts(SerialPort.TIMEOUT_WRITE_BLOCKING, 0, 0);
+		OutputStream out;
 		if (sp.openPort()) {
-			System.out.println("Port is opened");
+			System.out.println("Successfully connected to Port...");
+			out = sp.getOutputStream();
+			byte b = 0;
+			System.out.println("Writing a test byte to the Arduino...");
+			try {
+				out.write(b);
+				System.out.println("Successful wrote byte to Arduino...");
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				System.out.println("Unable to write byte to Arduino...");
+				e.printStackTrace();
+			}
 		}
 		else {
-			System.out.println("Port is not opened");
+			System.out.println("Unable to Connect to Arduino...");
+			out = null;
 		}
-		return sp.getOutputStream();
+		return out;
 	}
 
-	private void updateStrobeOrder(java.awt.event.ActionEvent e, JList l, OutputStream out) {
+	private void updateStrobeOrder(java.awt.event.ActionEvent e, JList<?> l, OutputStream out) {
 		
 		if(e.getActionCommand().toString() == "Clear"){
 			orderList.clear();
@@ -454,7 +474,11 @@ public class jsplassh_window extends JFrame {
 		}
 		String[] orderArray = new String[orderList.size()];
 		orderList.toArray(orderArray);
-		l.setModel(new AbstractListModel() {
+		l.setModel(new AbstractListModel<Object>() {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
 			public int getSize() {
 				return orderArray.length;
 			}
@@ -489,15 +513,10 @@ public class jsplassh_window extends JFrame {
 	}
 	
 	private Integer checkArduino(OutputStream out) {
-		System.out.println("Checking Arduino Connection...");
-		try {
-			System.out.println("Writing a test byte to the Arduino...");
-			out.write(0);
+		if (out != null) {
 			return 1;
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			System.out.println("Test byte failed to send...");
-			System.out.print(e.getMessage());
+		}
+		else {
 			return 0;
 		}
 	}	
