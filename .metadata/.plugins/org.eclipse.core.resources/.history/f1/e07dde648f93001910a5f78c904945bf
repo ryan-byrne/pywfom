@@ -192,14 +192,13 @@ public class jsplassh_window extends JFrame {
 				String h = setHeight.getText();
 				String w = setWidth.getText();
 				String e = exposureTime.getText();
-				List<String> s = orderList;
+				String s = orderString;
 				String f = framerate.getText();
 				String u = uni;
 				String m = mouse;
 				writeJsonSettings(b, f, h, e, w, s, u, m);
 				System.exit(0);
 			}
-
 		});
 		btnDeploySettingsTo_1.setEnabled(false);
 		JButton checkStatusBtn = new JButton("Check States");
@@ -221,7 +220,6 @@ public class jsplassh_window extends JFrame {
 				else {
 					ledStatusLbl.setIcon(new ImageIcon(jsplassh_window.class.getResource("/jsplassh/resources/x.png")));
 					System.out.println("LED Strobe Order Not Set!");
-					ledState = 0;
 				}
 				
 				if (checkSolis() == 1) {
@@ -429,7 +427,7 @@ public class jsplassh_window extends JFrame {
 	
 	public OutputStream initializeArduino() {
 		SerialPort sp = SerialPort.getCommPort("COM7");
-		sp.setComPortParameters(115200, 8, 1, 0);
+		sp.setComPortParameters(9600, 8, 1, 0);
 		sp.setComPortTimeouts(SerialPort.TIMEOUT_WRITE_BLOCKING, 0, 0);
 		if (sp.openPort()) {
 			System.out.println("Port is opened");
@@ -526,7 +524,7 @@ public class jsplassh_window extends JFrame {
 		
 	}
 
-	private void writeJsonSettings(int b, String f, String h, String e, String w, List<String> s, String u, String m) {
+	private void writeJsonSettings(int b, String f, String h, String e, String w, String s, String u, String m) {
 		FileReader reader;
 		try {
 			reader = new FileReader("JSPLASSH/settings.json");
@@ -534,7 +532,6 @@ public class jsplassh_window extends JFrame {
 			JSONObject settings = new JSONObject(tokener);
 			reader.close();
 			JSONObject camera = new JSONObject();
-			System.out.print("s");
 			camera.put("strobe_order", s);
 			camera.put("binning", b);
 			camera.put("framerate", f);
@@ -553,7 +550,6 @@ public class jsplassh_window extends JFrame {
 				JSONObject settings = new JSONObject(tokener);
 				reader.close();
 				JSONObject camera = new JSONObject();
-				System.out.print("s");
 				camera.put("strobe_order", s);
 				camera.put("binning", b);
 				camera.put("framerate", f);

@@ -535,7 +535,7 @@ public class jsplassh_window extends JFrame {
 			reader.close();
 			JSONObject camera = new JSONObject();
 			System.out.print("s");
-			camera.put("strobe_order", s);
+			camera.put("strobe_order", s.toString());
 			camera.put("binning", b);
 			camera.put("framerate", f);
 			camera.put("height", h);

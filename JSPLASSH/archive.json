@@ -1,7 +1,7 @@
 {
     "mice": {
         "cm122": {
-            "last_trial": 40
+            "last_trial": 44
         },
         "cm121": {
             "last_trial": 16
@@ -10,7 +10,7 @@
             "last_trial": 5
         },
         "cmru": {
-            "last_trial": 3
+            "last_trial": 4
         },
         "ghf": {
             "last_trial": 4

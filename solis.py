@@ -48,3 +48,4 @@ class Solis():
         src = "JSPLASSH/settings.json"
         dst = path+"/settings.json"
         copyfile(src, dst)
+        return dst

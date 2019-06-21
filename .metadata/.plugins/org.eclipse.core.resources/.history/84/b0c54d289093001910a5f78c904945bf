@@ -200,6 +200,11 @@ public class jsplassh_window extends JFrame {
 				System.exit(0);
 			}
 
+			private void writeJsonSettings(int b, String f, String h, String e, String w, List<String> s, String u,
+					String m) {
+				// TODO Auto-generated method stub
+				
+			}
 		});
 		btnDeploySettingsTo_1.setEnabled(false);
 		JButton checkStatusBtn = new JButton("Check States");
@@ -429,7 +434,7 @@ public class jsplassh_window extends JFrame {
 	
 	public OutputStream initializeArduino() {
 		SerialPort sp = SerialPort.getCommPort("COM7");
-		sp.setComPortParameters(115200, 8, 1, 0);
+		sp.setComPortParameters(9600, 8, 1, 0);
 		sp.setComPortTimeouts(SerialPort.TIMEOUT_WRITE_BLOCKING, 0, 0);
 		if (sp.openPort()) {
 			System.out.println("Port is opened");
@@ -526,7 +531,7 @@ public class jsplassh_window extends JFrame {
 		
 	}
 
-	private void writeJsonSettings(int b, String f, String h, String e, String w, List<String> s, String u, String m) {
+	private void writeJsonSettings(int b, String f, String h, String e, String w, String s, String u, String m) {
 		FileReader reader;
 		try {
 			reader = new FileReader("JSPLASSH/settings.json");
@@ -534,7 +539,6 @@ public class jsplassh_window extends JFrame {
 			JSONObject settings = new JSONObject(tokener);
 			reader.close();
 			JSONObject camera = new JSONObject();
-			System.out.print("s");
 			camera.put("strobe_order", s);
 			camera.put("binning", b);
 			camera.put("framerate", f);
@@ -553,8 +557,8 @@ public class jsplassh_window extends JFrame {
 				JSONObject settings = new JSONObject(tokener);
 				reader.close();
 				JSONObject camera = new JSONObject();
-				System.out.print("s");
-				camera.put("strobe_order", s);
+				System.out.print(s);
+				camera.put("strobe_order", s.toString());
 				camera.put("binning", b);
 				camera.put("framerate", f);
 				camera.put("height", h);

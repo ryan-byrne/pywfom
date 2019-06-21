@@ -429,7 +429,7 @@ public class jsplassh_window extends JFrame {
 	
 	public OutputStream initializeArduino() {
 		SerialPort sp = SerialPort.getCommPort("COM7");
-		sp.setComPortParameters(115200, 8, 1, 0);
+		sp.setComPortParameters(9600, 8, 1, 0);
 		sp.setComPortTimeouts(SerialPort.TIMEOUT_WRITE_BLOCKING, 0, 0);
 		if (sp.openPort()) {
 			System.out.println("Port is opened");
@@ -535,7 +535,7 @@ public class jsplassh_window extends JFrame {
 			reader.close();
 			JSONObject camera = new JSONObject();
 			System.out.print("s");
-			camera.put("strobe_order", s);
+			camera.put("strobe_order", s.toString());
 			camera.put("binning", b);
 			camera.put("framerate", f);
 			camera.put("height", h);
@@ -554,7 +554,7 @@ public class jsplassh_window extends JFrame {
 				reader.close();
 				JSONObject camera = new JSONObject();
 				System.out.print("s");
-				camera.put("strobe_order", s);
+				camera.put("strobe_order", s.toString());
 				camera.put("binning", b);
 				camera.put("framerate", f);
 				camera.put("height", h);
