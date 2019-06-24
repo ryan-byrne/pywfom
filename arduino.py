@@ -1,4 +1,5 @@
 import serial, time, json
+from gui import Gui
 
 class Arduino():
     """ Methods pertaining to Communication with the Arduino """
@@ -37,33 +38,23 @@ class Arduino():
         The Arduino is then able to parse the message and set the proper strobe
         parameters.
         """
-
+        port = "COM7"
         print("Sending "+msg+" to the Arduino")
-        ser = serial.Serial(
-            port='COM7',\
-            baudrate=115200,\
-            parity=serial.PARITY_NONE,\
-            stopbits=serial.STOPBITS_ONE,\
-            bytesize=serial.EIGHTBITS,\
-                timeout=0)
-        time.sleep(3)
-        ser.write(bytes(msg, "utf-8"))
-        ser.flush()
-        ser.close()
-
-    def stop():
-        print("Clearing Arduino")
-        ser = serial.Serial(
-            port='COM7',\
-            baudrate=115200,\
-            parity=serial.PARITY_NONE,\
-            stopbits=serial.STOPBITS_ONE,\
-            bytesize=serial.EIGHTBITS,\
-                timeout=0)
-        time.sleep(3)
-        ser.write(bytes("s", "utf-8"))
-        ser.flush()
-        ser.close()
+        try:
+            ser = serial.Serial(
+                port=port,\
+                baudrate=115200,\
+                parity=serial.PARITY_NONE,\
+                stopbits=serial.STOPBITS_ONE,\
+                bytesize=serial.EIGHTBITS,\
+                    timeout=0)
+            time.sleep(3)
+            ser.write(bytes(msg, "utf-8"))
+            ser.flush()
+            ser.close()
+        except serial.SerialException as e:
+            print("Unable to connect to Arduino through "+port)
+            Gui.exit()
 
 if __name__ == "__main__":
     dst = "JSPLASSH/settings.json"

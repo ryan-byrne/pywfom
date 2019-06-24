@@ -9,7 +9,7 @@ if __name__ == '__main__':
     # Welcome Banner
     Gui.banner("WFOM", "isometric1")
     Gui.banner("WELCOME TO SPLASSH", "contessa")
-    Arduino.stop()
+    Arduino.message_to_arduino("s")
     # Initiate the SPLASSH Gui
     uni, mouse = Gui.open_GUI()
     try:
