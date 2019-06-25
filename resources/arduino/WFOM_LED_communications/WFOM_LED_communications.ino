@@ -2,8 +2,10 @@
 #define redLed    10
 #define blueLed    9
 #define limeLed    8
-int ledArray[4] = {redLed,blueLed,greenLed,limeLed};
-String orderString = "RBGL";
+
+// ledArray = 7,8,10,12
+int ledArray[4] = {7,8,10,12};
+String orderString = "BLGR";
 float f, e;
 String frm, ord, esp, msg;
 char active;
@@ -44,6 +46,8 @@ void loop() {
     else {
       strobeLed(msg);
     }
+    // msg = E0.0068ORGBLF50.70
+    // strobeLed(msg);
 }
 
 

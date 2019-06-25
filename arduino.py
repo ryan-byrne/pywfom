@@ -38,7 +38,7 @@ class Arduino():
         The Arduino is then able to parse the message and set the proper strobe
         parameters.
         """
-        port = "COM7"
+        port = "COM4"
         print("Sending "+msg+" to the Arduino")
         try:
             ser = serial.Serial(
