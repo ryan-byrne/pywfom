@@ -11560,3 +11560,19 @@ This warning can be switched off on the Team > Git > Confirmations and Warnings 
 
 !ENTRY org.eclipse.equinox.p2.metadata.repository 4 1000 2019-06-25 16:27:42.898
 !MESSAGE No repository found at http://central.maven.org/maven2/org/json/json/20180813/json-20180813.jar.
+
+!ENTRY org.eclipse.jdt.core 4 4 2019-06-25 17:57:18.585
+!MESSAGE Background Indexer Crash Recovery
+!STACK 0
+java.lang.OutOfMemoryError: Java heap space
+	at org.eclipse.jdt.internal.compiler.util.HashtableOfObject.<init>(HashtableOfObject.java:38)
+	at org.eclipse.jdt.internal.core.index.DiskIndex.readCategoryTable(DiskIndex.java:663)
+	at org.eclipse.jdt.internal.core.index.DiskIndex.mergeCategory(DiskIndex.java:466)
+	at org.eclipse.jdt.internal.core.index.DiskIndex.mergeCategories(DiskIndex.java:458)
+	at org.eclipse.jdt.internal.core.index.DiskIndex.mergeWith(DiskIndex.java:560)
+	at org.eclipse.jdt.internal.core.index.Index.save(Index.java:197)
+	at org.eclipse.jdt.internal.core.search.indexing.IndexManager.saveIndex(IndexManager.java:967)
+	at org.eclipse.jdt.internal.core.search.indexing.IndexManager.saveIndexes(IndexManager.java:1009)
+	at org.eclipse.jdt.internal.core.search.indexing.IndexManager.notifyIdle(IndexManager.java:696)
+	at org.eclipse.jdt.internal.core.search.processing.JobManager.run(JobManager.java:379)
+	at java.lang.Thread.run(Unknown Source)
