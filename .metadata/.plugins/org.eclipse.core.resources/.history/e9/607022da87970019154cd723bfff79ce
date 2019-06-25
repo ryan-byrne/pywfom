@@ -428,7 +428,7 @@ public class jsplassh_window extends JFrame {
 	}
 	
 	public OutputStream initializeArduino() {
-		SerialPort sp = SerialPort.getCommPort("COM4");
+		SerialPort sp = SerialPort.getCommPort("COM7");
 		sp.setComPortParameters(115200, 8, 1, 0);
 		sp.setComPortTimeouts(SerialPort.TIMEOUT_WRITE_BLOCKING, 0, 0);
 		if (sp.openPort()) {

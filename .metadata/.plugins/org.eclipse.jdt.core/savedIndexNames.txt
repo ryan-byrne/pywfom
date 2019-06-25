@@ -13,7 +13,6 @@ INDEX VERSION 1.130+C:\Users\rbyrne\eclipse-workspace\splassh\.metadata\.plugins
 2624726496.index
 3110822113.index
 3745837425.index
-3980484344.index
 2202167482.index
 3421819425.index
 2828169528.index
