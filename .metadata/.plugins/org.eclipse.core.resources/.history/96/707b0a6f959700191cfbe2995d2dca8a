@@ -47,7 +47,7 @@ public class jsplassh_window extends JFrame {
 	int solisState = 0;
 	int mode = 1;
 	boolean ledOn[] = {false, false, false, false};
-	String colors[] = {"Blue","Green","Lime","Red"};
+	String colors[] = {"Blue","Lime","Green","Red"};
 	String mouse = new String();
 	String uni = new String();
 	boolean readyToDeploy = false;
