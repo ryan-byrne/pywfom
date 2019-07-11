@@ -1,4 +1,4 @@
-import psutil, os, json
+import psutil, os, json, win32gui
 from shutil import copyfile
 from datetime import datetime
 
@@ -49,9 +49,3 @@ class Andor():
         dst = path+"/settings.json"
         copyfile(src, dst)
         return dst
-
-    def find_window():
-        titles = []
-        del titles[:]
-        windll.user32.EnumWindows(EnumWindowsProc(foreach_window), 0)
-        return titles
