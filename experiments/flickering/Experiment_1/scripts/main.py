@@ -15,13 +15,12 @@ if __name__ == "__main__":
     pow = [100, 50, 10, 5] # % of Max LED power
     leds = ["L", "G", "B", "R"]
     duration = 10 # seconds
-    for led in leds:
-        for f in freq:
-            print("Flashing "+ led +" at " + str(f) + " Hz for " + str(duration) + " seconds")
-            i = 0
-            while i < duration/2*f:
-                arduino.write(led.encode())
-                time.sleep(1/f/2)
-                arduino.write("C".encode())
-                time.sleep(1/f/2)
-                i += 1
+    i = 0
+    led = "R"
+    f = 1
+    while i < duration/2*f:
+        arduino.write(led.encode())
+        time.sleep(1/f/2)
+        arduino.write("C".encode())
+        time.sleep(1/f/2)
+        i += 1
