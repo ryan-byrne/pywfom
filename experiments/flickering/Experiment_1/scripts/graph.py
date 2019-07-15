@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 class Graph(object):
 
     def graph(file):
-        
+
         path = "C:/Users/rbyrne/eclipse-workspace/splassh/experiments/flickering/Experiment_1/data"
         data = pd.read_csv( path+"/"+file,
                             delimiter="\t",
@@ -20,4 +20,7 @@ class Graph(object):
         plt.show()
 
 if __name__ == '__main__':
-    Graph.graph("100_sat_LIME_intensity_5.txt")
+    try:
+        Graph.graph("100_sat_LIME_intensity_0.txt")
+    except FileNotFoundError:
+        pass

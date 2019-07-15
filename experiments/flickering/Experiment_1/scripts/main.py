@@ -30,21 +30,28 @@ if __name__ == "__main__":
         arduino = ""
 
     for l in leds:
-        input("Change Wavelength to "+l+" then press [ENTER]")
+        input("Change Wavelength to %s then press [ENTER]" % (l))
         for p in pow:
-            input("Set the Power of "+l+" to "+str(p)+"% Saturation then press [ENTER]")
-            input("Set the file BaseName to "+str(p)+"_sat_"+l+" then press [ENTER]")
-            input("Begin the acquisition on OceanView. Then press [ENTER]")
+
+            input("\nSet the Power of %s to %s Saturation then press [ENTER]\n" % (l, str(p)))
+            input("Set the file BaseName to "+str(p)+"_sat_"+l+" then press [ENTER]\n")
+            input("Begin the acquisition on OceanView. Then press [ENTER]\n")
+
             for f in freq:
                 i = 0
                 while i < duration*f:
-                    print("Strobing "+l+" at "+f+"Hz")
+                    print("Strobing %s at %s Hz\n" & (l, str(f)))
                     arduino.write(l[0].encode())
                     time.sleep(1/f/2)
                     arduino.write("C".encode())
                     time.sleep(1/f/2)
                     i += 1
-            input("End the acquisition on OceanView. Then press [ENTER]")
+
+            input("End the acquisition on OceanView. Then press [ENTER]\n")
             # "100_sat_LIME_intensity_5.txt"
             filename = str(p) + "_sat_" + l + "_intensity_0.txt"
-            Graph(filename)
+            try:
+                Graph(filename)
+            except FileNotFoundError:
+                print("File: "+filename+" was not able to be found")
+                pass
