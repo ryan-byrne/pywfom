@@ -1,1 +1,12 @@
-{"uni":"rjb2202","mouse":"cm122","camera":{"exposure":"0.0068","strobe_order":["Red","Green","Blue"],"framerate":"50.70","width":"2048","binning":4,"height":"2048"}}
+{
+  "uni": "rjb2202",
+  "mouse": "cm122",
+  "camera": {
+    "exposure": "0.0068",
+    "strobe_order": ["Red", "Green", "Blue"],
+    "framerate": "50.70",
+    "width": "2048",
+    "binning": 4,
+    "height": "2048"
+  }
+}

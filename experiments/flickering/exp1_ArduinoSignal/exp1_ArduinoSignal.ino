@@ -8,9 +8,9 @@ Signal -> Arduino -> LED Controller -> LED -> Spectrometer
 */
 
 #define greenLed   8
-#define redLed     12
+#define redLed     10
 #define blueLed    7
-#define limeLed    10
+#define limeLed    12
 
 int leds[] = {greenLed, redLed, blueLed, limeLed};
 
@@ -31,7 +31,7 @@ void loop() {
     if (!incomingByte){
       return;
     }
-    
+
     // Recieving a new command, clear all LEDs
     //clear();
 
@@ -40,24 +40,27 @@ void loop() {
       case 'L':
         digitalWrite(limeLed, HIGH);
         break;
+      case 'l':
+        digitalWrite(limeLed, LOW);
+        break;
       case 'B':
         digitalWrite(blueLed, HIGH);
+        break;
+      case 'b':
+        digitalWrite(blueLed, LOW);
         break;
       case 'R':
         digitalWrite(redLed, HIGH);
         break;
+      case 'r':
+        digitalWrite(redLed, LOW);
+        break;
       case 'G':
         digitalWrite(greenLed, HIGH);
         break;
-      case 'C':
-        clear();
+      case 'g':
+        digitalWrite(greenLed, LOW);
         break;
     }
-  }
-}
-
-void clear(){
-  for (int i; i < sizeof(leds); i++){
-    digitalWrite(leds[i], LOW);
   }
 }
