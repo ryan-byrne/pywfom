@@ -1,7 +1,6 @@
 import serial, time, os, sys, csv
 import threading
 import numpy as np
-from graph import Graph
 from serial.serialutil import SerialException
 import seabreeze.spectrometers as sb
 
@@ -14,7 +13,7 @@ def arduino_connect():
             stopbits=serial.STOPBITS_ONE,\
             bytesize=serial.EIGHTBITS,\
                 timeout=0)
-        time.sleep(1)
+        time.sleep(3)
         print("Successfully connected to Arduino.")
         return(a)
     except SerialException:
@@ -23,11 +22,17 @@ def arduino_connect():
 
 def strobe_single_color(arduino, color, freq):
     t0 = time.time()
+    if freq < 1:
+        print("Leaving %s on." % (color))
+        arduino.write(color[0].encode())
+        time.sleep(duration)
+        arduino.write(color[0].lower().encode())
+        return
     print("Strobing %s at %s Hz" % (color, str(freq)))
     while time.time() - t0 < duration:
         arduino.write(color[0].encode())
         time.sleep(1/freq/2)
-        arduino.write("C".encode())
+        arduino.write(color[0].lower().encode())
         time.sleep(1/freq/2)
 
 def spectrometer_connect():
@@ -38,7 +43,7 @@ def spectrometer_connect():
         sys.exit()
     else:
         spec = sb.Spectrometer(devices[0])
-        spec.integration_time_micros(1000)
+        spec.integration_time_micros(delay*1000)
         print("Successfully connected to Spectrometer.")
         return(spec)
 
@@ -49,20 +54,24 @@ def read_all_wavelengths():
         d[l] = i[leds[l]]
     return(d)
 
-def read_single_wavelength(color, file):
+def read_single_color(color, file):
     t0 = time.time()
     t = 0
+    wavelengths = leds[color]
+    bits = [int(wl*3.23-750) for wl in wavelengths]
     with open(file, "w") as f:
         while t < duration:
             t = time.time() - t0
-            i = spec.intensities(correct_dark_counts=True, correct_nonlinearity=True)[leds[color]]
+            intensities = spec.intensities(correct_dark_counts=True, correct_nonlinearity=True)[bits]
+            wavelengths = spec.wavelengths()[bits]
+            i = sum(intensities)/len(intensities)
             f.write("%s,%s\n" % (str(t), str(i)))
             time.sleep(delay/1000)
     f.close()
 
 def adjust_intensity(color, power):
     input("Switch the %s LED to 'CW' Mode. Then Press [ENTER]" % (color))
-    p = (power/100)*60000
+    p = (power/100)*20000
     print("Set the Intensity to %s" % (str(power)))
     set = False
     while not set:
@@ -77,23 +86,26 @@ def adjust_intensity(color, power):
     input("Switch the %s LED to 'Trig' Mode. The press [ENTER]" % (color))
 
 def make_save_file(color, power, freq):
-    fname = "data/%s_%sp_%shz.csv" % (color, power, freq)
+    fname = "data/%s_%sp_%shz.csv" % (color, power, int(freq))
     print("Creating save file: %s" % (fname))
-    with open(fname, "w") as f:
+    with open(fname, "w+") as f:
         f.write("Time (s), Intensity\n")
+    f.close()
     return(fname)
 
 # SETTINGS
 os.chdir("..")
-freq = [5, 10, 25, 50] # in Hz
+freq = [1/300, 10, 25, 50] # in Hz
 pow = [100, 50, 10] # % of Max LED power
-leds = {    "LIME":1061,
-            "GREEN":962,
-            "BLUE":848,
-            "RED":1255}
-duration = 1 # seconds
-delay = 1 # milliseconds
-data = {}
+leds = {    "GREEN":list(range(520,526)),
+            "BLUE":list(range(490,494)),
+            "RED":list(range(621,625)),
+            "LIME":list(range(560,570)),
+        }
+        # Bit values for specified wavelength ranges
+        # 1050/560 -> 1.875 bits/nm
+duration = 300 # seconds
+delay = 4 # milliseconds
 
 spec = spectrometer_connect()
 
@@ -101,18 +113,8 @@ arduino = arduino_connect()
 
 if __name__ == "__main__":
 
-    for color in ["RED"]:
-        data[color] = {}
-        for p in pow:
-            data[color][p] = {}
-            adjust_intensity(color, p)
-            for f in freq:
-                file = make_save_file(color, p, f)
-                strobe = threading.Thread(  target=strobe_single_color,
-                                            args=(arduino, color, f))
-                read = threading.Thread(    target=read_single_wavelength,
-                                            args=(color,file))
-                strobe.start()
-                read.start()
-                strobe.join()
-                read.join()
+    p = "100"
+    f = 0
+    for color in leds.keys():
+        file = make_save_file(color, p, f)
+        read_single_color(color, file)
