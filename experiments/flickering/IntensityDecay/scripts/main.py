@@ -114,7 +114,10 @@ arduino = arduino_connect()
 if __name__ == "__main__":
 
     p = "100"
-    f = 0
-    for color in leds.keys():
-        file = make_save_file(color, p, f)
-        read_single_color(color, file)
+
+    for f in freq:
+        for color in leds.keys():
+            arduino.write(color[0].encode())
+            file = make_save_file(color, p, f)
+            read_single_color(color, file)
+            arduino.write(color[0].lower().encode())
