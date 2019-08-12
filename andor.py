@@ -1,4 +1,5 @@
-import psutil, os, json, win32gui
+import psutil, os, json
+from pywinauto.application import Application
 from shutil import copyfile
 from datetime import datetime
 
@@ -49,3 +50,20 @@ class Andor():
         dst = path+"/settings.json"
         copyfile(src, dst)
         return dst
+
+    def set_parameters():
+        cwd = os.getcwd()
+        set_param = "resources\solis_scripts\set_parameters"
+        spra_deaux = "resources\solis_scripts\SPRA_deaux"
+
+        files = '"%s\%s" "%s\%s"' % (cwd, set_param, cwd, spra_deaux)
+
+        app = Application().connect(title_re="Andor")
+        andor = app.window(title_re="Andor")
+        andor.menu_select("File->Open")
+        open = app.window(title_re="Open")
+        file_name = open.Edit.set_text(files)
+        open.ComboBox3.select('Andor Program Files  (*.pgm)')
+        time.sleep(1)
+        open.Button.click()
+        andor.menu_select("File -> Run Program")

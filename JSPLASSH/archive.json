@@ -1,46 +1,46 @@
 {
     "mice": {
-        "cm122": {
-            "last_trial": 47
+        "cm132": {
+            "last_trial": 6
         },
         "cm121": {
             "last_trial": 16
         },
-        "cm132": {
-            "last_trial": 6
+        "chbfc": {
+            "last_trial": 1
         },
-        "cmru": {
-            "last_trial": 5
-        },
-        "cm495": {
-            "last_trial": 4
-        },
-        "ghf": {
-            "last_trial": 4
+        "dhfb": {
+            "last_trial": 0
         },
         "cm150": {
             "last_trial": 1
         },
-        "cm1500": {
+        "cm234": {
             "last_trial": 1
         },
         "rjn4": {
             "last_trial": 0
         },
-        "cm234": {
-            "last_trial": 0
-        },
         "cm123": {
             "last_trial": 10
         },
-        "dhfb": {
-            "last_trial": 0
+        "cm122": {
+            "last_trial": 48
+        },
+        "cm495": {
+            "last_trial": 4
+        },
+        "cm1500": {
+            "last_trial": 1
         },
         "fjrhhrf": {
             "last_trial": 4
         },
-        "chbfc": {
-            "last_trial": 1
+        "ghf": {
+            "last_trial": 4
+        },
+        "cmru": {
+            "last_trial": 5
         }
     }
 }
