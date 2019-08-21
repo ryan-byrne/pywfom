@@ -1,5 +1,4 @@
 import time, subprocess, os, datetime, json, sys, string
-import pylablib as pll
 from arduino import Arduino
 from andor import Andor
 from gui import Gui
@@ -22,5 +21,6 @@ if __name__ == '__main__':
     Gui.solis_GUI()
     try:
         dst = Andor.deploy_settings(path)
+        Andor.set_parameters()
     except FileNotFoundError as e:
         print(e.filename)

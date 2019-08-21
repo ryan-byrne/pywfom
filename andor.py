@@ -1,4 +1,4 @@
-import psutil, os, json
+import psutil, os, json, time
 from pywinauto.application import Application
 from shutil import copyfile
 from datetime import datetime
