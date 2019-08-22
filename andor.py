@@ -2,6 +2,8 @@ import psutil, os, json, time
 from pywinauto.application import Application
 from shutil import copyfile
 from datetime import datetime
+from resources.camera.atcore import *
+import numpy as np
 
 class Andor():
 
@@ -51,19 +53,59 @@ class Andor():
         copyfile(src, dst)
         return dst
 
-    def set_parameters():
-        cwd = os.getcwd()
-        set_param = "resources\solis_scripts\set_parameters"
-        spra_deaux = "resources\solis_scripts\SPRA_deaux"
+    def initialise_camera(settings) :
+        print("Intialising Andor SDK3")
+        os.chdir("resources/camera")
+        sdk3 = ATCore() # Initialise SDK3
+        os.chdir(".. ..")
+        deviceCount = sdk3.get_int(sdk3.AT_HNDL_SYSTEM,"DeviceCount")
 
-        files = '"%s\%s" "%s\%s"' % (cwd, set_param, cwd, spra_deaux)
+        print("Found : ",deviceCount," device(s)")
 
-        app = Application().connect(title_re="Andor")
-        andor = app.window(title_re="Andor")
-        andor.menu_select("File->Open")
-        open = app.window(title_re="Open")
-        file_name = open.Edit.set_text(files)
-        open.ComboBox3.select('Andor Program Files  (*.pgm)')
-        time.sleep(1)
-        open.Button.click()
-        andor.menu_select("File -> Run Program")
+        if deviceCount > 0 :
+
+            try :
+                print(" Opening camera ");
+                hndl = sdk3.open(0);
+
+                print(" Deploying Camera Settings")
+                initialization_settings = [
+                    ["PixelEncoding", "Mono16"],
+                    ["TriggerMode", "Software"],
+                    ["CycleMode", "Continuous"],
+                    ["AOIBinning", settings["camera"]["binning"]],
+                    ["PixelReadoutRate", "100 MHz"],
+                    ["ExposureTime", float(settings["camera"]["exposure"])]
+                ]
+                for setting in initialization_settings:
+                    print("  Setting {0}".format(setting[0]))
+                    if type(setting[1]) == str:
+                        sdk3.set_enum_string(hndl, setting[0], setting[1])
+                        actual = setting[1]
+                    else:
+                        sdk3.set_float(hndl, setting[0], setting[1])
+                        actual = sdk3.get_float(hndl, setting[0])
+                    print("   {0} set to: {1}".format(setting[0], actual))
+                return sdk3, hndl
+
+            except ATCoreException as err :
+              print("     SDK3 Error {0}".format(err));
+            print("  Closing camera");
+            sdk3.close(hndl);
+        else :
+            print("Could not connect to camera")
+
+if __name__ == "__main__":
+    settings = {
+      "uni": "",
+      "mouse": "cm122",
+      "camera": {
+        "exposure": "0.0068",
+        "strobe_order": ["Red", "Blue", "Green", "Lime"],
+        "framerate": "50.70",
+        "width": "2048",
+        "binning": "4x4",
+        "height": "2048"
+      }
+    }
+    Andor.initialise_camera(settings)
