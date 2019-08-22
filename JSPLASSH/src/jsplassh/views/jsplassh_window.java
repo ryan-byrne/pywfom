@@ -188,7 +188,7 @@ public class jsplassh_window extends JFrame {
 		btnDeploySettingsTo_1.setBounds(80, 452, 153, 23);
 		btnDeploySettingsTo_1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				int b = binning.getValue();
+				String b = binning.getValue()+"x"+binning.getValue();
 				String h = setHeight.getText();
 				String w = setWidth.getText();
 				String e = exposureTime.getText();
@@ -526,7 +526,7 @@ public class jsplassh_window extends JFrame {
 		
 	}
 
-	private void writeJsonSettings(int b, String f, String h, String e, String w, List<String> s, String u, String m) {
+	private void writeJsonSettings(String b, String f, String h, String e, String w, List<String> s, String u, String m) {
 		FileReader reader;
 		try {
 			reader = new FileReader("JSPLASSH/settings.json");
