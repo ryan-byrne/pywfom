@@ -190,6 +190,7 @@ public class jsplassh_window extends JFrame {
 			public void actionPerformed(ActionEvent arg0) {
 				int binVal = (int) (16*Math.exp(-0.693*binning.getValue()));
 				String b = binVal+"x"+binVal;
+				System.out.println(b);
 				String h = setHeight.getText();
 				String w = setWidth.getText();
 				String e = exposureTime.getText();
@@ -554,7 +555,6 @@ public class jsplassh_window extends JFrame {
 				JSONObject settings = new JSONObject(tokener);
 				reader.close();
 				JSONObject camera = new JSONObject();
-				System.out.print("s");
 				camera.put("strobe_order", s);
 				camera.put("binning", b);
 				camera.put("framerate", f);
