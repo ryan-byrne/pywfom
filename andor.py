@@ -1,4 +1,5 @@
 import psutil, os, json, time
+from colorama import Fore, Style
 from shutil import copyfile
 from datetime import datetime
 from resources.camera.atcore import *
@@ -49,6 +50,20 @@ class Andor():
         copyfile(src, dst)
         return dst
 
+    def test_camera():
+        print("Testing Connection to the Camera")
+        os.chdir("resources/camera")
+        sdk3 = ATCore() # Initialise SDK3
+        hndl = sdk3.open(0)
+        try:
+            sdk3.get_bool(hndl, "CameraPresent")
+            print("Successfully detected camera")
+            return 1
+        except ATCoreException:
+            print(Fore.RED + "Camera not detected")
+            print(Style.RESET_ALL)
+            return 0
+
     def initialise_camera(settings_file) :
 
         print("Reading Settings from {0}".format(settings_file))
@@ -59,7 +74,7 @@ class Andor():
         print("Intialising Andor SDK3")
         os.chdir("resources/camera")
         sdk3 = ATCore() # Initialise SDK3
-        os.chdir(".. ..")
+        os.chdir("../..")
         deviceCount = sdk3.get_int(sdk3.AT_HNDL_SYSTEM,"DeviceCount")
 
         print("Found : ",deviceCount," device(s)")
@@ -67,8 +82,14 @@ class Andor():
         if deviceCount > 0 :
 
             try :
-                print(" Opening camera ");
-                hndl = sdk3.open(0);
+
+                for i in range(deviceCount):
+                    uhndl = sdk3.open(i);
+                    print("Device {0}: {1}".format(i, sdk3.get_string(uhndl, "Camera Model")))
+
+                hndl = sdk3.open(0)
+
+                print(" Opening camera: {0}".format(sdk3.get_string(hndl, "Camera Model")))
 
                 print(" Deploying Camera Settings")
                 initialization_settings = [
@@ -92,8 +113,7 @@ class Andor():
 
             except ATCoreException as err :
               print("     SDK3 Error {0}".format(err));
-            print("  Closing camera");
-            sdk3.close(hndl);
+            print("Camera Successfully initialized")
         else :
             print("Could not connect to camera")
 
@@ -110,4 +130,4 @@ if __name__ == "__main__":
         "height": "2048"
       }
     }
-    Andor.initialise_camera(settings)
+    Andor.initialise_camera("JSPLASSH/settings.json")

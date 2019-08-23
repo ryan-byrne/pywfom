@@ -56,6 +56,24 @@ class Arduino():
             print("Unable to connect to Arduino through "+port)
             Gui.exit()
 
-if __name__ == "__main__":
-    dst = "JSPLASSH/settings.json"
-    print(Arduino.get_message(dst))
+    def test_arduino():
+        print("Testing Connection to the Arduino")
+        port = "COM4"
+        try:
+            ser = serial.Serial(
+                port=port,\
+                baudrate=115200,\
+                parity=serial.PARITY_NONE,\
+                stopbits=serial.STOPBITS_ONE,\
+                bytesize=serial.EIGHTBITS,\
+                    timeout=0)
+            time.sleep(3)
+            ser.write(bytes("s", "utf-8"))
+            ser.flush()
+            ser.close()
+            print("Arduino Connected to "+port)
+            return 1
+        except serial.SerialException as e:
+            print(Fore.RED + "Unable to connect to Arduino through "+port)
+            print(Style.RESET_ALL)
+            return 0

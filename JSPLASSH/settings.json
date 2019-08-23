@@ -1,1 +1,1 @@
-{"uni":"","mouse":"cm122","camera":{"exposure":"0.0068","strobe_order":[],"framerate":"50.70","width":"2048","binning":"8x8","height":"2048"}}
+{"uni":"","mouse":"cm122","camera":{"exposure":"0.0068","strobe_order":["Red"],"framerate":"50.70","width":"2048","binning":"1x1","height":"2048"},"timestamp":"2019-08-23T22:07:22.334Z"}
