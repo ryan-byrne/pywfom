@@ -44,16 +44,19 @@ class Andor():
         os.mkdir(path+"/auxillary")
         print("Making directory: "+path+"/webcam")
         os.mkdir(path+"/webcam")
-        return path
-
-    def deploy_settings(path):
         print("Copying JSPLASSH/settings.json to "+path+"/settings.json")
         src = "JSPLASSH/settings.json"
         dst = path+"/settings.json"
         copyfile(src, dst)
         return dst
 
-    def initialise_camera(settings) :
+    def initialise_camera(settings_file) :
+
+        print("Reading Settings from {0}".format(settings_file))
+        with open(settings_file) as f:
+            settings = json.load(f)
+        f.close()
+
         print("Intialising Andor SDK3")
         os.chdir("resources/camera")
         sdk3 = ATCore() # Initialise SDK3

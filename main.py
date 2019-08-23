@@ -19,8 +19,4 @@ if __name__ == '__main__':
         print(e.with_traceback)
         Gui.exit()
     Gui.solis_GUI()
-    try:
-        dst = Andor.deploy_settings(path)
-        Andor.set_parameters()
-    except FileNotFoundError as e:
-        print(e.filename)
+    sdk3, hndl = Andor.initialise_camera(path)
