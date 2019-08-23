@@ -27,6 +27,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.awt.event.ActionEvent;
@@ -74,9 +76,10 @@ public class openScreen extends JFrame {
 	 * Create the frame.
 	 */
 	public openScreen() {
-		setTitle("SPLASSH - Enter Your Uni");
+		setResizable(false);
+		setTitle("WFOM Dashboard");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 150, 240);
+		setBounds(100, 100, 170, 240);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
@@ -157,6 +160,7 @@ public class openScreen extends JFrame {
 					}
 					obj.put("uni", uni);
 					obj.put("mouse", mouse);
+					obj.put("timestamp", Instant.now().toString());
 					FileWriter file = new FileWriter("JSPLASSH/settings.json");
 				    file.write(obj.toString());
 				    file.flush();
@@ -171,19 +175,34 @@ public class openScreen extends JFrame {
 		
 		GroupLayout gl_contentPane = new GroupLayout(contentPane);
 		gl_contentPane.setHorizontalGroup(
-			gl_contentPane.createParallelGroup(Alignment.LEADING)
-				.addGroup(Alignment.TRAILING, gl_contentPane.createSequentialGroup()
-					.addContainerGap()
-					.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
-						.addComponent(lblEnterYourUni)
-						.addComponent(textField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(chckbxNewMouse)
-						.addComponent(lblSelectTheMouse, GroupLayout.DEFAULT_SIZE, 92, Short.MAX_VALUE)
-						.addComponent(comboBox, GroupLayout.PREFERRED_SIZE, 96, GroupLayout.PREFERRED_SIZE)
+			gl_contentPane.createParallelGroup(Alignment.TRAILING)
+				.addGroup(gl_contentPane.createSequentialGroup()
+					.addContainerGap(26, Short.MAX_VALUE)
+					.addGroup(gl_contentPane.createParallelGroup(Alignment.TRAILING)
 						.addComponent(lblEnterTheMouse)
-						.addComponent(textField_1, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(btnBegin))
-					.addContainerGap())
+						.addGroup(gl_contentPane.createSequentialGroup()
+							.addComponent(comboBox, GroupLayout.PREFERRED_SIZE, 96, GroupLayout.PREFERRED_SIZE)
+							.addGap(9))
+						.addGroup(gl_contentPane.createSequentialGroup()
+							.addComponent(lblSelectTheMouse)
+							.addGap(16))
+						.addGroup(gl_contentPane.createSequentialGroup()
+							.addComponent(chckbxNewMouse)
+							.addGap(14))
+						.addGroup(gl_contentPane.createSequentialGroup()
+							.addComponent(textField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+							.addGap(14))
+						.addGroup(gl_contentPane.createSequentialGroup()
+							.addComponent(lblEnterYourUni)
+							.addGap(19))
+						.addGroup(gl_contentPane.createSequentialGroup()
+							.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
+								.addGroup(gl_contentPane.createSequentialGroup()
+									.addGap(10)
+									.addComponent(btnBegin))
+								.addComponent(textField_1, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+							.addGap(14)))
+					.addGap(15))
 		);
 		gl_contentPane.setVerticalGroup(
 			gl_contentPane.createParallelGroup(Alignment.LEADING)
@@ -204,7 +223,7 @@ public class openScreen extends JFrame {
 					.addComponent(textField_1, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addComponent(btnBegin)
-					.addContainerGap(62, Short.MAX_VALUE))
+					.addContainerGap(12, Short.MAX_VALUE))
 		);
 		contentPane.setLayout(gl_contentPane);
 	}

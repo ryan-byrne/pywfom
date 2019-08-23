@@ -30,7 +30,7 @@ class Gui():
         print("Mouse: "+mouse)
         return uni, mouse
 
-    def solis_GUI():
+    def camera_GUI():
 
         """
 
@@ -40,7 +40,7 @@ class Gui():
         """
 
         print("Opening the Java GUI")
-        subprocess.call(["java", "-jar","solis.jar"])
+        subprocess.call(["java", "-jar","camera.jar"])
 
     def exit():
 

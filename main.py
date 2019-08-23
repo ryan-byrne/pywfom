@@ -18,5 +18,5 @@ if __name__ == '__main__':
     except FileExistsError as e:
         print(e.with_traceback)
         Gui.exit()
-    Gui.solis_GUI()
+    Gui.camera_GUI()
     sdk3, hndl = Andor.initialise_camera(path)

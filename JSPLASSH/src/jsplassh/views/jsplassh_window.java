@@ -81,19 +81,20 @@ public class jsplassh_window extends JFrame {
 	 * Create the frame.
 	 */
 	public jsplassh_window() {
+		setResizable(false);
 		initComponents();
 	}
 	private void initComponents() {
 		OutputStream out = initializeArduino();
-		setTitle("SPLASSH");
-		setIconImage(Toolkit.getDefaultToolkit().getImage(jsplassh_window.class.getResource("/jsplassh/resources/1027308.png")));
+		setTitle("WFOM Dashboard");
+		setIconImage(Toolkit.getDefaultToolkit().getImage(jsplassh_window.class.getResource("/jsplassh/resources/download.jpg")));
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 326, 525);
+		setBounds(100, 100, 330, 445);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 		
-		JLabel lblSolisParameters = new JLabel("SOLIS Parameters");
+		JLabel lblSolisParameters = new JLabel("Zyla Parameters");
 		lblSolisParameters.setFont(new Font("Tahoma", Font.BOLD | Font.ITALIC, 11));
 		lblSolisParameters.setBounds(5, 5, 120, 14);
 		
@@ -166,26 +167,8 @@ public class jsplassh_window extends JFrame {
 		JLabel lblLeds = new JLabel("LEDs");
 		lblLeds.setBounds(46, 215, 23, 14);
 		
-		JLabel lblArduinoState = new JLabel("Arduino State");
-		lblArduinoState.setBounds(15, 377, 66, 14);
-		
-		JLabel lblNewLabel = new JLabel("LED Set State");
-		lblNewLabel.setBounds(121, 377, 66, 14);
-		
-		JLabel lblSolisState = new JLabel("SOLIS State");
-		lblSolisState.setBounds(214, 377, 58, 14);
-		
-		JLabel arduinoStatusLbl = new JLabel("");
-		arduinoStatusLbl.setBounds(35, 397, 20, 20);
-		
-		JLabel ledStatusLbl = new JLabel("");
-		ledStatusLbl.setBounds(142, 397, 20, 20);
-		
-		JLabel solidStatusLbl = new JLabel("");
-		solidStatusLbl.setBounds(236, 397, 20, 20);
-		
-		JButton btnDeploySettingsTo_1 = new JButton("Deploy Settings to SOLIS");
-		btnDeploySettingsTo_1.setBounds(80, 452, 153, 23);
+		JButton btnDeploySettingsTo_1 = new JButton("Deploy Settings to Camera");
+		btnDeploySettingsTo_1.setBounds(68, 372, 175, 23);
 		btnDeploySettingsTo_1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				int binVal = (int) (16*Math.exp(-0.693*binning.getValue()));
@@ -202,47 +185,6 @@ public class jsplassh_window extends JFrame {
 				System.exit(0);
 			}
 
-		});
-		btnDeploySettingsTo_1.setEnabled(false);
-		JButton checkStatusBtn = new JButton("Check States");
-		checkStatusBtn.setBounds(107, 423, 95, 23);
-		checkStatusBtn.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				if (checkArduino(out) == 1) {
-					arduinoStatusLbl.setIcon(new ImageIcon(jsplassh_window.class.getResource("/jsplassh/resources/check.png")));
-				}
-				else {
-					arduinoStatusLbl.setIcon(new ImageIcon(jsplassh_window.class.getResource("/jsplassh/resources/x.png")));
-					System.out.println("Arduino is Not Connected!");
-				}
-				
-				if (orderList.size()>0) {
-					ledStatusLbl.setIcon(new ImageIcon(jsplassh_window.class.getResource("/jsplassh/resources/check.png")));
-					ledState = 1;
-				}
-				else {
-					ledStatusLbl.setIcon(new ImageIcon(jsplassh_window.class.getResource("/jsplassh/resources/x.png")));
-					System.out.println("LED Strobe Order Not Set!");
-					ledState = 0;
-				}
-				
-				if (checkSolis() == 1) {
-					solidStatusLbl.setIcon(new ImageIcon(jsplassh_window.class.getResource("/jsplassh/resources/check.png")));
-				}
-				else {
-					solidStatusLbl.setIcon(new ImageIcon(jsplassh_window.class.getResource("/jsplassh/resources/x.png")));
-					System.out.println("SOLIS is Not Running!");
-				}
-				
-				if (checkSolis()== 1 && ledState == 1 && checkArduino(out) == 1){
-					btnDeploySettingsTo_1.setEnabled(true);
-				}
-				else {
-					btnDeploySettingsTo_1.setEnabled(false);
-				}
-				
-				
-			}
 		});
 		JList list = new JList();
 		JLabel lblStrobeOrder = new JLabel();
@@ -316,14 +258,7 @@ public class jsplassh_window extends JFrame {
 		contentPane.add(btnGreen);
 		contentPane.add(btnBlue);
 		contentPane.add(btnSpeckle);
-		contentPane.add(checkStatusBtn);
 		contentPane.add(btnDeploySettingsTo_1);
-		contentPane.add(arduinoStatusLbl);
-		contentPane.add(ledStatusLbl);
-		contentPane.add(solidStatusLbl);
-		contentPane.add(lblArduinoState);
-		contentPane.add(lblNewLabel);
-		contentPane.add(lblSolisState);
 		contentPane.add(lblSolisParameters);
 		contentPane.add(lblLedControl);
 		contentPane.add(lblStrobeOrder);

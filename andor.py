@@ -1,5 +1,4 @@
 import psutil, os, json, time
-from pywinauto.application import Application
 from shutil import copyfile
 from datetime import datetime
 from resources.camera.atcore import *
