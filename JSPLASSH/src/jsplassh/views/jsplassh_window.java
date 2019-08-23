@@ -188,7 +188,8 @@ public class jsplassh_window extends JFrame {
 		btnDeploySettingsTo_1.setBounds(80, 452, 153, 23);
 		btnDeploySettingsTo_1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				String b = binning.getValue()+"x"+binning.getValue();
+				int binVal = (int) (16*Math.exp(-0.693*binning.getValue()));
+				String b = binVal+"x"+binVal;
 				String h = setHeight.getText();
 				String w = setWidth.getText();
 				String e = exposureTime.getText();
