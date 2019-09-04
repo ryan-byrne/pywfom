@@ -8,7 +8,16 @@ import numpy as np
 class Andor():
 
     def __init__(self):
-        pass
+        print("Intialising Andor SDK3")
+        os.chdir("resources/camera")
+        self.sdk3 = ATCore() # Initialise SDK3
+        os.chdir("../..")
+        self.hndl = self.sdk3.open(0)
+        try:
+            self.sdk3.get_bool(self.hndl, "CameraPresent")
+            self.connected = 1
+        except ATCoreException:
+            self.connected = 0
 
     def create_camera_file_folder(mouse):
         date = str(datetime.now())[:10]
@@ -49,27 +58,9 @@ class Andor():
         dst = path+"/settings.json"
         copyfile(src, dst)
         return dst
-
-    def test_camera():
-        print("Testing Connection to the Camera")
-        os.chdir("resources/camera")
-        sdk3 = ATCore() # Initialise SDK3
-        hndl = sdk3.open(0)
-        try:
-            sdk3.get_bool(hndl, "CameraPresent")
-            print("Successfully detected camera")
-            return 1
-        except ATCoreException:
-            print(Fore.RED + "Camera not detected")
-            print(Style.RESET_ALL)
-            return 0
-
-    def initialise_camera(settings_file) :
-
-        print("Reading Settings from {0}".format(settings_file))
-        with open(settings_file) as f:
-            settings = json.load(f)
-        f.close()
+        
+"""
+    def initialise_camera() :
 
         print("Intialising Andor SDK3")
         os.chdir("resources/camera")
@@ -111,23 +102,17 @@ class Andor():
                     print("   {0} set to: {1}".format(setting[0], actual))
                 return sdk3, hndl
 
-            except ATCoreException as err :
-              print("     SDK3 Error {0}".format(err));
-            print("Camera Successfully initialized")
-        else :
-            print("Could not connect to camera")
-
-if __name__ == "__main__":
-    settings = {
-      "uni": "",
-      "mouse": "cm122",
-      "camera": {
-        "exposure": "0.0068",
-        "strobe_order": ["Red", "Blue", "Green", "Lime"],
-        "framerate": "50.70",
-        "width": "2048",
-        "binning": "4x4",
-        "height": "2048"
-      }
-    }
-    Andor.initialise_camera("JSPLASSH/settings.json")
+    def acquire(skd3, hndl):
+        num_bufs = 10
+        frames_to_acquire = 15
+        image_size_bytes = sdk3.get_int(hndl, "ImageSizeBytes")
+        buf = np.empty((imageSizeBytes,), dtype='B')
+        sdk3.queue_buffer(hndl,buf.ctypes.data,imageSizeBytes)
+        buf2 = np.empty((imageSizeBytes,), dtype='B')
+        sdk3.queue_buffer(hndl,buf2.ctypes.data,imageSizeBytes)
+        sdk3.command(hndl, "AcquisitionStart")
+        sdk3.command(hndl, "SoftwareTrigger")
+        (returnedBuf, returnedSize) = sdk3.wait_buffer(hndl)
+        pixels = buf.view(dtype='H')
+        sdk3.command(hndl,"AcquisitionStop")
+"""

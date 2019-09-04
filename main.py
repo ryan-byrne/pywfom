@@ -1,30 +1,27 @@
 import time, subprocess, os, datetime, json, sys, string
+from colorama import Fore, Style
+from gui import Gui
+
+os.system("cls")
+Gui.banner("WFOM", "isometric1")
+Gui.banner("WELCOME TO THE WFOM DASHBOARD", "contessa")
+
+ERASE_LINE = '\x1b[2K'
+
 from arduino import Arduino
 from andor import Andor
 from webcam import Webcam
-from gui import Gui
 
 
 if __name__ == '__main__':
-
-    # Welcome Banner
-    Gui.banner("WFOM", "isometric1")
-    Gui.banner("WELCOME TO SPLASSH", "contessa")
-
-    # Testing hardware connections
-    if 0 in [Andor.test_camera(), Arduino.test_arduino(), Webcam.test_webcam()]:
-        Gui.exit()
-
-    os.chdir("../..")
-
-    # Initiate the Open Gui
     uni, mouse = Gui.open_GUI()
-
-    try:
-        path = Andor.create_camera_file_folder(mouse)
-    except FileExistsError as e:
-        print(e.with_traceback)
-        Gui.exit()
-    Gui.camera_GUI()
-    sdk3, hndl = Andor.initialise_camera(path)
-    #Andor.acquire(sdk3, hndl)
+    hardware = [Arduino("COM4"), Andor(), Webcam()]
+    for hw in hardware:
+        name = hw.__class__.__name__
+        if hw.connected == 0:
+            print(Fore.RED + "Unable to Connect to {0}\n".format(name))
+            print(Fore.RED + "Ensure {0} is Powered On, and no other programs are using it\n".format(name))
+            Gui.restart()
+            print(Style.RESET_ALL)
+            os.execl(sys.executable, sys.executable, *sys.argv)
+    print("Successsfully connected to Hardware")

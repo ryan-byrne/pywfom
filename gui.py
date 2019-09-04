@@ -20,16 +20,8 @@ class Gui():
         """
 
         print("Waiting for UNI and Mouse Name from GUI")
-        subprocess.call(["java", "-jar", "open.jar"])
-        with open("JSPLASSH/settings.json") as f:
-            settings = json.load(f)
-            uni = settings["uni"]
-            mouse = settings["mouse"]
-        f.close()
-        print("Uni: "+uni)
-        print("Mouse: "+mouse)
-        return uni, mouse
-
+        subprocess.Popen(["java", "-jar", "open.jar"])
+        
     def camera_GUI():
 
         """
@@ -42,7 +34,7 @@ class Gui():
         print("Opening the Java GUI")
         subprocess.call(["java", "-jar","camera.jar"])
 
-    def exit():
+    def restart():
 
         """
 
@@ -51,10 +43,10 @@ class Gui():
         """
 
         for i in [9,8,7,6,5,4,3,2,1]:
-            print("Exiting in: ", sep=' ', end=': ')
+            print("Restarting in: ", sep=' ', end=': ')
             print(i, sep=' ', end='\r')
             time.sleep(1)
-        sys.exit()
+
 
     def banner(text, font):
 
