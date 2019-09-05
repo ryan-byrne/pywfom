@@ -14,7 +14,7 @@ from webcam import Webcam
 
 
 if __name__ == '__main__':
-    uni, mouse = Gui.open_GUI()
+    Gui.open_GUI()
     hardware = [Arduino("COM4"), Andor(), Webcam()]
     for hw in hardware:
         name = hw.__class__.__name__
@@ -25,3 +25,6 @@ if __name__ == '__main__':
             print(Style.RESET_ALL)
             os.execl(sys.executable, sys.executable, *sys.argv)
     print("Successsfully connected to Hardware")
+    while not os.path.isfile("JSPLASSH/settings.json"):
+        print("Waiting for UNI and Mouse ID...", end='\r')
+    Gui.camera_GUI()

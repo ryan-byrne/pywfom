@@ -1,4 +1,4 @@
-import subprocess, json, time, sys
+import subprocess, json, time, sys, os
 from pyfiglet import Figlet
 
 class Gui():
@@ -19,9 +19,10 @@ class Gui():
 
         """
 
-        print("Waiting for UNI and Mouse Name from GUI")
+        os.chdir("JSPLASSH")
         subprocess.Popen(["java", "-jar", "open.jar"])
-        
+        os.chdir("..")
+
     def camera_GUI():
 
         """
@@ -31,8 +32,9 @@ class Gui():
 
         """
 
-        print("Opening the Java GUI")
+        os.chdir("JSPLASSH")
         subprocess.call(["java", "-jar","camera.jar"])
+        os.chdir("..")
 
     def restart():
 

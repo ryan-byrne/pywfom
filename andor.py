@@ -58,61 +58,17 @@ class Andor():
         dst = path+"/settings.json"
         copyfile(src, dst)
         return dst
-        
-"""
-    def initialise_camera() :
 
-        print("Intialising Andor SDK3")
-        os.chdir("resources/camera")
-        sdk3 = ATCore() # Initialise SDK3
-        os.chdir("../..")
-        deviceCount = sdk3.get_int(sdk3.AT_HNDL_SYSTEM,"DeviceCount")
-
-        print("Found : ",deviceCount," device(s)")
-
-        if deviceCount > 0 :
-
-            try :
-
-                for i in range(deviceCount):
-                    uhndl = sdk3.open(i);
-                    print("Device {0}: {1}".format(i, sdk3.get_string(uhndl, "Camera Model")))
-
-                hndl = sdk3.open(0)
-
-                print(" Opening camera: {0}".format(sdk3.get_string(hndl, "Camera Model")))
-
-                print(" Deploying Camera Settings")
-                initialization_settings = [
-                    ["PixelEncoding", "Mono16"],
-                    ["TriggerMode", "Software"],
-                    ["CycleMode", "Continuous"],
-                    ["AOIBinning", settings["camera"]["binning"]],
-                    ["PixelReadoutRate", "100 MHz"],
-                    ["ExposureTime", float(settings["camera"]["exposure"])]
-                ]
-                for setting in initialization_settings:
-                    print("  Setting {0}".format(setting[0]))
-                    if type(setting[1]) == str:
-                        sdk3.set_enum_string(hndl, setting[0], setting[1])
-                        actual = setting[1]
-                    else:
-                        sdk3.set_float(hndl, setting[0], setting[1])
-                        actual = sdk3.get_float(hndl, setting[0])
-                    print("   {0} set to: {1}".format(setting[0], actual))
-                return sdk3, hndl
-
-    def acquire(skd3, hndl):
+    def acquire(skd3, hndl, self):
         num_bufs = 10
         frames_to_acquire = 15
-        image_size_bytes = sdk3.get_int(hndl, "ImageSizeBytes")
+        image_size_bytes = self.sdk3.get_int(hndl, "ImageSizeBytes")
         buf = np.empty((imageSizeBytes,), dtype='B')
-        sdk3.queue_buffer(hndl,buf.ctypes.data,imageSizeBytes)
+        self.sdk3.queue_buffer(hndl,buf.ctypes.data,imageSizeBytes)
         buf2 = np.empty((imageSizeBytes,), dtype='B')
-        sdk3.queue_buffer(hndl,buf2.ctypes.data,imageSizeBytes)
-        sdk3.command(hndl, "AcquisitionStart")
-        sdk3.command(hndl, "SoftwareTrigger")
-        (returnedBuf, returnedSize) = sdk3.wait_buffer(hndl)
+        self.sdk3.queue_buffer(hndl,buf2.ctypes.data,imageSizeBytes)
+        self.sdk3.command(hndl, "AcquisitionStart")
+        self.sdk3.command(hndl, "SoftwareTrigger")
+        (returnedBuf, returnedSize) = self.sdk3.wait_buffer(hndl)
         pixels = buf.view(dtype='H')
-        sdk3.command(hndl,"AcquisitionStop")
-"""
+        self.sdk3.command(hndl,"AcquisitionStop")
