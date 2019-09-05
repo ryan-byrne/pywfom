@@ -23,7 +23,6 @@ if __name__ == '__main__':
             print(Fore.RED + "Ensure {0} is Powered On, and no other programs are using it\n".format(name))
             Gui.restart()
             print(Style.RESET_ALL)
-            os.execl(sys.executable, sys.executable, *sys.argv)
     print("Successsfully connected to Hardware")
     while not os.path.isfile("JSPLASSH/settings.json"):
         print("Waiting for UNI and Mouse ID...", end='\r')

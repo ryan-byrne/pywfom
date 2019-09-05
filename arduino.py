@@ -16,4 +16,6 @@ class Arduino():
                     timeout=0)
             self.connected = 1
         except serial.SerialException as e:
+            print("Error connecting to Arduino")
+            print(e.strerror)
             self.connected = 0

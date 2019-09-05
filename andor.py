@@ -9,14 +9,15 @@ class Andor():
 
     def __init__(self):
         print("Intialising Andor SDK3")
-        os.chdir("resources/camera")
-        self.sdk3 = ATCore() # Initialise SDK3
-        os.chdir("../..")
-        self.hndl = self.sdk3.open(0)
         try:
+            os.chdir("resources/camera")
+            self.sdk3 = ATCore() # Initialise SDK3
+            os.chdir("../..")
+            self.hndl = self.sdk3.open(0)
             self.sdk3.get_bool(self.hndl, "CameraPresent")
             self.connected = 1
-        except ATCoreException:
+        except:
+            print("Error connecting to Andor Camera")
             self.connected = 0
 
     def create_camera_file_folder(mouse):

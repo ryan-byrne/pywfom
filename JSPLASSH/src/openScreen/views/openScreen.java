@@ -137,9 +137,6 @@ public class openScreen extends JFrame {
 			public void actionPerformed(ActionEvent arg0) {
 				try {
 					String mouse = new String();
-					FileReader reader = new FileReader("settings.json");
-					JSONTokener tokener = new JSONTokener(reader);
-					JSONObject obj = new JSONObject(tokener);
 					String uni = textField.getText();
 					if (chckbxNewMouse.isSelected()){
 						mouse = textField_1.getText();
@@ -158,6 +155,7 @@ public class openScreen extends JFrame {
 					else {
 						mouse = comboBox.getSelectedItem().toString();
 					}
+					JSONObject obj = new JSONObject();
 					obj.put("uni", uni);
 					obj.put("mouse", mouse);
 					obj.put("timestamp", Instant.now().toString());
@@ -165,7 +163,7 @@ public class openScreen extends JFrame {
 				    file.write(obj.toString());
 				    file.flush();
 				    file.close();
-				    System.exit(0);
+					System.exit(0);
 				} catch (IOException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
