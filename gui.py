@@ -7,7 +7,7 @@ class Gui():
     def __init__(self):
         pass
 
-    def open_GUI():
+    def open_gui(self):
 
         """
 
@@ -24,7 +24,7 @@ class Gui():
         subprocess.Popen(["java", "-jar", "open.jar"])
         os.chdir("..")
 
-    def camera_GUI():
+    def camera_gui(self):
 
         """
 
@@ -72,9 +72,9 @@ class Gui():
         src = "JSPLASSH/settings.json"
         dst = path+"/settings.json"
         shutil.move(src, dst)
-        return dst
+        self.dst = dst
 
-    def restart():
+    def restart(self):
 
         """
 
@@ -88,7 +88,7 @@ class Gui():
             time.sleep(1)
 
 
-    def banner(text, font):
+    def banner(self, text, font):
 
         """
 
