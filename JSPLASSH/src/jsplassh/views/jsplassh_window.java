@@ -173,7 +173,6 @@ public class jsplassh_window extends JFrame {
 			public void actionPerformed(ActionEvent arg0) {
 				int binVal = (int) (16*Math.exp(-0.693*binning.getValue()));
 				String b = binVal+"x"+binVal;
-				System.out.println(b);
 				String h = setHeight.getText();
 				String w = setWidth.getText();
 				String e = exposureTime.getText();
@@ -181,8 +180,13 @@ public class jsplassh_window extends JFrame {
 				String f = framerate.getText();
 				String u = uni;
 				String m = mouse;
-				writeJsonSettings(b, f, h, e, w, s, u, m);
-				System.exit(0);
+				try {
+					writeJsonSettings(b, f, h, e, w, s, u, m);
+					System.exit(0);
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					System.out.println(e1.getMessage());
+				}
 			}
 
 		});
@@ -369,10 +373,10 @@ public class jsplassh_window extends JFrame {
 		sp.setComPortParameters(115200, 8, 1, 0);
 		sp.setComPortTimeouts(SerialPort.TIMEOUT_WRITE_BLOCKING, 0, 0);
 		if (sp.openPort()) {
-			System.out.println("Port is opened");
+			System.out.println("Arduino is connected.");
 		}
 		else {
-			System.out.println("Port is not opened");
+			System.out.println("Arduino is not connected");
 		}
 		return sp.getOutputStream();
 	}
@@ -424,86 +428,26 @@ public class jsplassh_window extends JFrame {
 		}
 	}
 	
-	private Integer checkArduino(OutputStream out) {
-		System.out.println("Checking Arduino Connection...");
-		try {
-			System.out.println("Writing a test byte to the Arduino...");
-			out.write(0);
-			return 1;
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			System.out.println("Test byte failed to send...");
-			System.out.print(e.getMessage());
-			return 0;
-		}
-	}	
-	
-	private Integer checkSolis() {
-		String line;
-		String pidInfo ="";
-		try {
-			Process p =Runtime.getRuntime().exec(System.getenv("windir") +"\\system32\\"+"tasklist.exe");
-			BufferedReader input =  new BufferedReader(new InputStreamReader(p.getInputStream()));
-			while ((line = input.readLine()) != null) {
-			    pidInfo+=line; 
-			}
-			input.close();
-			if(pidInfo.contains("AndorSolis.exe"))
-			{
-			    return 1;
-			}
-			else {
-				return 0;
-			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return 0;
-		
-	}
-
-	private void writeJsonSettings(String b, String f, String h, String e, String w, List<String> s, String u, String m) {
+	private void writeJsonSettings(String b, String f, String h, String e, String w, List<String> s, String u, String m) throws Exception {
 		FileReader reader;
-		try {
-			reader = new FileReader("settings.json");
-			JSONTokener tokener = new JSONTokener(reader);
-			JSONObject settings = new JSONObject(tokener);
-			reader.close();
-			JSONObject camera = new JSONObject();
-			System.out.print("s");
-			camera.put("strobe_order", s);
-			camera.put("binning", b);
-			camera.put("framerate", f);
-			camera.put("height", h);
-			camera.put("width", w);
-			camera.put("exposure", e);
-			settings.put("camera", camera);
-			PrintWriter out = new PrintWriter("settings.json");
-			out.println(settings.toString());
-			out.close();
-		} catch (IOException e2) {
-			// TODO Auto-generated catch block
-			try {
-				reader = new FileReader("settings.json");
-				JSONTokener tokener = new JSONTokener(reader);
-				JSONObject settings = new JSONObject(tokener);
-				reader.close();
-				JSONObject camera = new JSONObject();
-				camera.put("strobe_order", s);
-				camera.put("binning", b);
-				camera.put("framerate", f);
-				camera.put("height", h);
-				camera.put("width", w);
-				camera.put("exposure", e);
-				settings.put("camera", camera);
-				PrintWriter out = new PrintWriter("settings.json");
-				out.println(settings.toString());
-				out.close();
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
+		if (s.size() < 1) {
+			throw new Exception("The length of the Strobe Array must be greater than 0!");
 		}
+		reader = new FileReader("settings.json");
+		JSONTokener tokener = new JSONTokener(reader);
+		JSONObject settings = new JSONObject(tokener);
+		reader.close();
+		JSONObject camera = new JSONObject();
+		System.out.print("s");
+		camera.put("strobe_order", s);
+		camera.put("binning", b);
+		camera.put("framerate", f);
+		camera.put("height", h);
+		camera.put("width", w);
+		camera.put("exposure", e);
+		settings.put("camera", camera);
+		PrintWriter out = new PrintWriter("settings.json");
+		out.println(settings.toString());
+		out.close();
 	}
 }
