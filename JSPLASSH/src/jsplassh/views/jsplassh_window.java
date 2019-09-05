@@ -466,7 +466,7 @@ public class jsplassh_window extends JFrame {
 	private void writeJsonSettings(String b, String f, String h, String e, String w, List<String> s, String u, String m) {
 		FileReader reader;
 		try {
-			reader = new FileReader("JSPLASSH/settings.json");
+			reader = new FileReader("settings.json");
 			JSONTokener tokener = new JSONTokener(reader);
 			JSONObject settings = new JSONObject(tokener);
 			reader.close();
@@ -479,7 +479,7 @@ public class jsplassh_window extends JFrame {
 			camera.put("width", w);
 			camera.put("exposure", e);
 			settings.put("camera", camera);
-			PrintWriter out = new PrintWriter("JSPLASSH/settings.json");
+			PrintWriter out = new PrintWriter("settings.json");
 			out.println(settings.toString());
 			out.close();
 		} catch (IOException e2) {

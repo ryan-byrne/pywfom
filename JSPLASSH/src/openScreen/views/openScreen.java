@@ -98,7 +98,7 @@ public class openScreen extends JFrame {
 		FileReader reader;
 		JSONArray jarray = new JSONArray();
 		try {
-			reader = new FileReader("JSPLASSH/archive.json");
+			reader = new FileReader("archive.json");
 			JSONTokener tokener = new JSONTokener(reader);
 			JSONObject obj = new JSONObject(tokener);
 			jarray = obj.getJSONObject("mice").names();
@@ -137,20 +137,20 @@ public class openScreen extends JFrame {
 			public void actionPerformed(ActionEvent arg0) {
 				try {
 					String mouse = new String();
-					FileReader reader = new FileReader("JSPLASSH/settings.json");
+					FileReader reader = new FileReader("settings.json");
 					JSONTokener tokener = new JSONTokener(reader);
 					JSONObject obj = new JSONObject(tokener);
 					String uni = textField.getText();
 					if (chckbxNewMouse.isSelected()){
 						mouse = textField_1.getText();
-						FileReader r = new FileReader("JSPLASSH/archive.json");
+						FileReader r = new FileReader("archive.json");
 						JSONTokener t = new JSONTokener(r);
 						JSONObject o = new JSONObject(t);
 						JSONObject jobj = o.getJSONObject("mice");
 						JSONObject l = new JSONObject();
 						l.put("last_trial", 0);
 						jobj.put(mouse, l);
-						FileWriter f = new FileWriter("JSPLASSH/archive.json");
+						FileWriter f = new FileWriter("archive.json");
 						f.write(o.toString());
 						f.flush();
 						f.close();
@@ -161,7 +161,7 @@ public class openScreen extends JFrame {
 					obj.put("uni", uni);
 					obj.put("mouse", mouse);
 					obj.put("timestamp", Instant.now().toString());
-					FileWriter file = new FileWriter("JSPLASSH/settings.json");
+					FileWriter file = new FileWriter("settings.json");
 				    file.write(obj.toString());
 				    file.flush();
 				    file.close();
