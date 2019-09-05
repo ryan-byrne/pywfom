@@ -24,6 +24,7 @@ if __name__ == '__main__':
             Gui.restart()
             print(Style.RESET_ALL)
     print("Successsfully connected to Hardware")
+    tout = time.time()
     while not os.path.isfile("JSPLASSH/settings.json"):
         print("Waiting for UNI and Mouse ID...", end='\r')
     Gui.camera_GUI()
