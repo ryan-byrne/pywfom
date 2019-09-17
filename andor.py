@@ -4,6 +4,7 @@ from shutil import copyfile
 from datetime import datetime
 from resources.camera.atcore import *
 import numpy as np
+from PIL import Image
 
 class Andor():
 
@@ -14,21 +15,55 @@ class Andor():
         os.chdir("../..")
         self.hndl = self.sdk3.open(0)
         try:
-            self.sdk3.get_bool(self.hndl, "CameraPresent")
+            self.sdk3.set_enum_string(self.hndl, "PixelEncoding", "Mono32")
+            self.sdk3.set_bool(self.hndl, "SensorCooling", True)
+            self.sdk3.set_enum_string(self.hndl, "CycleMode", "Continuous")
+            self.image_size_bytes = self.sdk3.get_int(self.hndl, "ImageSizeBytes")
+            self.height = self.sdk3.get_int(self.hndl, "AOIHeight")
+            self.width = self.sdk3.get_int(self.hndl, "AOIWidth")
             self.connected = 1
         except ATCoreException:
+            print("Unable to connect to the Camera!")
             self.connected = 0
 
-    def acquire(skd3, hndl, self):
-        num_bufs = 10
-        frames_to_acquire = 15
-        image_size_bytes = self.sdk3.get_int(hndl, "ImageSizeBytes")
-        buf = np.empty((imageSizeBytes,), dtype='B')
-        self.sdk3.queue_buffer(hndl,buf.ctypes.data,imageSizeBytes)
-        buf2 = np.empty((imageSizeBytes,), dtype='B')
-        self.sdk3.queue_buffer(hndl,buf2.ctypes.data,imageSizeBytes)
-        self.sdk3.command(hndl, "AcquisitionStart")
-        self.sdk3.command(hndl, "SoftwareTrigger")
-        (returnedBuf, returnedSize) = self.sdk3.wait_buffer(hndl)
-        pixels = buf.view(dtype='H')
-        self.sdk3.command(hndl,"AcquisitionStop")
+
+    def acquire_single_frame(self):
+        print("Acquiring single frame from camera")
+        buf = np.empty((self.image_size_bytes,), dtype='uint32')
+        self.sdk3.queue_buffer(self.hndl, buf.ctypes.data, self.image_size_bytes)
+        self.sdk3.command(self.hndl, "AcquisitionStart")
+        wait_buf = self.sdk3.wait_buffer(self.hndl,)
+        self.sdk3.command(self.hndl, "AcquisitionStop")
+        self.sdk3.flush(self.hndl)
+        self.sdk3.close(self.hndl)
+        return(buf)
+
+    def acquire(self, num_frm, exp):
+        print("Acquiring {0} frames".format(num_frm))
+        self.sdk3.set_float(self.hndl, "ExposureTime", exp)
+        e = self.sdk3.get_float(self.hndl, "ExposureTime")
+        print("Exposure time set to: {0}".format(e))
+        num_buf = num_frm
+        buf = np.empty((num_frm, self.image_size_bytes), dtype='uint32')
+        for i in range(num_buf):
+            self.sdk3.queue_buffer(self.hndl, buf[i].ctypes.data, self.image_size_bytes)
+        print("Starting acquisition")
+        self.sdk3.command(self.hndl, "AcquisitionStart")
+        t0 = time.time()
+        for i in range(num_frm):
+            self.sdk3.wait_buffer(self.hndl)
+            self.sdk3.queue_buffer(self.hndl, buf[i%num_buf].ctypes.data, self.image_size_bytes)
+        print("Acquisition took {0} sec".format(time.time()-t0))
+        print("Stopping acquisition")
+        self.sdk3.command(self.hndl, "AcquisitionStop")
+        self.sdk3.flush(self.hndl)
+        return buf
+
+
+if __name__ == '__main__':
+    camera = Andor()
+    exposure_time = 0.0068
+    frames = camera.acquire(3, exposure_time)
+    for frame in frames:
+        img = Image.frombytes(size=(camera.height, camera.width), data=frame, mode="I")
+        img.show()

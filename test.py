@@ -1,7 +1,8 @@
-from gui import Gui
-import os
+from andor import Andor
+from PIL import Image
+import cv2
 
 if __name__ == '__main__':
-    Gui.open_GUI()
-    while not os.path.isfile("JSPLASSH/settings.json"):
-        print("Waiting for settings file", end="\r")
+    camera = Andor()
+    frames = camera.acquire(10, 0.0068)
+    print(len(frames))

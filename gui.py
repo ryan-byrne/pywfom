@@ -74,7 +74,7 @@ class Gui():
         shutil.move(src, dst)
         self.dst = dst
 
-    def restart(self):
+    def exit(self):
 
         """
 
@@ -82,10 +82,11 @@ class Gui():
 
         """
 
-        for i in [9,8,7,6,5,4,3,2,1]:
-            print("Restarting in: ", sep=' ', end=': ')
+        for i in [4,3,2,1]:
+            print("Exiting in: ", sep=' ', end=': ')
             print(i, sep=' ', end='\r')
             time.sleep(1)
+        sys.exit()
 
 
     def banner(self, text, font):

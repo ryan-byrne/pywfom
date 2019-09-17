@@ -24,8 +24,8 @@ if __name__ == '__main__':
         if hw.connected == 0:
             print(Fore.RED + "Unable to Connect to {0}\n".format(name))
             print(Fore.RED + "Ensure {0} is Powered On, and no other programs are using it\n".format(name))
-            gui.restart()
             print(Style.RESET_ALL)
+            gui.exit()
     print("Successsfully connected to Hardware")
     while not os.path.isfile("JSPLASSH/settings.json"):
         print("Waiting for UNI and Mouse ID...", end='\r')
