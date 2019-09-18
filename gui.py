@@ -72,7 +72,7 @@ class Gui():
         src = "JSPLASSH/settings.json"
         dst = path+"/settings.json"
         shutil.move(src, dst)
-        self.dst = dst
+        return settings["camera"]
 
     def exit(self):
 

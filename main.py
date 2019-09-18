@@ -32,6 +32,7 @@ if __name__ == '__main__':
     print("settings.json successfully created")
     print("Temporarily disabling Python Arduino Communication")
     arduino.disable()
-    gui.camera_gui()
+    settings = gui.camera_gui()
     print("Reconnecting to the Arduino")
     arduino.enable()
+    camera.deploy_settings(settings)

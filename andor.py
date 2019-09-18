@@ -15,16 +15,24 @@ class Andor():
         os.chdir("../..")
         self.hndl = self.sdk3.open(0)
         try:
-            self.sdk3.set_enum_string(self.hndl, "PixelEncoding", "Mono32")
             self.sdk3.set_bool(self.hndl, "SensorCooling", True)
-            self.sdk3.set_enum_string(self.hndl, "CycleMode", "Continuous")
-            self.image_size_bytes = self.sdk3.get_int(self.hndl, "ImageSizeBytes")
-            self.height = self.sdk3.get_int(self.hndl, "AOIHeight")
-            self.width = self.sdk3.get_int(self.hndl, "AOIWidth")
             self.connected = 1
         except ATCoreException:
             print("Unable to connect to the Camera!")
             self.connected = 0
+
+    def deploy_settings(self, settings):
+        s = settings
+        print("Deploying settings to the Camera")
+        self.sdk3.set_float(self.hndl, "ExposureTime", float(s["exposure"]))
+        self.exposure_time = self.sdk3.get_float(self.hndl, "ExposureTime")
+        self.sdk3.set_enum_string(self.hndl, "PixelEncoding", "Mono32")
+        self.sdk3.set_enum_string(self.hndl, "AOIBinning", s["binning"])
+        self.sdk3.strobe_order = s["strobe_order"]
+        self.sdk3.set_enum_string(self.hndl, "CycleMode", "Continuous")
+        self.height = self.sdk3.set_int(self.hndl, "AOIHeight", int(s["height"]))
+        self.width = self.sdk3.set_int(self.hndl, "AOIWidth", int(s["width"]))
+        self.image_size_bytes = self.sdk3.get_int(self.hndl, "ImageSizeBytes")
 
 
     def acquire_single_frame(self):
