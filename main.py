@@ -14,6 +14,9 @@ from webcam import Webcam
 
 
 if __name__ == '__main__':
+
+    # Startup
+
     gui.open_gui()
     arduino = Arduino("COM4")
     camera = Andor()
@@ -32,7 +35,8 @@ if __name__ == '__main__':
     print("settings.json successfully created")
     print("Temporarily disabling Python Arduino Communication")
     arduino.disable()
-    settings = gui.camera_gui()
+    settings, path = gui.camera_gui()
     print("Reconnecting to the Arduino")
     arduino.enable()
     camera.deploy_settings(settings)
+    camera.acquire(15, path)
