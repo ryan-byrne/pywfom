@@ -1,4 +1,5 @@
 import psutil, os, json, time, subprocess
+from pywinauto import Application
 from colorama import Fore, Style
 from shutil import copyfile
 from datetime import datetime
@@ -40,12 +41,18 @@ class Andor():
                 print("Error connecting to the Camera!")
                 self.connected = 0
         else:
+            self.connected = 1
             if "AndorSolis.exe" in (p.name() for p in psutil.process_iter()):
                 print("SOLIS is already running...")
                 pass
             else:
                 print("Opening SOLIS")
                 subprocess.call("C:\Program Files\Andor SOLIS\AndorSolis.exe")
+            self.solis = Application().connect(title_re="Andor")
+            self.soliswin = self.solis.window(title_re="Andor")
+            self.py = Application().connect(title_re="python")
+            self.pywin = self.py.window(title_re="python")
+
 
     def deploy_settings(self, settings, path):
         s = settings
@@ -94,7 +101,7 @@ class Andor():
         im = Image.frombytes(mode="I", size=(h, w), data=buf)
         im.show()
 
-    def acquire(self):
+    def acquire2(self):
         # Establishing Buffers
         num_frm = 100
         num_buf = 10
@@ -118,8 +125,67 @@ class Andor():
         self.sdk3.command(self.hndl, "AcquisitionStop")
         self.sdk3.flush(self.hndl)
 
-    def record_video(self, length):
-        pass
+    def set_parameters(self, settings):
+
+        cwd = os.getcwd()
+        set_param = "resources\solis_scripts\set_parameters"
+        print("Creating zyla_settings.txt file...")
+
+        with open("resources/solis_scripts/zyla_settings.txt", "w+") as f:
+            for i in settings.keys():
+                f.write(str(settings[i])+"\n")
+
+        files = '"%s\%s"' % (cwd, set_param)
+
+        print("Setting parameters in SOLIS...")
+        self.soliswin.menu_select("File->Open")
+        open_opt = self.solis.window(title_re="Open")
+        file_name = open_opt.Edit.set_text(files)
+        open_opt.ComboBox3.select('Andor Program Files  (*.pgm)')
+        time.sleep(1)
+        open_opt.Button.click()
+        self.solis.menu_select("File -> Run Program")
+
+    def preview(self):
+        input("\nPress [ENTER] to Preview\n")
+        print("Previewing Zyla video...")
+        self.soliswin.menu_select("Acquisition->Take Video")
+
+    def acquire():
+        input("\nPress [ENTER] to Acquire\n")
+        self.soliswin.menu_select
+        cwd = os.getcwd()
+
+        spra_deaux = "resources\solis_scripts\SPRA_deaux"
+
+        files = '"%s\%s"' % (cwd, spra_deaux)
+
+        print("Beginning Acquisiton in SOLIS...")
+        app = Application().connect(title_re="Andor")
+        andor = app.window(title_re="Andor")
+        andor.menu_select("File->Open")
+        open_opt = app.window(title_re="Open")
+        file_name = open_opt.Edit.set_text(files)
+        open_opt.ComboBox3.select('Andor Program Files  (*.pgm)')
+        time.sleep(1)
+        open_opt.Button.click()
+        andor.menu_select("File -> Run Program")
 
 if __name__ == '__main__':
     camera = Andor(0)
+    settings = {
+        "binning":"4x4",
+        "height":2048,
+        "bottom":1,
+        "width":2048,
+        "top":1,
+        "exposure_time":0.000000,
+        "f":1,
+        "rdur":5.00000,
+        "spool_stim":"runA_stim",
+        "spoollocation":"D:/test/runA",
+        "ntrials":1
+    }
+    camera.set_parameters(settings)
+    camera.preview()
+    camera.acquire()

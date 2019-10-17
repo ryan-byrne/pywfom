@@ -16,10 +16,14 @@ from webcam import Webcam
 if __name__ == '__main__':
 
     # Startup
-
+    # 1. execute set parameters
+    # 2. ready to preview? (y/n)
+    # 3. begin SOLIS preview
+    # 4. physical adjustments
+    # 5. Press Enter to begin acquisition
     gui.open_gui()
     arduino = Arduino("COM4")
-    camera = Andor()
+    camera = Andor(0)
     webcam = Webcam()
     hardware = [arduino, camera, webcam]
     for hw in hardware:
@@ -38,6 +42,4 @@ if __name__ == '__main__':
     settings, path = gui.camera_gui()
     print("Reconnecting to the Arduino")
     arduino.enable()
-    dst = camera.deploy_settings(settings, path)
-    while True:
-        camera.acquire(dst)
+    camera.set_parameters(settings)
