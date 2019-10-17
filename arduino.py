@@ -7,6 +7,7 @@ class Arduino():
     def __init__(self, port):
         print("Attempting to Connect to Arduino at Serial Port: "+port)
         self.port = port
+        self.map = ["Blue", "Green", "Lime", "Red"]
         try:
             self.arduino = serial.Serial(
                 port=port,\
@@ -38,3 +39,10 @@ class Arduino():
             print("Error connecting to Arduino")
             print(e.strerror)
             self.connected = 0
+
+    def set_strobe_order(self, strobe_order):
+        order = ""
+        for led in strobe_order:
+            order += led[0]
+        print("Setting the Strobe order on the Arduino to: "+order)
+        self.arduino.write(order.encode())

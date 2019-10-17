@@ -2,6 +2,7 @@
 #define redLed    10
 #define blueLed    9
 #define limeLed    8
+#define trig       13
 
 // ledArray = 7,8,10,12
 int ledArray[4] = {7,8,10,12};

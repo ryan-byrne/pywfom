@@ -38,5 +38,6 @@ if __name__ == '__main__':
     settings, path = gui.camera_gui()
     print("Reconnecting to the Arduino")
     arduino.enable()
-    camera.deploy_settings(settings)
-    camera.acquire(15, path)
+    dst = camera.deploy_settings(settings, path)
+    while True:
+        camera.acquire(dst)
