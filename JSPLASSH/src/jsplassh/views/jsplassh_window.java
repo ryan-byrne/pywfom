@@ -414,10 +414,12 @@ public class jsplassh_window extends JFrame {
 				if (e.getNewValue().toString() == "CHECKEDHOT") {
 					runningTime.setEnabled(true);
 					numStim.setEnabled(true);
+					numRuns.setEnabled(true);
 				}
 				else if (e.getNewValue().toString() == "UNCHECKEDHOT") {
 					runningTime.setEnabled(false);
 					numStim.setEnabled(false);
+					numRuns.setEnabled(false);
 				}
 				else {
 					return;
