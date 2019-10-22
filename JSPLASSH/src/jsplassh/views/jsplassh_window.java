@@ -35,6 +35,11 @@ import javax.swing.event.ChangeListener;
 
 import org.json.JSONObject;
 import org.json.JSONTokener;
+import java.awt.event.InputMethodListener;
+import java.awt.event.InputMethodEvent;
+import javax.swing.JCheckBox;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeEvent;
 
 public class jsplassh_window extends JFrame {
 	
@@ -46,6 +51,7 @@ public class jsplassh_window extends JFrame {
 	int ledState = 0;
 	int solisState = 0;
 	int mode = 1;
+	boolean st; 
 	boolean ledOn[] = {false, false, false, false};
 	String colors[] = {"Blue","Green","Lime","Red"};
 	String mouse = new String();
@@ -55,6 +61,11 @@ public class jsplassh_window extends JFrame {
 	private JTextField setHeight;
 	private JTextField exposureTime;
 	private JTextField setWidth;
+	private JTextField setBottom;
+	private JTextField setTop;
+	private JTextField runningTime;
+	private JTextField numStim;
+	private JTextField numRuns;
 
 	/**
 	 * Launch the application.
@@ -89,7 +100,7 @@ public class jsplassh_window extends JFrame {
 		setTitle("WFOM Dashboard");
 		setIconImage(Toolkit.getDefaultToolkit().getImage(jsplassh_window.class.getResource("/jsplassh/resources/download.jpg")));
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 330, 445);
+		setBounds(100, 100, 330, 600);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
@@ -116,7 +127,8 @@ public class jsplassh_window extends JFrame {
 		lblSetFramerate.setEnabled(false);
 		
 		framerate = new JTextField();
-		framerate.setBounds(110, 55, 86, 20);
+		framerate.setHorizontalAlignment(SwingConstants.CENTER);
+		framerate.setBounds(110, 45, 86, 20);
 		framerate.setEnabled(false);
 		framerate.setText("50.70");
 		framerate.setColumns(10);
@@ -125,23 +137,26 @@ public class jsplassh_window extends JFrame {
 		lblSetHeight.setBounds(214, 30, 50, 14);
 		
 		setHeight = new JTextField();
-		setHeight.setBounds(214, 55, 86, 20);
+		setHeight.setHorizontalAlignment(SwingConstants.CENTER);
+		setHeight.setBounds(214, 45, 86, 20);
 		setHeight.setText("2048");
 		setHeight.setColumns(10);
 		
 		JLabel lblExposureTimes = new JLabel("Exposure Time (s)");
-		lblExposureTimes.setBounds(110, 82, 86, 14);
+		lblExposureTimes.setBounds(110, 71, 86, 14);
 		
 		exposureTime = new JTextField();
-		exposureTime.setBounds(110, 102, 86, 20);
+		exposureTime.setHorizontalAlignment(SwingConstants.CENTER);
+		exposureTime.setBounds(110, 91, 86, 20);
 		exposureTime.setText("0.0068");
 		exposureTime.setColumns(10);
 		
 		JLabel lblSetWidth = new JLabel("Set Width");
-		lblSetWidth.setBounds(214, 82, 47, 14);
+		lblSetWidth.setBounds(214, 71, 47, 14);
 		
 		setWidth = new JTextField();
-		setWidth.setBounds(214, 102, 86, 20);
+		setWidth.setHorizontalAlignment(SwingConstants.CENTER);
+		setWidth.setBounds(214, 91, 86, 20);
 		setWidth.setText("2048");
 		setWidth.setColumns(10);
 		
@@ -168,7 +183,7 @@ public class jsplassh_window extends JFrame {
 		lblLeds.setBounds(46, 215, 23, 14);
 		
 		JButton btnDeploySettingsTo_1 = new JButton("Deploy Settings to Camera");
-		btnDeploySettingsTo_1.setBounds(68, 372, 175, 23);
+		btnDeploySettingsTo_1.setBounds(68, 537, 175, 23);
 		btnDeploySettingsTo_1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				int binVal = (int) (16*Math.exp(-0.693*binning.getValue()));
@@ -180,8 +195,12 @@ public class jsplassh_window extends JFrame {
 				String f = framerate.getText();
 				String u = uni;
 				String m = mouse;
+				String btm = setBottom.getText();
+				String top = setTop.getText();
+				String r = numRuns.getText();
+				String len = runningTime.getText();
 				try {
-					writeJsonSettings(b, f, h, e, w, s, u, m);
+					writeJsonSettings(b, f, h, e, w, s, u, m,  btm, top, r, len, st);
 					System.exit(0);
 				} catch (Exception e1) {
 					// TODO Auto-generated catch block
@@ -366,6 +385,84 @@ public class jsplassh_window extends JFrame {
 		slider.setMaximum(1);
 		slider.setBounds(204, 215, 34, 14);
 		contentPane.add(slider);
+		
+		JLabel lblBottom = new JLabel("Bottom");
+		lblBottom.setBounds(110, 116, 86, 14);
+		contentPane.add(lblBottom);
+		
+		setBottom = new JTextField();
+		setBottom.setHorizontalAlignment(SwingConstants.CENTER);
+		setBottom.setText("1");
+		setBottom.setColumns(10);
+		setBottom.setBounds(110, 136, 86, 20);
+		contentPane.add(setBottom);
+		
+		JLabel lblTop = new JLabel("Top");
+		lblTop.setBounds(214, 116, 86, 14);
+		contentPane.add(lblTop);
+		
+		setTop = new JTextField();
+		setTop.setHorizontalAlignment(SwingConstants.CENTER);
+		setTop.setText("1");
+		setTop.setColumns(10);
+		setTop.setBounds(214, 136, 86, 20);
+		contentPane.add(setTop);
+		
+		JCheckBox chckbxStim = new JCheckBox("Stim Functionality");
+		chckbxStim.addPropertyChangeListener(new PropertyChangeListener() {
+			public void propertyChange(PropertyChangeEvent e) {
+				if (e.getNewValue().toString() == "CHECKEDHOT") {
+					runningTime.setEnabled(true);
+					numStim.setEnabled(true);
+				}
+				else if (e.getNewValue().toString() == "UNCHECKEDHOT") {
+					runningTime.setEnabled(false);
+					numStim.setEnabled(false);
+				}
+				else {
+					return;
+				}
+			}
+		});
+		chckbxStim.setBounds(108, 373, 109, 23);
+		contentPane.add(chckbxStim);
+		
+		runningTime = new JTextField();
+		runningTime.setHorizontalAlignment(SwingConstants.CENTER);
+		runningTime.setEnabled(false);
+		runningTime.setText("5.000");
+		runningTime.setColumns(10);
+		runningTime.setBounds(46, 403, 86, 20);
+		contentPane.add(runningTime);
+		
+		numStim = new JTextField();
+		numStim.setHorizontalAlignment(SwingConstants.CENTER);
+		numStim.setEnabled(false);
+		numStim.setText("1");
+		numStim.setColumns(10);
+		numStim.setBounds(178, 403, 86, 20);
+		contentPane.add(numStim);
+		
+		JLabel lblStimLengths = new JLabel("Stim Length (s)");
+		lblStimLengths.setBounds(46, 427, 86, 14);
+		contentPane.add(lblStimLengths);
+		
+		JLabel lblNumberOfStims = new JLabel("Number of Stims");
+		lblNumberOfStims.setBounds(178, 427, 86, 14);
+		contentPane.add(lblNumberOfStims);
+		
+		numRuns = new JTextField();
+		numRuns.setHorizontalAlignment(SwingConstants.CENTER);
+		numRuns.setText("1");
+		numRuns.setEnabled(false);
+		numRuns.setColumns(10);
+		numRuns.setBounds(110, 452, 86, 20);
+		contentPane.add(numRuns);
+		
+		JLabel numRunslbl = new JLabel("# of Runs");
+		numRunslbl.setHorizontalAlignment(SwingConstants.CENTER);
+		numRunslbl.setBounds(110, 475, 86, 14);
+		contentPane.add(numRunslbl);
 	}
 	
 	public OutputStream initializeArduino() {
@@ -428,7 +525,7 @@ public class jsplassh_window extends JFrame {
 		}
 	}
 	
-	private void writeJsonSettings(String b, String f, String h, String e, String w, List<String> s, String u, String m) throws Exception {
+	private void writeJsonSettings(String b, String f, String h, String e, String w, List<String> s, String u, String m, String btm, String top, String r, String len, Boolean st) throws Exception {
 		FileReader reader;
 		if (s.size() < 1) {
 			throw new Exception("The length of the Strobe Array must be greater than 0!");
@@ -438,13 +535,23 @@ public class jsplassh_window extends JFrame {
 		JSONObject settings = new JSONObject(tokener);
 		reader.close();
 		JSONObject camera = new JSONObject();
-		System.out.print("s");
-		camera.put("strobe_order", s);
 		camera.put("binning", b);
-		camera.put("framerate", f);
 		camera.put("height", h);
+		camera.put("bottom", btm);
 		camera.put("width", w);
-		camera.put("exposure", e);
+		camera.put("top", top);
+		camera.put("exposure_time", e);
+		camera.put("framerate", f);
+		if (st == true) {
+			JSONObject stim = new JSONObject();
+			stim.put("run_duration", r);
+			stim.put("stim_length", len);
+			settings.put("stim", stim);
+		}
+		else {
+			settings.put("stim", "Not enabled");
+		}
+		settings.put("strobe_order", s);
 		settings.put("camera", camera);
 		PrintWriter out = new PrintWriter("settings.json");
 		out.println(settings.toString());
