@@ -51,7 +51,7 @@ public class jsplassh_window extends JFrame {
 	int ledState = 0;
 	int solisState = 0;
 	int mode = 1;
-	boolean st; 
+	boolean stimStatus;
 	boolean ledOn[] = {false, false, false, false};
 	String colors[] = {"Blue","Green","Lime","Red"};
 	String mouse = new String();
@@ -202,8 +202,19 @@ public class jsplassh_window extends JFrame {
 				String top = setTop.getText();
 				String r = numRuns.getText();
 				String len = runningTime.getText();
+				JSONObject stim = new JSONObject();
+				if (stimStatus == false) {
+					stim.put("not enabled", "");
+				}
+				else {
+					stim.put("pre_stim", preStim.getText());
+					stim.put("stim_length", stimLength.getText());
+					stim.put("post_stim", postStim.getText());
+					stim.put("num_of_stims", numStim.getText());
+				}
+				
 				try {
-					writeJsonSettings(b, f, h, e, w, s, u, m,  btm, top, r, len, st);
+					writeJsonSettings(b, f, h, e, w, s, u, m,  btm, top, r, len, stim);
 					System.exit(0);
 				} catch (Exception e1) {
 					// TODO Auto-generated catch block
@@ -415,6 +426,7 @@ public class jsplassh_window extends JFrame {
 		chckbxStim.addPropertyChangeListener(new PropertyChangeListener() {
 			public void propertyChange(PropertyChangeEvent e) {
 				if (e.getNewValue().toString() == "CHECKEDHOT") {
+					stimStatus = true;
 					runningTime.setEnabled(false);
 					numRuns.setEnabled(false);
 					numStim.setEnabled(true);
@@ -423,6 +435,7 @@ public class jsplassh_window extends JFrame {
 					stimLength.setEnabled(true);
 				}
 				else if (e.getNewValue().toString() == "UNCHECKEDHOT") {
+					stimStatus = false;
 					runningTime.setEnabled(true);
 					numRuns.setEnabled(true);
 					numStim.setEnabled(false);
@@ -574,7 +587,7 @@ public class jsplassh_window extends JFrame {
 		}
 	}
 	
-	private void writeJsonSettings(String b, String f, String h, String e, String w, List<String> s, String u, String m, String btm, String top, String r, String len, Boolean st) throws Exception {
+	private void writeJsonSettings(String b, String f, String h, String e, String w, List<String> s, String u, String m, String btm, String top, String r, String len, JSONObject stim) throws Exception {
 		FileReader reader;
 		if (s.size() < 1) {
 			throw new Exception("The length of the Strobe Array must be greater than 0!");
@@ -591,17 +604,9 @@ public class jsplassh_window extends JFrame {
 		camera.put("top", top);
 		camera.put("exposure_time", e);
 		camera.put("framerate", f);
-		if (st == true) {
-			JSONObject stim = new JSONObject();
-			stim.put("run_duration", r);
-			stim.put("stim_length", len);
-			settings.put("stim", stim);
-		}
-		else {
-			settings.put("stim", "Not enabled");
-		}
 		settings.put("strobe_order", s);
 		settings.put("camera", camera);
+		settings.put("stim", stim);
 		PrintWriter out = new PrintWriter("settings.json");
 		out.println(settings.toString());
 		out.close();
