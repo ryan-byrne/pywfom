@@ -66,6 +66,9 @@ public class jsplassh_window extends JFrame {
 	private JTextField runningTime;
 	private JTextField numStim;
 	private JTextField numRuns;
+	private JTextField preStim;
+	private JTextField postStim;
+	private JTextField stimLength;
 
 	/**
 	 * Launch the application.
@@ -100,7 +103,7 @@ public class jsplassh_window extends JFrame {
 		setTitle("WFOM Dashboard");
 		setIconImage(Toolkit.getDefaultToolkit().getImage(jsplassh_window.class.getResource("/jsplassh/resources/download.jpg")));
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 330, 600);
+		setBounds(100, 100, 330, 612);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
@@ -183,7 +186,7 @@ public class jsplassh_window extends JFrame {
 		lblLeds.setBounds(46, 215, 23, 14);
 		
 		JButton btnDeploySettingsTo_1 = new JButton("Deploy Settings to Camera");
-		btnDeploySettingsTo_1.setBounds(68, 537, 175, 23);
+		btnDeploySettingsTo_1.setBounds(68, 549, 175, 23);
 		btnDeploySettingsTo_1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				int binVal = (int) (16*Math.exp(-0.693*binning.getValue()));
@@ -412,29 +415,35 @@ public class jsplassh_window extends JFrame {
 		chckbxStim.addPropertyChangeListener(new PropertyChangeListener() {
 			public void propertyChange(PropertyChangeEvent e) {
 				if (e.getNewValue().toString() == "CHECKEDHOT") {
-					runningTime.setEnabled(true);
+					runningTime.setEnabled(false);
+					numRuns.setEnabled(false);
 					numStim.setEnabled(true);
-					numRuns.setEnabled(true);
+					preStim.setEnabled(true);
+					postStim.setEnabled(true);
+					stimLength.setEnabled(true);
 				}
 				else if (e.getNewValue().toString() == "UNCHECKEDHOT") {
-					runningTime.setEnabled(false);
+					runningTime.setEnabled(true);
+					numRuns.setEnabled(true);
 					numStim.setEnabled(false);
-					numRuns.setEnabled(false);
+					preStim.setEnabled(false);
+					postStim.setEnabled(false);
+					stimLength.setEnabled(false);
+					
 				}
 				else {
 					return;
 				}
 			}
 		});
-		chckbxStim.setBounds(108, 373, 109, 23);
+		chckbxStim.setBounds(110, 371, 109, 23);
 		contentPane.add(chckbxStim);
 		
 		runningTime = new JTextField();
 		runningTime.setHorizontalAlignment(SwingConstants.CENTER);
-		runningTime.setEnabled(false);
 		runningTime.setText("5.000");
 		runningTime.setColumns(10);
-		runningTime.setBounds(46, 403, 86, 20);
+		runningTime.setBounds(68, 500, 86, 20);
 		contentPane.add(runningTime);
 		
 		numStim = new JTextField();
@@ -442,29 +451,67 @@ public class jsplassh_window extends JFrame {
 		numStim.setEnabled(false);
 		numStim.setText("1");
 		numStim.setColumns(10);
-		numStim.setBounds(178, 403, 86, 20);
+		numStim.setBounds(141, 401, 47, 20);
 		contentPane.add(numStim);
 		
-		JLabel lblStimLengths = new JLabel("Stim Length (s)");
-		lblStimLengths.setBounds(46, 427, 86, 14);
+		JLabel lblStimLengths = new JLabel("Running Time (s)");
+		lblStimLengths.setBounds(68, 524, 86, 14);
 		contentPane.add(lblStimLengths);
 		
 		JLabel lblNumberOfStims = new JLabel("Number of Stims");
-		lblNumberOfStims.setBounds(178, 427, 86, 14);
+		lblNumberOfStims.setBounds(121, 425, 86, 14);
 		contentPane.add(lblNumberOfStims);
 		
 		numRuns = new JTextField();
 		numRuns.setHorizontalAlignment(SwingConstants.CENTER);
 		numRuns.setText("1");
-		numRuns.setEnabled(false);
 		numRuns.setColumns(10);
-		numRuns.setBounds(110, 452, 86, 20);
+		numRuns.setBounds(178, 500, 86, 20);
 		contentPane.add(numRuns);
 		
 		JLabel numRunslbl = new JLabel("# of Runs");
 		numRunslbl.setHorizontalAlignment(SwingConstants.CENTER);
-		numRunslbl.setBounds(110, 475, 86, 14);
+		numRunslbl.setBounds(178, 523, 86, 14);
 		contentPane.add(numRunslbl);
+		
+		preStim = new JTextField();
+		preStim.setText("6.00");
+		preStim.setHorizontalAlignment(SwingConstants.CENTER);
+		preStim.setEnabled(false);
+		preStim.setColumns(10);
+		preStim.setBounds(13, 452, 86, 20);
+		contentPane.add(preStim);
+		
+		JLabel lblPrestim = new JLabel("Pre-Stim (s)");
+		lblPrestim.setHorizontalAlignment(SwingConstants.CENTER);
+		lblPrestim.setBounds(13, 475, 86, 14);
+		contentPane.add(lblPrestim);
+		
+		JLabel lblPoststim = new JLabel("Post-Stim (s)");
+		lblPoststim.setHorizontalAlignment(SwingConstants.CENTER);
+		lblPoststim.setBounds(214, 475, 86, 14);
+		contentPane.add(lblPoststim);
+		
+		postStim = new JTextField();
+		postStim.setText("12.00");
+		postStim.setHorizontalAlignment(SwingConstants.CENTER);
+		postStim.setEnabled(false);
+		postStim.setColumns(10);
+		postStim.setBounds(214, 452, 86, 20);
+		contentPane.add(postStim);
+		
+		JLabel lblStims = new JLabel("Stim (s)");
+		lblStims.setHorizontalAlignment(SwingConstants.CENTER);
+		lblStims.setBounds(119, 473, 86, 14);
+		contentPane.add(lblStims);
+		
+		stimLength = new JTextField();
+		stimLength.setText("4.00");
+		stimLength.setHorizontalAlignment(SwingConstants.CENTER);
+		stimLength.setEnabled(false);
+		stimLength.setColumns(10);
+		stimLength.setBounds(119, 450, 86, 20);
+		contentPane.add(stimLength);
 	}
 	
 	public OutputStream initializeArduino() {
