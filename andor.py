@@ -5,7 +5,6 @@ from shutil import copyfile
 from datetime import datetime
 from resources.camera.atcore import *
 import numpy as np
-from PIL import Image
 
 class Andor():
 
@@ -125,26 +124,27 @@ class Andor():
         self.sdk3.command(self.hndl, "AcquisitionStop")
         self.sdk3.flush(self.hndl)
 
-    def set_parameters(self, settings):
+    def set_parameters(self, settings, path):
+        print(path)
+        s = ["height", "bottom", "width", "top", "exposure_time", "framerate"]
 
-        cwd = os.getcwd()
-        set_param = "resources\solis_scripts\set_parameters"
         print("Creating zyla_settings.txt file...")
 
         with open("resources/solis_scripts/zyla_settings.txt", "w+") as f:
-            for i in settings.keys():
-                f.write(str(settings[i])+"\n")
+            f.write(str(settings["binning"][0])+"\n")
+            for setting in s:
+                f.write(str(settings[setting])+"\n")
+            f.write("_"+"\n")
+            f.write(path)
 
-        files = '"%s\%s"' % (cwd, set_param)
+        file = '"%s\%s"' % (cwd, set_param)
 
         print("Setting parameters in SOLIS...")
-        self.soliswin.menu_select("File->Open")
+        self.soliswin.menu_select("File -> Run Program By Filename")
         open_opt = self.solis.window(title_re="Open")
-        file_name = open_opt.Edit.set_text(files)
-        open_opt.ComboBox3.select('Andor Program Files  (*.pgm)')
+        file_name = open_opt.Edit.set_text(file)
         time.sleep(1)
         open_opt.Button.click()
-        self.solis.menu_select("File -> Run Program")
 
     def preview(self):
         input("\nPress [ENTER] to Preview\n")

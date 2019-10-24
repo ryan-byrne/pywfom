@@ -42,4 +42,4 @@ if __name__ == '__main__':
     settings, path = gui.camera_gui()
     print("Reconnecting to the Arduino")
     arduino.enable()
-    camera.set_parameters(settings)
+    camera.set_parameters(settings["camera"], path)
