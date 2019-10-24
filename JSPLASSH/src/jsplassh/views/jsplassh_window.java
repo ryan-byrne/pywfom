@@ -607,6 +607,8 @@ public class jsplassh_window extends JFrame {
 		settings.put("strobe_order", s);
 		settings.put("camera", camera);
 		settings.put("stim", stim);
+		settings.put("num_run", r);
+		settings.put("run_len", len);
 		PrintWriter out = new PrintWriter("settings.json");
 		out.println(settings.toString());
 		out.close();
