@@ -64,8 +64,6 @@ class Gui():
         os.mkdir(path)
         print("Making directory: "+path+"/CCD")
         os.mkdir(path+"/CCD")
-        print("Making directory: "+path+"/auxillary")
-        os.mkdir(path+"/auxillary")
         print("Making directory: "+path+"/webcam")
         os.mkdir(path+"/webcam")
         print("Moving JSPLASSH/settings.json to "+path+"/settings.json")

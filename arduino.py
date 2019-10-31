@@ -9,7 +9,7 @@ class Arduino():
         self.port = port
         self.map = ["Blue", "Green", "Lime", "Red"]
         try:
-            self.arduino = serial.Serial(
+            self.ser = serial.Serial(
                 port=port,\
                 baudrate=115200,\
                 parity=serial.PARITY_NONE,\
@@ -23,11 +23,11 @@ class Arduino():
             self.connected = 0
 
     def disable(self):
-        self.arduino.close()
+        self.ser.close()
 
     def enable(self):
         try:
-            self.arduino = serial.Serial(
+            self.ser = serial.Serial(
                 port=self.port,\
                 baudrate=115200,\
                 parity=serial.PARITY_NONE,\
@@ -36,7 +36,7 @@ class Arduino():
                     timeout=0)
             self.connected = 1
         except serial.SerialException as e:
-            print("Error connecting to Arduino")
+            print("Can not enable the Arduino")
             print(e.strerror)
             self.connected = 0
 
@@ -45,4 +45,4 @@ class Arduino():
         for led in strobe_order:
             order += led[0]
         print("Setting the Strobe order on the Arduino to: "+order)
-        self.arduino.write(order.encode())
+        self.ser.write(order.encode())

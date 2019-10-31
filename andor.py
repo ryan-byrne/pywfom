@@ -1,9 +1,10 @@
-import psutil, os, json, time, subprocess
+import psutil, os, json, time, subprocess, pyautogui
 from pywinauto import Application
 from colorama import Fore, Style
 from shutil import copyfile
 from datetime import datetime
 from resources.camera.atcore import *
+from arduino import Arduino
 import numpy as np
 
 class Andor():
@@ -47,11 +48,13 @@ class Andor():
             else:
                 print("Opening SOLIS")
                 subprocess.call("C:\Program Files\Andor SOLIS\AndorSolis.exe")
+            pyautogui.hotkey("win", "up")
+            pyautogui.hotkey("win", "up")
+            pyautogui.hotkey("win", "left")
+            pyautogui.press("esc")
             self.solis = Application().connect(title_re="Andor")
             self.soliswin = self.solis.window(title_re="Andor")
-            self.py = Application().connect(title_re="python")
-            self.pywin = self.py.window(title_re="python")
-
+            self.soliswin.set_focus()
 
     def deploy_settings(self, settings, path):
         s = settings
@@ -127,15 +130,20 @@ class Andor():
     def set_parameters(self, settings, path):
         print(path)
         s = ["height", "bottom", "width", "top", "exposure_time", "framerate"]
-
+        cam_settings = settings["camera"]
         print("Creating zyla_settings.txt file...")
-
+        cwd = os.getcwd()
+        set_param = "resources\solis_scripts\set_parameters.pgm"
+        spool_path = path+"/CCD"
+        run_name = "runA"
         with open("resources/solis_scripts/zyla_settings.txt", "w+") as f:
-            f.write(str(settings["binning"][0])+"\n")
+            f.write(str(cam_settings["binning"][0])+"\n")
             for setting in s:
-                f.write(str(settings[setting])+"\n")
-            f.write("_"+"\n")
-            f.write(path)
+                f.write(str(cam_settings[setting])+"\n")
+            f.write(settings["run_len"]+"\n")
+            f.write(run_name+"\n")
+            f.write(spool_path+"\n")
+            f.write(settings["num_run"])
 
         file = '"%s\%s"' % (cwd, set_param)
 
@@ -143,49 +151,48 @@ class Andor():
         self.soliswin.menu_select("File -> Run Program By Filename")
         open_opt = self.solis.window(title_re="Open")
         file_name = open_opt.Edit.set_text(file)
-        time.sleep(1)
         open_opt.Button.click()
 
     def preview(self):
-        input("\nPress [ENTER] to Preview\n")
+        time.sleep(3)
         print("Previewing Zyla video...")
         self.soliswin.menu_select("Acquisition->Take Video")
+        input("\nPreviewing. Press [Enter] to Continue. \n")
+        self.soliswin.menu_select("Acquisition->Abort Acquisition")
 
-    def acquire():
-        input("\nPress [ENTER] to Acquire\n")
-        self.soliswin.menu_select
+    def acquire(self):
+        input("\nPress [Enter] to Acquire. \n")
         cwd = os.getcwd()
+        acquire = "resources\solis_scripts\\acquire.pgm"
+        file = '"%s\%s"' % (cwd, acquire)
 
-        spra_deaux = "resources\solis_scripts\SPRA_deaux"
-
-        files = '"%s\%s"' % (cwd, spra_deaux)
-
-        print("Beginning Acquisiton in SOLIS...")
-        app = Application().connect(title_re="Andor")
-        andor = app.window(title_re="Andor")
-        andor.menu_select("File->Open")
-        open_opt = app.window(title_re="Open")
-        file_name = open_opt.Edit.set_text(files)
-        open_opt.ComboBox3.select('Andor Program Files  (*.pgm)')
-        time.sleep(1)
+        self.soliswin.menu_select("File -> Run Program By Filename")
+        open_opt = self.solis.window(title_re="Open")
+        file_name = open_opt.Edit.set_text(file)
         open_opt.Button.click()
-        andor.menu_select("File -> Run Program")
+
+        print("\n"+"*"*25+"Acquisition Successfully Initiated"+"*"*25+"\n")
 
 if __name__ == '__main__':
-    camera = Andor(0)
     settings = {
-        "binning":"4x4",
-        "height":2048,
-        "bottom":1,
-        "width":2048,
-        "top":1,
-        "exposure_time":0.000000,
-        "f":1,
-        "rdur":5.00000,
-        "spool_stim":"runA_stim",
-        "spoollocation":"D:/test/runA",
-        "ntrials":1
+        "camera":{
+            "binning":"4x4",
+            "height":2048,
+            "bottom":1,
+            "width":2048,
+            "top":1,
+            "exposure_time":50.6,
+            "framerate":0.0068,
+            "spool_stim":"runA_stim",
+            "spoollocation":"D:/test/runA",
+        },
+        "num_run":"1",
+        "run_len":"3.000"
     }
-    camera.set_parameters(settings)
-    camera.preview()
+    camera = Andor(0)
+    #arduino = Arduino("COM4")
+    #arduino.set_strobe_order(["Red","Blue","Green"])
+    path = "D:/test/"
+    camera.set_parameters(settings, path)
+    #camera.preview()
     camera.acquire()

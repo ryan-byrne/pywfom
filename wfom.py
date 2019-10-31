@@ -21,10 +21,10 @@ if __name__ == '__main__':
     # 3. begin SOLIS preview
     # 4. physical adjustments
     # 5. Press Enter to begin acquisition
-    gui.open_gui()
     arduino = Arduino("COM4")
     camera = Andor(0)
     webcam = Webcam()
+    gui.open_gui()
     hardware = [arduino, camera, webcam]
     for hw in hardware:
         name = hw.__class__.__name__
@@ -33,13 +33,21 @@ if __name__ == '__main__':
             print(Fore.RED + "Ensure {0} is Powered On, and no other programs are using it\n".format(name))
             print(Style.RESET_ALL)
             gui.exit()
-    print("Successsfully connected to Hardware")
+    i = 1
     while not os.path.isfile("JSPLASSH/settings.json"):
-        print("Waiting for UNI and Mouse ID...", end='\r')
+        spin = ["/", "|", "\\", "-"]
+        print("Waiting for UNI and Mouse ID {0}".format(spin[i-1]), end='\r')
+        time.sleep(0.5)
+        if i > 3:
+            i = 1
+        else:
+            i += 1
     print("settings.json successfully created")
     print("Temporarily disabling Python Arduino Communication")
     arduino.disable()
     settings, path = gui.camera_gui()
     print("Reconnecting to the Arduino")
     arduino.enable()
-    camera.set_parameters(settings["camera"], path)
+    camera.set_parameters(settings, path)
+    camera.preview()
+    camera.acquire()

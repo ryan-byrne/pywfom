@@ -1,10 +1,5 @@
-//This SOLIS pg script sets several acquisition parameters.
-//The following parameters are NOT set here currently: Pixel Readout Rate, Electronic Shuttering Mode, Sensitivity/Dynamic Range, Overlap Readout, Spurious Noise Filter, Fill Display Window, image rotation, Rolling Shutter Global Clear and Static Blemish Correction.
-//These should be set by loading an initialization file at startup. They can be set through a pgm script, but since do not change for the majority of acquisitions, they are not set here.
-//By default this program automatically uses Internal triggering and Kinetic Series scans. Can be changed, is not done here.
-cls() //clear the output window -- this window prints scriEpt outputs in SOLIS.
+// Read Settings from TXT FIle
 
-/***********Parameters to set****************/
 read("zyla_settings.txt",bin$)
 read("zyla_settings.txt",h$)
 read("zyla_settings.txt",bot$)
@@ -16,8 +11,11 @@ read("zyla_settings.txt",rdur$)
 read("zyla_settings.txt",spoolstem$)
 read("zyla_settings.txt",spoollocation$)
 read("zyla_settings.txt",ntrials$)
+
+// Assign Variables to Settings
+
 height=val(h$)
-left=1
+left=floor(l)
 width=val(w$)
 bin=val(bin$)
 recordduration=val(rdur$) //seconds
@@ -55,52 +53,27 @@ if (width<(bin*40)) then
 else
 	//
 endif
-if (useSPLASSH==0) then
-	width=width-mod(width,bin)
-	if ((left+width)>detectorx()) then //make sure left+width is not greater than 0
-		left = detectorx()-width+1
-	else
-		left=left-mod(left,bin)+1
-	endif
-	//width=(width+left-1-mod(width+left-1,bin))
-	right=width+left-1
+width=width-mod(width,bin) //height has to be divisible by the bin -- set it to the smaller value automatically.
+left=(2048/2)+1-(width/2) //vertically center.
+right=width+left-1
+left=floor(left)
+right=floor(right)
 
-else
-	width=width-mod(width,bin) //height has to be divisible by the bin -- set it to the smaller value automatically.
-	left=(2048/2)+1-(width/2) //vertically center.
-	right=width+left-1
-	left=floor(left)
-	right=floor(right)
-endif
-
-/*****apply settings to the camera*******/
-//below is a liittle hack to figure out what the minimum exposure time is when NOT using overlap mode. Setting it to 0 will set the exposure to be 1e-5 which is too small
-//adds a small .00001 s when using overlap mode. can change code to account for this.
-SetImage(left,right,bin,bottom,top,bin,xflip,yflip) //set image parameters
-if (exposuretime<=0.0001) then
-	exposuretime=0.0001
-else
-	//
-endif
+SetImage(left,right,bin,bottom,top,bin,xflip,yflip)
 SetExposureTime(exposuretime)
-auxout(0,1)
 SetKineticCycleTime(.00000001)
-etreal=GetExposureTime()
-kt=GetKineticCycleTime()
-framerate=1/kt
-//framerate=floor(framerate)
-SetKineticCycleTime(1/framerate)
 etreal=GetExposureTime()
 kt=GetKineticCycleTime()
 framerate=1/kt
 
 numimages=floor(framerate*recordduration)
+
 if ((numimages/framerate)>=recordduration) then
 	numimages=floor(framerate*recordduration)
 else
 	numimages=floor(framerate*recordduration)+1
 endif
-/******write true settings to file*******/
+
 kill("zyla_settings.txt")
 write("zyla_settings.txt",bin)
 write("zyla_settings.txt",height)
@@ -114,12 +87,12 @@ write("zyla_settings.txt", spoolstem$)
 write("zyla_settings.txt", spoollocation$)
 write("zyla_settings.txt", numtrials)
 close()
-/*******write webcam params file*******/
-/*******acquire runs************/
+
 looptrials=numtrials+1
 for i = 1 to looptrials step 1
 if (i==1) then
 	SetTriggerMode(0)
+	SetExternalShutter(1, 1)
 	SetKinetics(etreal,10,1/framerate)
 	SetImage(left,right,bin,bottom,top,bin,xflip,yflip) //set image parameterse
 	setspool(1) // Turn spooling on
@@ -145,4 +118,3 @@ else
 	delay(3000)
 endif
 next
-execute("C:\Mohammed\SPLASSH_Zyla_NEW\python_scripts\udp_send_infofile\dist\udp_send_infofile.exe")
