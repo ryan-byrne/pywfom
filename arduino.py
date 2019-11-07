@@ -23,9 +23,11 @@ class Arduino():
             self.connected = 0
 
     def disable(self):
+        print("Enabling Python Arduino Communication")
         self.ser.close()
 
     def enable(self):
+        print("Enabling Python-Arduino Communication")
         try:
             self.ser = serial.Serial(
                 port=self.port,\
@@ -45,4 +47,7 @@ class Arduino():
         for led in strobe_order:
             order += led[0]
         print("Setting the Strobe order on the Arduino to: "+order)
-        self.ser.write(order.encode())
+        self.ser.write((order+"\n").encode())
+
+    def clear(self):
+        self.ser.write("0000".encode())

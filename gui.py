@@ -1,4 +1,4 @@
-import subprocess, json, time, sys, os, shutil
+import subprocess, json, time, sys, os, shutil, pyautogui
 from datetime import datetime
 from pyfiglet import Figlet
 
@@ -7,7 +7,7 @@ class Gui():
     def __init__(self):
         pass
 
-    def open_gui(self):
+    def open(self):
 
         """
 
@@ -21,10 +21,12 @@ class Gui():
         """
 
         os.chdir("JSPLASSH")
+        if os.path.isfile("settings.json"):
+            os.remove("settings.json")
         subprocess.Popen(["java", "-jar", "open.jar"])
         os.chdir("..")
 
-    def camera_gui(self):
+    def camera(self):
 
         """
 
@@ -33,21 +35,24 @@ class Gui():
 
         """
 
-        print("Waiting for Settings to be deployed")
-        os.chdir("JSPLASSH")
-        subprocess.call(["java", "-jar","camera.jar"])
-        os.chdir("..")
-        with open("JSPLASSH/settings.json") as f:
-            settings = json.load(f)
-        f.close()
-        mouse = settings["mouse"]
-        date = str(datetime.now())[:10]
         cpu_name = os.environ['COMPUTERNAME']
         print("This computer's name is "+cpu_name)
         if cpu_name == "DESKTOP-TFJIITU":
             path = "S:/WFOM/data/"
         else:
             path = "C:/WFOM/data/"
+
+        print("Waiting for Settings to be deployed")
+        os.chdir("JSPLASSH")
+        subprocess.call(["java", "-jar","camera.jar"])
+        os.chdir("..")
+
+        with open("JSPLASSH/settings.json") as f:
+            settings = json.load(f)
+            mouse = settings["mouse"]
+        f.close()
+        date = str(datetime.now())[:10]
+
         with open("JSPLASSH/archive.json", "r+") as f:
             archive = json.load(f)
             d = archive["mice"][mouse]["last_trial"]+1
@@ -56,16 +61,19 @@ class Gui():
             json.dump(archive, f, indent=4)
             f.truncate()
         f.close()
+
         if not os.path.isdir(path + mouse + "_" + str(d)):
             path = path + mouse + "_" + str(d)
         else:
             path = path + mouse + "_" + str(d+1)
+
         print("Making directory: "+path)
         os.mkdir(path)
         print("Making directory: "+path+"/CCD")
         os.mkdir(path+"/CCD")
         print("Making directory: "+path+"/webcam")
         os.mkdir(path+"/webcam")
+
         print("Moving JSPLASSH/settings.json to "+path+"/settings.json")
         src = "JSPLASSH/settings.json"
         dst = path+"/settings.json"

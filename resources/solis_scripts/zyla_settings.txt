@@ -6,6 +6,6 @@
 0.0067968
 60.073
 5.02721
-runA
-S:/WFOM/data/cm122_21/CCD
+run0
+S:/WFOM/data/cm122_62/CCD
 1

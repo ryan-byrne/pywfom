@@ -1,7 +1,10 @@
 {
     "mice": {
         "cm122": {
-            "last_trial": 21
+            "last_trial": 62
+        },
+        "cm304": {
+            "last_trial": 2
         }
     }
 }

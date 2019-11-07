@@ -1,7 +1,7 @@
-#define greenLed    8
-#define redLed      10
-#define blueLed     7
-#define limeLed     12
+#define greenLed    10
+#define redLed      12
+#define blueLed     8
+#define limeLed     7
 #define trig        3
 
 int ledArray[4] = {greenLed, redLed, blueLed, limeLed};
@@ -24,10 +24,16 @@ void setup() {
 
 void loop() {
   if (Serial.available() > 0){
-    msg = "";
+    // Recieving new message over the Serial Port
+    // Creating blank message
+    //msg = "";
+    msg = Serial.readStringUntil('\n');
+    /*
     while (Serial.available() > 0){
+      // Reading the first byte of the message into a char
       int c = Serial.read();
-      if (c<50){
+      // Ignoring chars that are not numbers or letters, adding to message
+      if (c<48){
         continue;
       }
       else{
@@ -35,7 +41,10 @@ void loop() {
       }
       delay(50);
     }
+    */
+    // Checking to see if the message was an LED test (1's and 0's), if not the order is set
     if (msg.toInt()||msg=="0000"){
+      Serial.println(msg);
       controlLed(msg);
     }
     else{
@@ -43,6 +52,7 @@ void loop() {
       Serial.println(ord);
     }
   }
+  // Waits until the order is set, and the shutter is open to begin strobing
   if ((digitalRead(trig))&&(ord.length()>0)){
     // Sensor is exposed
     if (last == false){

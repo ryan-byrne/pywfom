@@ -48,13 +48,8 @@ class Andor():
             else:
                 print("Opening SOLIS")
                 subprocess.call("C:\Program Files\Andor SOLIS\AndorSolis.exe")
-            pyautogui.hotkey("win", "up")
-            pyautogui.hotkey("win", "up")
-            pyautogui.hotkey("win", "left")
-            pyautogui.press("esc")
             self.solis = Application().connect(title_re="Andor")
             self.soliswin = self.solis.window(title_re="Andor")
-            self.soliswin.set_focus()
 
     def deploy_settings(self, settings, path):
         s = settings
@@ -128,14 +123,14 @@ class Andor():
         self.sdk3.flush(self.hndl)
 
     def set_parameters(self, settings, path):
-        print(path)
+        self.soliswin.menu_select("Acquisition->Abort Acquisition")
         s = ["height", "bottom", "width", "top", "exposure_time", "framerate"]
         cam_settings = settings["camera"]
         print("Creating zyla_settings.txt file...")
         cwd = os.getcwd()
         set_param = "resources\solis_scripts\set_parameters.pgm"
         spool_path = path+"/CCD"
-        run_name = "runA"
+        run_name = "run0"
         with open("resources/solis_scripts/zyla_settings.txt", "w+") as f:
             f.write(str(cam_settings["binning"][0])+"\n")
             for setting in s:
@@ -154,11 +149,8 @@ class Andor():
         open_opt.Button.click()
 
     def preview(self):
-        time.sleep(3)
         print("Previewing Zyla video...")
         self.soliswin.menu_select("Acquisition->Take Video")
-        input("\nPreviewing. Press [Enter] to Continue. \n")
-        self.soliswin.menu_select("Acquisition->Abort Acquisition")
 
     def acquire(self):
         input("\nPress [Enter] to Acquire. \n")

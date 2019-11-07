@@ -1,4 +1,4 @@
-import time, subprocess, os, datetime, json, sys, string
+import time, subprocess, os, datetime, json, sys, string, pyautogui
 from colorama import Fore, Style
 from gui import Gui
 
@@ -14,7 +14,6 @@ from webcam import Webcam
 
 
 if __name__ == '__main__':
-
     # Startup
     # 1. execute set parameters
     # 2. ready to preview? (y/n)
@@ -24,7 +23,7 @@ if __name__ == '__main__':
     arduino = Arduino("COM4")
     camera = Andor(0)
     webcam = Webcam()
-    gui.open_gui()
+    gui.open()
     hardware = [arduino, camera, webcam]
     for hw in hardware:
         name = hw.__class__.__name__
@@ -42,12 +41,10 @@ if __name__ == '__main__':
             i = 1
         else:
             i += 1
-    print("settings.json successfully created")
-    print("Temporarily disabling Python Arduino Communication")
     arduino.disable()
-    settings, path = gui.camera_gui()
-    print("Reconnecting to the Arduino")
+    camera.preview()
+    settings, path = gui.camera()
     arduino.enable()
     camera.set_parameters(settings, path)
-    camera.preview()
+    arduino.set_strobe_order(settings["strobe_order"])
     camera.acquire()
