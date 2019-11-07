@@ -5,9 +5,9 @@ from pyfiglet import Figlet
 class Gui():
 
     def __init__(self):
-        pass
+        self.deployed = False
 
-    def open(self):
+    def info(self):
 
         """
 
@@ -23,7 +23,7 @@ class Gui():
         os.chdir("JSPLASSH")
         if os.path.isfile("settings.json"):
             os.remove("settings.json")
-        subprocess.Popen(["java", "-jar", "open.jar"])
+        subprocess.call(["java", "-jar", "info.jar"])
         os.chdir("..")
 
     def camera(self):
@@ -42,15 +42,12 @@ class Gui():
         else:
             path = "C:/WFOM/data/"
 
-        print("Waiting for Settings to be deployed")
+        print("Setting Camera parameters...")
         os.chdir("JSPLASSH")
-        subprocess.call(["java", "-jar","camera.jar"])
+        subprocess.Popen(["java", "-jar","camera.jar"])
         os.chdir("..")
 
-        with open("JSPLASSH/settings.json") as f:
-            settings = json.load(f)
-            mouse = settings["mouse"]
-        f.close()
+    def make_directories(self, settings):
         date = str(datetime.now())[:10]
 
         with open("JSPLASSH/archive.json", "r+") as f:
@@ -78,7 +75,7 @@ class Gui():
         src = "JSPLASSH/settings.json"
         dst = path+"/settings.json"
         shutil.move(src, dst)
-        return settings, path
+        return path
 
     def exit(self):
 
@@ -93,7 +90,6 @@ class Gui():
             print(i, sep=' ', end='\r')
             time.sleep(1)
         sys.exit()
-
 
     def banner(self, text, font):
 

@@ -1,19 +1,24 @@
-from arduino import Arduino
+from gui import Gui
 from andor import Andor
+import json, time
 
 if __name__ == '__main__':
-    arduino = Arduino("COM4")
-    camera = Andor()
-    settings = {
-                    "exposure":0.05,
-                    "height":2048,
-                    "width":2048,
-                    "binning":"1x1",
-                    "strobe_order":["Red", "Blue", "Lime", "Green"]
-                    }
-    arduino.set_strobe_order(settings["strobe_order"])
-    camera.save = True
-    if camera.connected > 0:
-        camera.deploy_settings(settings, "resources/test")
-        while True:
-            camera.acquire()
+    andor = Andor(0)
+    gui = Gui()
+    gui.info()
+    gui.camera()
+    old_settings = {"camera":{"fake"}}
+    while not gui.deployed:
+        with open("JSPLASSH/settings.json") as f:
+            gui.settings = json.load(f)
+        f.close()
+        if "camera" not in gui.settings.keys():
+            pass
+        else:
+            for k in gui.settings["camera"].keys():
+                if len(old_settings.keys()) == 1 or gui.settings["camera"][k] != old_settings["camera"][k]:
+                    print("Sending {0} to SOLIS!".format(k))
+                    continue
+        old_settings = gui.settings
+        time.sleep(1)
+    print("Settings deployed")

@@ -23,7 +23,7 @@ if __name__ == '__main__':
     arduino = Arduino("COM4")
     camera = Andor(0)
     webcam = Webcam()
-    gui.open()
+    gui.info()
     hardware = [arduino, camera, webcam]
     for hw in hardware:
         name = hw.__class__.__name__
@@ -41,9 +41,8 @@ if __name__ == '__main__':
             i = 1
         else:
             i += 1
-    arduino.disable()
-    camera.preview()
-    settings, path = gui.camera()
+    while not gui.deployed:
+
     arduino.enable()
     camera.set_parameters(settings, path)
     arduino.set_strobe_order(settings["strobe_order"])
