@@ -1,5 +1,6 @@
 import psutil, os, json, time, subprocess, pyautogui
 from pywinauto import Application
+from pywinauto.controls.menuwrapper import MenuItemNotEnabled
 from colorama import Fore, Style
 from shutil import copyfile
 from datetime import datetime
@@ -50,6 +51,8 @@ class Andor():
                 subprocess.call("C:\Program Files\Andor SOLIS\AndorSolis.exe")
             self.solis = Application().connect(title_re="Andor")
             self.soliswin = self.solis.window(title_re="Andor")
+            self.deployed = False
+            self.path = ""
 
     def deploy_settings(self, settings, path):
         s = settings
@@ -122,23 +125,23 @@ class Andor():
         self.sdk3.command(self.hndl, "AcquisitionStop")
         self.sdk3.flush(self.hndl)
 
-    def set_parameters(self, settings, path):
-        self.soliswin.menu_select("Acquisition->Abort Acquisition")
+    def set_parameters(self):
+        self.abort()
         s = ["height", "bottom", "width", "top", "exposure_time", "framerate"]
-        cam_settings = settings["camera"]
+        cam_settings = self.settings["camera"]
         print("Creating zyla_settings.txt file...")
         cwd = os.getcwd()
         set_param = "resources\solis_scripts\set_parameters.pgm"
-        spool_path = path+"/CCD"
+        spool_path = self.path+"/CCD"
         run_name = "run0"
         with open("resources/solis_scripts/zyla_settings.txt", "w+") as f:
             f.write(str(cam_settings["binning"][0])+"\n")
             for setting in s:
                 f.write(str(cam_settings[setting])+"\n")
-            f.write(settings["run_len"]+"\n")
+            f.write(self.settings["run"]["run_len"]+"\n")
             f.write(run_name+"\n")
             f.write(spool_path+"\n")
-            f.write(settings["num_run"])
+            f.write(self.settings["run"]["num_run"])
 
         file = '"%s\%s"' % (cwd, set_param)
 
@@ -152,8 +155,17 @@ class Andor():
         print("Previewing Zyla video...")
         self.soliswin.menu_select("Acquisition->Take Video")
 
+    def abort(self):
+        try:
+            print("Aborting Zyla Video.")
+            self.soliswin.menu_select("Acquisition->Abort Acquisition")
+        except MenuItemNotEnabled:
+            pass
+
     def acquire(self):
-        input("\nPress [Enter] to Acquire. \n")
+        input("Ready for Acquisition!\n\nPress [Enter] to Acquire Frames. \n\n")
+        print("Working Directory: {0}".format(self.path))
+        self.abort()
         cwd = os.getcwd()
         acquire = "resources\solis_scripts\\acquire.pgm"
         file = '"%s\%s"' % (cwd, acquire)
@@ -165,6 +177,47 @@ class Andor():
 
         print("\n"+"*"*25+"Acquisition Successfully Initiated"+"*"*25+"\n")
 
+    def camera_gui(self):
+
+        cpu_name = os.environ['COMPUTERNAME']
+        print("This computer's name is "+cpu_name)
+        if cpu_name == "DESKTOP-TFJIITU":
+            path = "S:/WFOM/data/"
+        else:
+            path = "C:/WFOM/data/"
+
+        print("Opening GUI to set Camera parameters...")
+        os.chdir("JSPLASSH")
+        subprocess.Popen(["java", "-jar","camera.jar"])
+        os.chdir("..")
+        old_settings = {"camera":{"fake"}}
+        print("Waiting for Camera settings to be Deployed")
+        while not self.deployed:
+            with open("JSPLASSH/settings.json") as f:
+                self.settings = json.load(f)
+            f.close()
+            if "camera" not in self.settings.keys():
+                pass
+            else:
+                update = False
+                for k in self.settings["camera"].keys():
+                    if len(old_settings.keys()) == 1 or self.settings["camera"][k] != old_settings["camera"][k]:
+                        self.settings["run"] = {"run_len":"5.0", "num_run":"1"}
+                        update = True
+                if update:
+                    print("Updating Preview with new Settings")
+                    self.set_parameters()
+                    time.sleep(3)
+                    self.preview()
+            old_settings = self.settings
+            time.sleep(1)
+            try:
+                #deployed = self.settings.camera.deployed
+                self.deployed = self.settings["camera"]["deployed"]
+            except KeyError:
+                self.deployed = False
+        print("Deploying settings to Camera")
+
 if __name__ == '__main__':
     settings = {
         "camera":{
@@ -173,11 +226,12 @@ if __name__ == '__main__':
             "bottom":1,
             "width":2048,
             "top":1,
-            "exposure_time":50.6,
-            "framerate":0.0068,
+            "exposure_time":0.0068,
+            "framerate":50.6,
             "spool_stim":"runA_stim",
             "spoollocation":"D:/test/runA",
         },
+        "run"
         "num_run":"1",
         "run_len":"3.000"
     }

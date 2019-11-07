@@ -1,5 +1,4 @@
 import serial, time, json
-from gui import Gui
 
 class Arduino():
     """ Methods pertaining to Communication with the Arduino """
@@ -51,3 +50,13 @@ class Arduino():
 
     def clear(self):
         self.ser.write("0000".encode())
+
+    def strobe_gui(self):
+        os.chdir("JSPLASSH")
+        subprocess.call(["java", "-jar", "strobe.jar"])
+        os.chdir("..")
+
+    def stim_gui(self):
+        os.chdir("JSPLASSH")
+        subprocess.call(["java", "-jar", "stim.jar"])
+        os.chdir("..")
