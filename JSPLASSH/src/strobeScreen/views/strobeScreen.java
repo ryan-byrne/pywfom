@@ -339,8 +339,7 @@ public class strobeScreen extends JFrame {
 		JSONTokener tokener = new JSONTokener(reader);
 		JSONObject settings = new JSONObject(tokener);
 		reader.close();
-		JSONObject run = new JSONObject();
-		run.put("strobe_order", s);
+		settings.put("strobe_order", s);
 		PrintWriter out = new PrintWriter("settings.json");
 		out.println(settings.toString());
 		out.close();

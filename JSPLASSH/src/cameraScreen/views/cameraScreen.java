@@ -221,7 +221,6 @@ public class cameraScreen extends JFrame {
 				String top = setTop.getText();
 				try {
 					writeJsonSettings(b, f, h, e, w, btm, top, false);
-					System.exit(0);
 				} catch (Exception e11) {
 					// TODO Auto-generated catch block
 					System.out.println(e11.getMessage());

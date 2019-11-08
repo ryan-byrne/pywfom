@@ -1,1 +1,1 @@
-{"camera":{"exposure_time":"0.0068","top":"1","bottom":"1","framerate":"50.70","width":"2048","deployed":true,"binning":"1x1","height":"2048"},"info":{"uni":"","mouse":"cm122","timestamp":"2019-11-07T23:45:30.346Z"}}
+{"stim":{"stim_length":"4.00","pre_stim":"6.00","num_of_stims":"2","post_stim":"12.00"},"strobe_order":["Blue","Green"],"run":{"run_length":"44.0","num_runs":"2"},"camera":{"exposure_time":"0.0068","top":"1","bottom":"1","framerate":"50.70","width":"2048","deployed":true,"binning":"1x1","height":"2048"}}

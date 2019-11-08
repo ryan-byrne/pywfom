@@ -267,6 +267,7 @@ public class stimScreen extends JFrame {
 		settings.put("run", run);
 		settings.put("stim", stim);
 		PrintWriter out = new PrintWriter("settings.json");
+		out.println(settings.toString());
 		out.close();
 	}
 }
