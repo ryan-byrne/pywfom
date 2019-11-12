@@ -1,4 +1,4 @@
-import psutil, os, json, time, subprocess, pyautogui
+import psutil, os, json, time, subprocess, pyautogui, shutil, path
 from pywinauto import Application
 from pywinauto.controls.menuwrapper import MenuItemNotEnabled
 from colorama import Fore, Style
@@ -43,6 +43,7 @@ class Andor():
                 self.connected = 0
         else:
             self.connected = 1
+            print("Initializing SOLIS...")
             if "AndorSolis.exe" in (p.name() for p in psutil.process_iter()):
                 print("SOLIS is already running...")
                 pass
@@ -52,7 +53,6 @@ class Andor():
             self.solis = Application().connect(title_re="Andor")
             self.soliswin = self.solis.window(title_re="Andor")
             self.deployed = False
-            self.path = ""
 
     def deploy_settings(self, settings, path):
         s = settings
@@ -163,8 +163,13 @@ class Andor():
             pass
 
     def acquire(self):
-        input("Ready for Acquisition!\n\nPress [Enter] to Acquire Frames. \n\n")
-        print("Working Directory: {0}".format(self.path))
+
+        print("Moving JSPLASSH/settings.json to "+self.path+"/settings.json")
+        src = "JSPLASSH/settings.json"
+        dst = self.path+"/settings.json"
+        shutil.move(src, dst)
+
+        print("Files to be sent to: {0}".format(self.path))
         self.abort()
         cwd = os.getcwd()
         acquire = "resources\solis_scripts\\acquire.pgm"
@@ -174,10 +179,17 @@ class Andor():
         open_opt = self.solis.window(title_re="Open")
         file_name = open_opt.Edit.set_text(file)
         open_opt.Button.click()
-
         print("\n"+"*"*25+"Acquisition Successfully Initiated"+"*"*25+"\n")
+        time.sleep(float(self.settings["run"]["run_len"])*float(self.settings["run"]["num_run"]))
 
-    def camera_gui(self):
+
+    def info_gui(self):
+        print("Waiting for Run Info from GUI...")
+        os.chdir("JSPLASSH")
+        if os.path.isfile("settings.json"):
+            os.remove("settings.json")
+        subprocess.call(["java", "-jar", "info.jar"])
+        os.chdir("..")
 
         cpu_name = os.environ['COMPUTERNAME']
         print("This computer's name is "+cpu_name)
@@ -186,7 +198,38 @@ class Andor():
         else:
             path = "C:/WFOM/data/"
 
-        print("Opening GUI to set Camera parameters...")
+        date = str(datetime.now())[:10]
+
+        with open("JSPLASSH/settings.json") as f:
+            settings = json.load(f)
+            mouse = settings["info"]["mouse"]
+        f.close()
+
+        with open("JSPLASSH/archive.json", "r+") as f:
+            archive = json.load(f)
+            d = archive["mice"][mouse]["last_trial"]+1
+            archive["mice"][mouse]["last_trial"] = d
+            f.seek(0)
+            json.dump(archive, f, indent=4)
+            f.truncate()
+        f.close()
+
+        if not os.path.isdir(path + mouse + "_" + str(d)):
+            path = path + mouse + "_" + str(d)
+        else:
+            path = path + mouse + "_" + str(d+1)
+
+        print("Making directory: "+path)
+        os.mkdir(path)
+        print("Making directory: "+path+"/CCD")
+        os.mkdir(path+"/CCD")
+        print("Making directory: "+path+"/webcam")
+        os.mkdir(path+"/webcam")
+
+        self.path = path
+
+    def camera_gui(self):
+        print("Waiting for Camera parameters from GUI...")
         os.chdir("JSPLASSH")
         subprocess.Popen(["java", "-jar","camera.jar"])
         os.chdir("..")
@@ -217,28 +260,3 @@ class Andor():
             except KeyError:
                 self.deployed = False
         print("Deploying settings to Camera")
-
-if __name__ == '__main__':
-    settings = {
-        "camera":{
-            "binning":"4x4",
-            "height":2048,
-            "bottom":1,
-            "width":2048,
-            "top":1,
-            "exposure_time":0.0068,
-            "framerate":50.6,
-            "spool_stim":"runA_stim",
-            "spoollocation":"D:/test/runA",
-        },
-        "run"
-        "num_run":"1",
-        "run_len":"3.000"
-    }
-    camera = Andor(0)
-    #arduino = Arduino("COM4")
-    #arduino.set_strobe_order(["Red","Blue","Green"])
-    path = "D:/test/"
-    camera.set_parameters(settings, path)
-    #camera.preview()
-    camera.acquire()

@@ -1,13 +1,14 @@
-#define greenLed    10
-#define redLed      12
-#define blueLed     8
-#define limeLed     7
+#define greenLed    7
+#define redLed      8
+#define blueLed     12
+#define limeLed     10
 #define trig        3
 
 int ledArray[4] = {greenLed, redLed, blueLed, limeLed};
-String orderString = "GRBL";
+String orderString = "RLGB";
 bool last;
 String msg, ord;
+bool strobing;
 int led, incomingByte;
 
 void setup() {
@@ -26,9 +27,7 @@ void loop() {
   if (Serial.available() > 0){
     // Recieving new message over the Serial Port
     // Creating blank message
-    //msg = "";
-    msg = Serial.readStringUntil('\n');
-    /*
+    msg = "";
     while (Serial.available() > 0){
       // Reading the first byte of the message into a char
       int c = Serial.read();
@@ -41,19 +40,28 @@ void loop() {
       }
       delay(50);
     }
-    */
     // Checking to see if the message was an LED test (1's and 0's), if not the order is set
     if (msg.toInt()||msg=="0000"){
-      Serial.println(msg);
+      // Control Particular LED's
       controlLed(msg);
     }
+    else if (msg == "S"){
+      // Turn strobing on
+      strobing = true;
+    }
+    else if (msg == "s"){
+      // Turn strobing off
+      strobing = false;
+      controlLed("0000");
+    }
     else{
+      // Set Strobe Order
       ord = msg;
       Serial.println(ord);
     }
   }
   // Waits until the order is set, and the shutter is open to begin strobing
-  if ((digitalRead(trig))&&(ord.length()>0)){
+  if ((digitalRead(trig))&&(ord.length()>0)&&(strobing)){
     // Sensor is exposed
     if (last == false){
       // New exposure
@@ -67,6 +75,12 @@ void loop() {
     // Sensor is not exposing row one
     last = false;
   }
+}
+
+void flash(){
+  digitalWrite(blueLed, HIGH);
+  delay(1000);
+  digitalWrite(blueLed, LOW);
 }
 
 void controlLed(String msg){
