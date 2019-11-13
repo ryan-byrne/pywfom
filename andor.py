@@ -1,6 +1,7 @@
 import psutil, os, json, time, subprocess, pyautogui, shutil, path
 from pywinauto import Application
 from pywinauto.controls.menuwrapper import MenuItemNotEnabled
+from pywinauto.findwindows import ElementNotFoundError
 from colorama import Fore, Style
 from shutil import copyfile
 from datetime import datetime
@@ -44,15 +45,23 @@ class Andor():
         else:
             self.connected = 1
             print("Initializing SOLIS...")
-            if "AndorSolis.exe" in (p.name() for p in psutil.process_iter()):
-                print("SOLIS is already running...")
-                pass
-            else:
+            if len([(p) for p in psutil.process_iter() if p.name() == "AndorSolis.exe"]) < 2:
                 print("Opening SOLIS")
-                subprocess.call("C:\Program Files\Andor SOLIS\AndorSolis.exe")
-            self.solis = Application().connect(title_re="Andor")
-            self.soliswin = self.solis.window(title_re="Andor")
-            self.deployed = False
+                subprocess.Popen("C:\Program Files\Andor SOLIS\AndorSolis.exe")
+                while True:
+                    try:
+                        print("\n")
+                        self.solis = Application().connect(title_re="Andor")
+                        self.soliswin = self.solis.window(title_re="Andor")
+                        self.deployed = False
+                        break
+                    except ElementNotFoundError:
+                        print("Waiting for SOLIS to Open...", end="\r")
+                        pass
+
+            else:
+                print("SOLIS is already open")
+                pass
 
     def deploy_settings(self, settings, path):
         s = settings
@@ -182,7 +191,6 @@ class Andor():
         print("\n"+"*"*25+"Acquisition Successfully Initiated"+"*"*25+"\n")
         time.sleep(float(self.settings["run"]["run_len"])*float(self.settings["run"]["num_run"]))
 
-
     def info_gui(self):
         print("Waiting for Run Info from GUI...")
         os.chdir("JSPLASSH")
@@ -260,3 +268,6 @@ class Andor():
             except KeyError:
                 self.deployed = False
         print("Deploying settings to Camera")
+
+if __name__ == '__main__':
+    andor = Andor(0)

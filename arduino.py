@@ -1,4 +1,4 @@
-import serial, time, json, os, subprocess, sys
+import serial, time, json, os, subprocess, sys, win32api
 from serial import Serial
 
 class Arduino():
@@ -19,7 +19,7 @@ class Arduino():
             self.connected = 1
             print("Successfully connected to Arduino at {0}".format(port))
         except serial.SerialException as e:
-            print("Can not enable the Arduino")
+            win32api.MessageBox(0, "Can not enable the Arduino", "Arduino Error")
             print(e.strerror)
             sys.exit()
 
@@ -67,7 +67,3 @@ class Arduino():
 
     def turn_off_strobing(self):
         self.ser.write("s".encode())
-
-if __name__ == '__main__':
-    arduino = Arduino("COM4")
-    arduino.strobe_gui()
