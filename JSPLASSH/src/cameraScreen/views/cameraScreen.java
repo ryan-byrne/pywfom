@@ -3,7 +3,10 @@ package cameraScreen.views;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +26,7 @@ import org.json.JSONTokener;
 public class cameraScreen extends JFrame {
 	
 	
+	protected static final Object[] String = null;
 	private JPanel contentPane;
 	List<String> orderList = new ArrayList<String>();
 	String orderString = new String();
@@ -142,7 +146,7 @@ public class cameraScreen extends JFrame {
 		JLabel lblx_3 = new JLabel("8x8");
 		lblx_3.setBounds(68, 142, 18, 14);
 		
-		JButton btnDeploySettingsTo_1 = new JButton("Deploy");
+		JButton btnDeploySettingsTo_1 = new JButton("Continue");
 		btnDeploySettingsTo_1.setEnabled(false);
 		btnDeploySettingsTo_1.setBounds(168, 180, 86, 23);
 		btnDeploySettingsTo_1.addActionListener(new ActionListener() {
@@ -216,11 +220,15 @@ public class cameraScreen extends JFrame {
 				String h = setHeight.getText();
 				String w = setWidth.getText();
 				String e = exposureTime.getText();
-				String f = framerate.getText();
 				String btm = setBottom.getText();
 				String top = setTop.getText();
 				try {
-					writeJsonSettings(b, f, h, e, w, btm, top, false);
+					Thread.sleep(3000);
+					String f_real = readZylaFramerate();
+					String e_real = readZylaExpTime();
+					framerate.setText(f_real);
+					exposureTime.setText(e_real);
+					writeJsonSettings(b, f_real, h, e_real, w, btm, top, false);
 				} catch (Exception e11) {
 					// TODO Auto-generated catch block
 					System.out.println(e11.getMessage());
@@ -229,6 +237,53 @@ public class cameraScreen extends JFrame {
 		});
 		btnPreview.setBounds(72, 180, 86, 23);
 		contentPane.add(btnPreview);
+	}
+
+
+	protected String readZylaExpTime() {
+		String path = "../resources/solis_scripts/zyla_settings.txt";
+		int count = 0;
+		try {
+			BufferedReader reader = new BufferedReader(new FileReader(path));
+			String line = reader.readLine();
+			while (line != null) {
+				line = reader.readLine();
+				if (count == 4) {
+					return line;
+				}
+				else {
+					count++;
+				}
+			}
+			reader.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	protected String readZylaFramerate() {
+		String path = "../resources/solis_scripts/zyla_settings.txt";
+		int count = 0;
+		try {
+			BufferedReader reader = new BufferedReader(new FileReader(path));
+			String line = reader.readLine();
+			while (line != null) {
+				line = reader.readLine();
+				if (count == 5) {
+					return line;
+				}
+				else {
+					count++;
+				}
+			}
+			reader.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 	private void writeJsonSettings(String b, String f, String h, String e, String w, String btm, String top, Boolean d) throws Exception {
