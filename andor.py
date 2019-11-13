@@ -1,4 +1,4 @@
-import psutil, os, json, time, subprocess, pyautogui, shutil, path
+import psutil, os, json, time, subprocess, pyautogui, shutil, path, win32api
 from pywinauto import Application
 from pywinauto.controls.menuwrapper import MenuItemNotEnabled
 from pywinauto.findwindows import ElementNotFoundError
@@ -43,17 +43,17 @@ class Andor():
                 print("Error connecting to the Camera!")
                 self.connected = 0
         else:
-            self.connected = 1
             print("Initializing SOLIS...")
-            if len([(p) for p in psutil.process_iter() if p.name() == "AndorSolis.exe"]) < 2:
+            pids = [(p.pid) for p in psutil.process_iter() if p.name() == "AndorSolis.exe"]
+            if len(pids) < 2:
                 print("Opening SOLIS")
                 subprocess.Popen("C:\Program Files\Andor SOLIS\AndorSolis.exe")
                 while True:
                     try:
-                        print("\n")
                         self.solis = Application().connect(title_re="Andor")
                         self.soliswin = self.solis.window(title_re="Andor")
                         self.deployed = False
+                        print("\n")
                         break
                     except ElementNotFoundError:
                         print("Waiting for SOLIS to Open...", end="\r")
@@ -62,6 +62,18 @@ class Andor():
             else:
                 print("SOLIS is already open")
                 pass
+            self.solis = Application().connect(title_re="Andor")
+            self.soliswin = self.solis.window(title_re="Andor")
+            self.deployed = False
+            try:
+                self.preview()
+            except MenuItemNotEnabled:
+                pids = [(p.pid) for p in psutil.process_iter() if p.name() == "AndorSolis.exe"]
+                for pid in pids:
+                    psutil.Process(pid).terminate()
+                win32api.MessageBox(0, "Camera is Not Detected", "SOLIS Error")
+                sys.exit()
+
 
     def deploy_settings(self, settings, path):
         s = settings
