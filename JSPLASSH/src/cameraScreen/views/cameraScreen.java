@@ -223,7 +223,7 @@ public class cameraScreen extends JFrame {
 				String btm = setBottom.getText();
 				String top = setTop.getText();
 				try {
-					Thread.sleep(3000);
+					Thread.sleep(10000);
 					String f_real = readZylaFramerate();
 					String e_real = readZylaExpTime();
 					framerate.setText(f_real);
