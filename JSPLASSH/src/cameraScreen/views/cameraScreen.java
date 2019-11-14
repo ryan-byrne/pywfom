@@ -220,15 +220,16 @@ public class cameraScreen extends JFrame {
 				String h = setHeight.getText();
 				String w = setWidth.getText();
 				String e = exposureTime.getText();
+				String f = framerate.getText();
 				String btm = setBottom.getText();
 				String top = setTop.getText();
 				try {
-					Thread.sleep(10000);
+					writeJsonSettings(b, f, h, e, w, btm, top, false);
+					Thread.sleep(3000);
 					String f_real = readZylaFramerate();
 					String e_real = readZylaExpTime();
 					framerate.setText(f_real);
 					exposureTime.setText(e_real);
-					writeJsonSettings(b, f_real, h, e_real, w, btm, top, false);
 				} catch (Exception e11) {
 					// TODO Auto-generated catch block
 					System.out.println(e11.getMessage());
