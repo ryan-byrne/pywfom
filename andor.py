@@ -45,7 +45,7 @@ class Andor():
         else:
             print("Initializing SOLIS...")
             pids = [(p.pid) for p in psutil.process_iter() if p.name() == "AndorSolis.exe"]
-            if len(pids) < 2:
+            if len(pids) < 1:
                 print("Opening SOLIS")
                 subprocess.Popen("C:\Program Files\Andor SOLIS\AndorSolis.exe")
                 while True:
@@ -65,15 +65,21 @@ class Andor():
             self.solis = Application().connect(title_re="Andor")
             self.soliswin = self.solis.window(title_re="Andor")
             self.deployed = False
+            time.sleep(1)
             try:
+                print("Trying to Preview")
                 self.preview()
             except MenuItemNotEnabled:
-                pids = [(p.pid) for p in psutil.process_iter() if p.name() == "AndorSolis.exe"]
-                for pid in pids:
-                    psutil.Process(pid).terminate()
-                win32api.MessageBox(0, "Camera is Not Detected", "SOLIS Error")
-                sys.exit()
-
+                try:
+                    print("Trying to Abort Preview")
+                    self.abort()
+                except MenuItemNotEnabled:
+                    print("Andor is not open. Closing all Andor related Processes")
+                    pids = [(p.pid) for p in psutil.process_iter() if p.name() == "AndorSolis.exe"]
+                    for pid in pids:
+                        psutil.Process(pid).terminate()
+                    win32api.MessageBox(0, "Camera is Not Detected", "SOLIS Error")
+                    sys.exit()
 
     def deploy_settings(self, settings, path):
         s = settings
