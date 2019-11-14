@@ -225,7 +225,7 @@ public class cameraScreen extends JFrame {
 				String top = setTop.getText();
 				try {
 					writeJsonSettings(b, f, h, e, w, btm, top, false);
-					Thread.sleep(3000);
+					Thread.sleep(10000);
 					String f_real = readZylaFramerate();
 					String e_real = readZylaExpTime();
 					framerate.setText(f_real);
