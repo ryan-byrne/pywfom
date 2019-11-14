@@ -22,6 +22,8 @@ import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 import org.json.JSONObject;
 import org.json.JSONTokener;
+import java.awt.event.MouseMotionAdapter;
+import java.awt.event.MouseEvent;
 
 public class cameraScreen extends JFrame {
 	
@@ -80,6 +82,13 @@ public class cameraScreen extends JFrame {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 330, 254);
 		contentPane = new JPanel();
+		contentPane.addMouseMotionListener(new MouseMotionAdapter() {
+			@Override
+			public void mouseMoved(MouseEvent arg0) {
+				framerate.setText(readZylaFramerate());
+				exposureTime.setText(readZylaExpTime());
+			}
+		});
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 		
@@ -225,11 +234,6 @@ public class cameraScreen extends JFrame {
 				String top = setTop.getText();
 				try {
 					writeJsonSettings(b, f, h, e, w, btm, top, false);
-					Thread.sleep(10000);
-					String f_real = readZylaFramerate();
-					String e_real = readZylaExpTime();
-					framerate.setText(f_real);
-					exposureTime.setText(e_real);
 				} catch (Exception e11) {
 					// TODO Auto-generated catch block
 					System.out.println(e11.getMessage());
