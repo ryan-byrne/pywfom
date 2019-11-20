@@ -51,7 +51,6 @@ class Arduino():
         self.enable()
         with open("JSPLASSH/settings.json") as f:
             settings = json.load(f)
-            print(settings)
             self.strobe_order = settings["strobe_order"]
         f.close()
         self.set_strobe_order()

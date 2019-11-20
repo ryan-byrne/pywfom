@@ -1,4 +1,0 @@
-This example includes a Python Wrapper for ATCore that will setup the camera, acquire image and save this image as a fits file to view
-
-The python modules NUMPY and PYFITS are required to run this example
-

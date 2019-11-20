@@ -5,155 +5,64 @@ from pywinauto.findwindows import ElementNotFoundError
 from colorama import Fore, Style
 from shutil import copyfile
 from datetime import datetime
-from resources.camera.atcore import *
 from arduino import Arduino
 import numpy as np
 
 class Andor():
 
-    def __init__(self, mode):
-        if mode == 1:
-            print("Intialising Andor SDK3")
-            os.chdir("resources/camera")
-            self.sdk3 = ATCore() # Initialise SDK3
-            os.chdir("../..")
-            self.hndl = self.sdk3.open(0)
-            try:
-                # Default Settings for all runs
-                self.name = self.sdk3.get_string(self.hndl, "CameraName")
-                self.interface = self.sdk3.get_string(self.hndl, "InterfaceType")
-                self.sdk3.set_bool(self.hndl, "FastAOIFrameRateEnable", True)
-                print("Successsfully connected to: {0} via {1}".format(self.name, self.interface))
-                self.max_framerate = self.sdk3.get_float(self.hndl, "MaxInterfaceTransferRate")
-                self.pixel_readout_rate = self.sdk3.get_enum_string(self.hndl, "PixelReadoutRate")
-                self.simple_preamp_gain_control = self.sdk3.get_enum_string(self.hndl,
-                                                                            "SimplePreAmpGainControl",
-                                                                            "16-bit (low noise & high well capacity)")
-                print("Maximum Transfer Rate: {0} fps".format(self.max_framerate))
-                print("PixelReadoutRate: {0}".format(self.pixel_readout_rate))
-                #self.sdk3.set_enum_string(self.hndl, "ElectronicShutteringMode", "Global")
-                print("Initiating Sensor Cooling")
-                self.sdk3.set_bool(self.hndl, "SensorCooling", True)
-                self.sdk3.set_enum_string(self.hndl, "CycleMode", "Continuous")
-                #self.sdk3.set_bool(self.hndl, "RollingShutterGlobalClear", True)
-                self.sdk3.set_enum_string(self.hndl, "AuxiliaryOutSource", "FireAny")
-                self.sdk3.set_enum_string(self.hndl, "PixelEncoding", "Mono16")
-                self.connected = 1
-            except ATCoreException:
-                print("Error connecting to the Camera!")
-                self.connected = 0
-        else:
-            print("Initializing SOLIS...")
-            pids = [(p.pid) for p in psutil.process_iter() if p.name() == "AndorSolis.exe"]
-            if len(pids) < 1:
-                print("Opening SOLIS")
-                subprocess.Popen("C:\Program Files\Andor SOLIS\AndorSolis.exe")
-                while True:
-                    try:
-                        self.solis = Application().connect(title_re="Andor")
-                        self.soliswin = self.solis.window(title_re="Andor")
-                        self.deployed = False
-                        print("\n")
-                        break
-                    except ElementNotFoundError:
-                        print("Waiting for SOLIS to Open...", end="\r")
-                        pass
-
-            else:
-                print("SOLIS is already open")
-                pass
-            self.solis = Application().connect(title_re="Andor")
-            self.soliswin = self.solis.window(title_re="Andor")
-            self.deployed = False
-            time.sleep(1)
-            try:
-                print("Trying to Preview")
-                self.preview()
-            except MenuItemNotEnabled:
+    def __init__(self):
+        print("Initializing SOLIS...")
+        pids = [(p.pid) for p in psutil.process_iter() if p.name() == "AndorSolis.exe"]
+        if len(pids) < 1:
+            print("Opening SOLIS")
+            subprocess.Popen("C:\Program Files\Andor SOLIS\AndorSolis.exe")
+            while True:
                 try:
-                    print("Trying to Abort Preview")
-                    self.abort()
-                except MenuItemNotEnabled:
-                    print("Andor is not open. Closing all Andor related Processes")
-                    pids = [(p.pid) for p in psutil.process_iter() if p.name() == "AndorSolis.exe"]
-                    for pid in pids:
-                        psutil.Process(pid).terminate()
-                    win32api.MessageBox(0, "Camera is Not Detected", "SOLIS Error")
-                    sys.exit()
+                    self.solis = Application().connect(title_re="Andor")
+                    self.soliswin = self.solis.window(title_re="Andor")
+                    self.deployed = False
+                    print("\n")
+                    break
+                except ElementNotFoundError:
+                    print("Waiting for SOLIS to Open...", end="\r")
+                    pass
 
-    def deploy_settings(self, settings, path):
-        s = settings
-
-        self.width, self.height = int(s["width"]), int(s["height"])
-
-        print("\nDeploying the following settings to the Camera:\n")
-        # Run specific settings
-        self.sdk3.strobe_order = s["strobe_order"]
-        self.sdk3.set_float(self.hndl, "ExposureTime", float(s["exposure"]))
-        self.framerate = self.sdk3.get_float(self.hndl, "FrameRate")
-        #self.sdk3.set_float(self.hndl, "ExposureTime", float(s["exposure_time"]))
-        print("Framerate: {0} fps".format(self.framerate))
-        self.sdk3.set_int(self.hndl, "AOIHeight", self.height)
-        self.sdk3.set_int(self.hndl, "AOIWidth", self.width)
-        print("Height: {0} pixels".format(self.height))
-        print("Width: {0} pixels".format(self.width))
-        self.sdk3.set_enum_string(self.hndl, "AOIBinning", s["binning"])
-        self.binning = s["binning"]
-        print("Binning: {0}".format(self.binning))
-        self.image_size_bytes = self.sdk3.get_int(self.hndl, "ImageSizeBytes")
-        if not self.save:
-            pass
         else:
-            name = "run"+str(len(os.listdir(path+"/CCD/"))+1)
-            dst = path+'/CCD/'+name
-            os.mkdir(dst)
-            self.dst = dst
-
-    def acquire_single_frame(self):
-
-        h = int(self.height/int(self.binning[0]))
-        w = int(self.width/int(self.binning[0]))
-
-        self.sdk3.set_enum_string(self.hndl, "PixelEncoding", "Mono32")
-        self.image_size_bytes = self.sdk3.get_int(self.hndl, "ImageSizeBytes")
-        print("Acquiring single frame from camera")
-        buf = np.empty((self.image_size_bytes,), dtype='B')
-        self.sdk3.queue_buffer(self.hndl, buf.ctypes.data, self.image_size_bytes)
-        self.sdk3.command(self.hndl, "AcquisitionStart")
-        wait_buf = self.sdk3.wait_buffer(self.hndl)
-        self.sdk3.command(self.hndl, "AcquisitionStop")
-        self.sdk3.flush(self.hndl)
-        self.sdk3.close(self.hndl)
-        print(buf)
-        im = Image.frombytes(mode="I", size=(h, w), data=buf)
-        im.show()
-
-    def acquire2(self):
-        # Establishing Buffers
-        num_frm = 100
-        num_buf = 10
-        buf = np.empty((num_frm, self.image_size_bytes), dtype='uint16')
-        for i in range(num_buf):
-            self.sdk3.queue_buffer(self.hndl, buf.ctypes.data, self.image_size_bytes)
-        self.sdk3.command(self.hndl, "AcquisitionStart")
-        t = time.time()
-        for i in range(num_frm):
-            self.sdk3.wait_buffer(self.hndl)
-            self.sdk3.queue_buffer(self.hndl, buf[i%num_buf].ctypes.data, self.image_size_bytes)
-        print("Stopping Acquisiton")
-        if not camera.save:
+            print("SOLIS is already open")
             pass
-        else:
-            num_acq = len(os.listdir(self.dst))
-            name = "/data"+str(num_acq+1)+".h5"
-            h5f = h5py.File(self.dst+name, 'w')
-            h5f.create_dataset('dataset_1', data=buf, compression="gzip", compression_opts=1)
-            h5f.close()
-        self.sdk3.command(self.hndl, "AcquisitionStop")
-        self.sdk3.flush(self.hndl)
+        self.solis = Application().connect(title_re="Andor")
+        self.soliswin = self.solis.window(title_re="Andor")
+        self.deployed = False
+        time.sleep(1)
+        try:
+            print("Trying to Preview")
+            self.preview()
+        except MenuItemNotEnabled:
+            try:
+                print("Trying to Abort Preview")
+                self.abort()
+            except MenuItemNotEnabled:
+                print("Andor is not open. Closing all Andor related Processes")
+                pids = [(p.pid) for p in psutil.process_iter() if p.name() == "AndorSolis.exe"]
+                for pid in pids:
+                    psutil.Process(pid).terminate()
+                win32api.MessageBox(0, "Camera is Not Detected", "SOLIS Error")
+                sys.exit()
 
-    def set_parameters(self):
+    def set_parameters(self, preview):
         self.abort()
+
+        with open("JSPLASSH/settings.json") as f:
+            self.settings = json.load(f)
+        f.close()
+
+        if preview:
+            run_len = "5"
+            num_run = "1"
+        else:
+            run_len = self.settings["run"]["run_length"]
+            num_run = self.settings["run"]["num_runs"]
+
         s = ["height", "bottom", "width", "top", "exposure_time", "framerate"]
         cam_settings = self.settings["camera"]
         print("Creating zyla_settings.txt file...")
@@ -165,18 +74,44 @@ class Andor():
             f.write(str(cam_settings["binning"][0])+"\n")
             for setting in s:
                 f.write(str(cam_settings[setting])+"\n")
-            f.write(self.settings["run"]["run_len"]+"\n")
+            f.write(run_len+"\n")
             f.write(run_name+"\n")
             f.write(spool_path+"\n")
-            f.write(self.settings["run"]["num_run"])
-
+            f.write(num_run)
+        f.close()
         file = '"%s\%s"' % (cwd, set_param)
-
         print("Setting parameters in SOLIS...")
         self.soliswin.menu_select("File -> Run Program By Filename")
         open_opt = self.solis.window(title_re="Open")
         file_name = open_opt.Edit.set_text(file)
         open_opt.Button.click()
+        print("Reading FrameRate + ExposureTime from zyla_settings.txt")
+
+    def get_framerate(self):
+        with open("resources/solis_scripts/zyla_settings.txt", "r") as f:
+            count = 0
+            for item in f.readlines():
+                if count == 5:
+                    et = item
+                    print("\nExposureTime: "+item)
+                    self.update_json_settings("camera", "exposure_time", item)
+                elif count == 6:
+                    fr = item
+                    print("\nFramerate: "+item)
+                    self.update_json_settings("camera", "framerate", item)
+                else:
+                    pass
+                count += 1
+        f.close()
+
+    def update_json_settings(self, type, param, value):
+        with open("JSPLASSH/settings.json", "r+") as f:
+            self.settings = json.load(f)
+            self.settings[type][param] = value
+            f.seek(0)
+            json.dump(self.settings, f)
+            f.truncate()
+        f.close()
 
     def preview(self):
         print("Previewing Zyla video...")
@@ -190,7 +125,7 @@ class Andor():
             pass
 
     def acquire(self):
-
+        self.get_framerate()
         print("Moving JSPLASSH/settings.json to "+self.path+"/settings.json")
         src = "JSPLASSH/settings.json"
         dst = self.path+"/settings.json"
@@ -207,7 +142,7 @@ class Andor():
         file_name = open_opt.Edit.set_text(file)
         open_opt.Button.click()
         print("\n"+"*"*25+"Acquisition Successfully Initiated"+"*"*25+"\n")
-        time.sleep(float(self.settings["run"]["run_len"])*float(self.settings["run"]["num_run"]))
+        time.sleep(float(self.settings["run"]["run_length"])*float(self.settings["run"]["num_runs"]))
 
     def info_gui(self):
         print("Waiting for Run Info from GUI...")
@@ -275,7 +210,7 @@ class Andor():
                         update = True
                 if update:
                     print("Updating Preview with new Settings")
-                    self.set_parameters()
+                    self.set_parameters(True)
                     time.sleep(3)
                     self.preview()
             old_settings = self.settings
@@ -288,4 +223,5 @@ class Andor():
         print("Deploying settings to Camera")
 
 if __name__ == '__main__':
-    andor = Andor(0)
+    andor = Andor()
+    andor.get_framerate()
