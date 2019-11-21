@@ -16,6 +16,8 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
+
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import javax.swing.JCheckBox;
@@ -93,23 +95,41 @@ public class stimScreen extends JFrame {
 				String r = numRuns.getText();
 				String len = runningTime.getText();
 				JSONObject stim = new JSONObject();
+				JSONObject run = new JSONObject();
 				if (stimStatus == false) {
-					stim.put("not enabled", "");
+					try {
+						run.put("num_run", r);
+						run.put("run_len", len);
+					} catch (JSONException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				}
 				else {
-					stim.put("pre_stim", preStim.getText());
-					stim.put("stim_length", stimLength.getText());
-					stim.put("post_stim", postStim.getText());
-					stim.put("num_of_stims", numStim.getText());
+					try {
+						stim.put("pre_stim", preStim.getText());
+						stim.put("stim_length", stimLength.getText());
+						stim.put("post_stim", postStim.getText());
+						stim.put("num_of_stims", numStim.getText());
+						run.put("num_run", numStim.getText());
+					} catch (JSONException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				}
 				
 				try {
-					writeJsonSettings(r, len, stim);
+					writeJsonSettings(run, stim);
 					System.exit(0);
 				} catch (Exception e1) {
 					// TODO Auto-generated catch block
 					System.out.println(e1.getMessage());
 				}
+			}
+
+			private void writeJsonSettings(JSONObject run, JSONObject stim) {
+				// TODO Auto-generated method stub
+				
 			}
 
 		});
@@ -255,15 +275,12 @@ public class stimScreen extends JFrame {
 		});
 	}
 	
-	private void writeJsonSettings(String r, String len, JSONObject stim) throws Exception {
+	private void writeJsonSettings(JSONObject run, JSONObject stim) throws Exception {
 		FileReader reader;
 		reader = new FileReader("settings.json");
 		JSONTokener tokener = new JSONTokener(reader);
 		JSONObject settings = new JSONObject(tokener);
 		reader.close();
-		JSONObject run = new JSONObject();
-		run.put("num_runs", r);
-		run.put("run_length", len);
 		settings.put("run", run);
 		settings.put("stim", stim);
 		PrintWriter out = new PrintWriter("settings.json");

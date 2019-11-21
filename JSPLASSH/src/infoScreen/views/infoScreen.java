@@ -7,6 +7,7 @@ import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
@@ -23,6 +24,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.awt.event.ActionEvent;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -58,8 +61,9 @@ public class infoScreen extends JFrame {
 
 	/**
 	 * Create the frame.
+	 * @throws JSONException 
 	 */
-	public infoScreen() {
+	public infoScreen() throws JSONException {
 		setResizable(false);
 		setTitle("Info");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -91,7 +95,9 @@ public class infoScreen extends JFrame {
 			e.printStackTrace();
 		}
 		String[] values = new String[jarray.length()];
-		jarray.toList().toArray(values);
+		for (int i=0; i<jarray.length(); i++) {
+		    values[i] = jarray.getString(i);
+		}
 		JCheckBox chckbxNewMouse = new JCheckBox("New Mouse?");
 		
 		JComboBox comboBox = new JComboBox();
@@ -150,7 +156,7 @@ public class infoScreen extends JFrame {
 				    file.flush();
 				    file.close();
 					System.exit(0);
-				} catch (IOException e1) {
+				} catch (IOException | JSONException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}

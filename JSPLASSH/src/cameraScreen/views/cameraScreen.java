@@ -225,62 +225,50 @@ public class cameraScreen extends JFrame {
 				String top = setTop.getText();
 				try {
 					writeJsonSettings(b, f, h, e, w, btm, top, false);
-				} catch (Exception e11) {
+				} catch (Exception e3) {
 					// TODO Auto-generated catch block
-					System.out.println(e11.getMessage());
+					e3.printStackTrace();
 				}
+				boolean ready = false;
+				String line = null, et = null, fr = null;
+				while (!ready) {
+					String path = "../resources/solis_scripts/zyla_settings.txt";
+					BufferedReader reader;
+					try {
+						reader = new BufferedReader(new FileReader(path));
+						int count = 0;
+						while (line != null) {
+							line = reader.readLine();
+							System.out.println(et+" "+fr);
+							if (count == 4) {
+								et = line;
+							}
+							else if (count == 5) {
+								fr  = line;
+							}
+							else {
+								;
+							}
+							count++;
+						}
+						if ((et==e)&&(fr==f)) {
+							ready = false;
+						}
+					} catch (IOException e2) {
+						// TODO Auto-generated catch block
+						ready = false;
+					}
+					btnDeploySettingsTo_1.setEnabled(false);
+				}
+				exposureTime.setText(et);
+				framerate.setText(fr);
+				btnDeploySettingsTo_1.setEnabled(true);
 			}
 		});
 		btnPreview.setBounds(72, 180, 86, 23);
 		contentPane.add(btnPreview);
 	}
 
-
-	protected String readZylaExpTime() {
-		String path = "../resources/solis_scripts/zyla_settings.txt";
-		int count = 0;
-		try {
-			BufferedReader reader = new BufferedReader(new FileReader(path));
-			String line = reader.readLine();
-			while (line != null) {
-				line = reader.readLine();
-				if (count == 4) {
-					return line;
-				}
-				else {
-					count++;
-				}
-			}
-			reader.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return null;
-	}
-
-	protected String readZylaFramerate() {
-		String path = "../resources/solis_scripts/zyla_settings.txt";
-		int count = 0;
-		try {
-			BufferedReader reader = new BufferedReader(new FileReader(path));
-			String line = reader.readLine();
-			while (line != null) {
-				line = reader.readLine();
-				if (count == 5) {
-					return line;
-				}
-				else {
-					count++;
-				}
-			}
-			reader.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return null;
-	}
 
 	private void writeJsonSettings(String b, String f, String h, String e, String w, String btm, String top, Boolean d) throws Exception {
 		FileReader reader;
