@@ -60,8 +60,9 @@ class Andor():
             run_len = "5"
             num_run = "1"
         else:
-            run_len = self.settings["run"]["run_length"]
-            num_run = self.settings["run"]["num_runs"]
+            print(self.settings)
+            run_len = self.settings["run"]["run_len"]
+            num_run = self.settings["run"]["num_run"]
 
         s = ["height", "bottom", "width", "top", "exposure_time", "framerate"]
         cam_settings = self.settings["camera"]
@@ -142,7 +143,7 @@ class Andor():
         file_name = open_opt.Edit.set_text(file)
         open_opt.Button.click()
         print("\n"+"*"*25+"Acquisition Successfully Initiated"+"*"*25+"\n")
-        time.sleep(float(self.settings["run"]["run_length"])*float(self.settings["run"]["num_runs"]))
+        time.sleep(float(self.settings["run"]["run_len"])*float(self.settings["run"]["num_run"]))
 
     def info_gui(self):
         print("Waiting for Run Info from GUI...")

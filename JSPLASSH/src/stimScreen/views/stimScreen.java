@@ -127,11 +127,6 @@ public class stimScreen extends JFrame {
 				}
 			}
 
-			private void writeJsonSettings(JSONObject run, JSONObject stim) {
-				// TODO Auto-generated method stub
-				
-			}
-
 		});
 		JLabel lblStrobeOrder = new JLabel();
 		lblStrobeOrder.setBounds(264, 235, 0, 0);
@@ -284,6 +279,7 @@ public class stimScreen extends JFrame {
 		settings.put("run", run);
 		settings.put("stim", stim);
 		PrintWriter out = new PrintWriter("settings.json");
+		System.out.println(settings.toString());
 		out.println(settings.toString());
 		out.close();
 	}
