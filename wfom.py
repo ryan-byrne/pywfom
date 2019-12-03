@@ -10,7 +10,7 @@ if __name__ == '__main__':
     andor.camera_gui()
     arduino.strobe_gui()
     arduino.stim_gui()
-    andor.set_parameters(False)
+    andor.set_parameters(preview=False)
     arduino.turn_on_strobing()
     andor.acquire()
     arduino.turn_off_strobing()

@@ -151,21 +151,7 @@ public class cameraScreen extends JFrame {
 		btnDeploySettingsTo_1.setBounds(168, 180, 86, 23);
 		btnDeploySettingsTo_1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				int binVal = (int) (16*Math.exp(-0.693*binning.getValue()));
-				String b = binVal+"x"+binVal;
-				String h = setHeight.getText();
-				String w = setWidth.getText();
-				String e = exposureTime.getText();
-				String f = framerate.getText();
-				String btm = setBottom.getText();
-				String top = setTop.getText();
-				try {
-					writeJsonSettings(b, f, h, e, w, btm, top, true);
-					System.exit(0);
-				} catch (Exception e1) {
-					// TODO Auto-generated catch block
-					System.out.println(e1.getMessage());
-				}
+				System.exit(0);
 			}
 
 		});
@@ -229,39 +215,6 @@ public class cameraScreen extends JFrame {
 					// TODO Auto-generated catch block
 					e3.printStackTrace();
 				}
-				boolean ready = false;
-				String line = null, et = null, fr = null;
-				while (!ready) {
-					String path = "../resources/solis_scripts/zyla_settings.txt";
-					BufferedReader reader;
-					try {
-						reader = new BufferedReader(new FileReader(path));
-						int count = 0;
-						while (line != null) {
-							line = reader.readLine();
-							System.out.println(et+" "+fr);
-							if (count == 4) {
-								et = line;
-							}
-							else if (count == 5) {
-								fr  = line;
-							}
-							else {
-								;
-							}
-							count++;
-						}
-						if ((et==e)&&(fr==f)) {
-							ready = false;
-						}
-					} catch (IOException e2) {
-						// TODO Auto-generated catch block
-						ready = false;
-					}
-					btnDeploySettingsTo_1.setEnabled(false);
-				}
-				exposureTime.setText(et);
-				framerate.setText(fr);
 				btnDeploySettingsTo_1.setEnabled(true);
 			}
 		});

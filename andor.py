@@ -13,7 +13,7 @@ class Andor():
     def __init__(self):
         print("Initializing SOLIS...")
         pids = [(p.pid) for p in psutil.process_iter() if p.name() == "AndorSolis.exe"]
-        if len(pids) < 1:
+        if len(pids) < 2:
             print("Opening SOLIS")
             subprocess.Popen("C:\Program Files\Andor SOLIS\AndorSolis.exe")
             while True:
@@ -33,6 +33,7 @@ class Andor():
         self.solis = Application().connect(title_re="Andor")
         self.soliswin = self.solis.window(title_re="Andor")
         self.deployed = False
+        self.path = ""
         time.sleep(1)
         try:
             print("Trying to Preview")
@@ -191,13 +192,14 @@ class Andor():
         self.path = path
 
     def camera_gui(self):
-        print("Waiting for Camera parameters from GUI...")
+        print("Opening Camera Settings GUI...")
         os.chdir("JSPLASSH")
         subprocess.Popen(["java", "-jar","camera.jar"])
         os.chdir("..")
-        old_settings = {"camera":{"fake"}}
+        old_settings = {"camera":{"deployed":False}}
         print("Waiting for Camera settings to be Deployed")
-        while not self.deployed:
+        count = 0
+        while not old_settings["camera"]["deployed"]:
             with open("JSPLASSH/settings.json") as f:
                 self.settings = json.load(f)
             f.close()
@@ -209,12 +211,14 @@ class Andor():
                     if len(old_settings.keys()) == 1 or self.settings["camera"][k] != old_settings["camera"][k]:
                         self.settings["run"] = {"run_len":"5.0", "num_run":"1"}
                         update = True
+                    elif k == "deployed":
+                        pass
                 if update:
                     print("Updating Preview with new Settings")
                     self.set_parameters(True)
                     time.sleep(3)
                     self.preview()
-            old_settings = self.settings
+                old_settings = self.settings
             time.sleep(1)
             try:
                 #deployed = self.settings.camera.deployed
@@ -225,4 +229,4 @@ class Andor():
 
 if __name__ == '__main__':
     andor = Andor()
-    andor.get_framerate()
+    andor.camera_gui()
