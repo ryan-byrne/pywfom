@@ -108,6 +108,7 @@ public class strobeScreen extends JFrame {
 				List<String> s = orderList;
 				try {
 					writeJsonSettings(s);
+					clearLeds(out);
 					System.exit(0);
 				} catch (Exception e1) {
 					// TODO Auto-generated catch block
@@ -310,19 +311,12 @@ public class strobeScreen extends JFrame {
 	private void controlLeds(ActionEvent e, OutputStream out) {
 		String button = e.getActionCommand().toString();
 		int i = Arrays.asList(colors).indexOf(button);
-		ledOn[i] = !ledOn[i];
-		String message = new String();
-		for(boolean b:ledOn) {
-			if (!b) {
-				message += "0";
-			}
-			else {
-				message += "1";
-			}
-		}
+		StringBuilder message = new StringBuilder("0000");
+		message.setCharAt(i, '1');
+		String msg = message.toString();
 		try {
-			System.out.println("Sending "+ message +" to arduino");
-			out.write(message.getBytes());
+			//System.out.println("Sending "+ message +" to arduino");
+			out.write(msg.getBytes());
 			out.flush();
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
@@ -343,5 +337,10 @@ public class strobeScreen extends JFrame {
 		PrintWriter out = new PrintWriter("settings.json");
 		out.println(settings.toString());
 		out.close();
+	}
+	
+	private void clearLeds(OutputStream out) throws IOException {
+		out.write("0000".getBytes());
+		out.flush();
 	}
 }

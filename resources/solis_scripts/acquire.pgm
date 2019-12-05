@@ -1,16 +1,16 @@
 // Read Settings from TXT FIle
 
-read("zyla_settings.txt",bin$)
-read("zyla_settings.txt",h$)
-read("zyla_settings.txt",bot$)
-read("zyla_settings.txt",w$)
-read("zyla_settings.txt",l$)
-read("zyla_settings.txt",etwanted$)
-read("zyla_settings.txt",f$)
-read("zyla_settings.txt",rdur$)
-read("zyla_settings.txt",spoolstem$)
-read("zyla_settings.txt",spoollocation$)
-read("zyla_settings.txt",ntrials$)
+read("settings.txt",bin$)
+read("settings.txt",h$)
+read("settings.txt",bot$)
+read("settings.txt",w$)
+read("settings.txt",l$)
+read("settings.txt",etwanted$)
+read("settings.txt",f$)
+read("settings.txt",rdur$)
+read("settings.txt",spoolstem$)
+read("settings.txt",spoollocation$)
+read("settings.txt",ntrials$)
 
 // Assign Variables to Settings
 
@@ -74,18 +74,18 @@ else
 	numimages=floor(framerate*recordduration)+1
 endif
 
-kill("zyla_settings.txt")
-write("zyla_settings.txt",bin)
-write("zyla_settings.txt",height)
-write("zyla_settings.txt",bottom)
-write("zyla_settings.txt",width)
-write("zyla_settings.txt", left)
-write("zyla_settings.txt", etreal)
-write("zyla_settings.txt", framerate)
-write("zyla_settings.txt", numimages/framerate)
-write("zyla_settings.txt", spoolstem$)
-write("zyla_settings.txt", spoollocation$)
-write("zyla_settings.txt", numtrials)
+kill("settings.txt")
+write("settings.txt",bin)
+write("settings.txt",height)
+write("settings.txt",bottom)
+write("settings.txt",width)
+write("settings.txt", left)
+write("settings.txt", etreal)
+write("settings.txt", framerate)
+write("settings.txt", numimages/framerate)
+write("settings.txt", spoolstem$)
+write("settings.txt", spoollocation$)
+write("settings.txt", numtrials)
 close()
 
 looptrials=numtrials+1

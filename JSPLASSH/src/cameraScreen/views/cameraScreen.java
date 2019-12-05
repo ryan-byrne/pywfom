@@ -4,8 +4,11 @@ import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -45,7 +48,7 @@ public class cameraScreen extends JFrame {
 	private JTextField exposureTime;
 	private JTextField setWidth;
 	private JTextField setBottom;
-	private JTextField setTop;
+	private JTextField setLeft;
 
 	/**
 	 * Launch the application.
@@ -70,12 +73,13 @@ public class cameraScreen extends JFrame {
 
 	/**
 	 * Create the frame.
+	 * @throws IOException 
 	 */
-	public cameraScreen() {
+	public cameraScreen() throws IOException {
 		setResizable(false);
 		initComponents();
 	}
-	private void initComponents() {
+	private void initComponents() throws IOException {
 		setTitle("Camera Settings");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 330, 254);
@@ -104,7 +108,7 @@ public class cameraScreen extends JFrame {
 		framerate.setHorizontalAlignment(SwingConstants.CENTER);
 		framerate.setBounds(110, 45, 86, 20);
 		framerate.setEnabled(false);
-		framerate.setText("50.70");
+		framerate.setText(readSettings()[1]);
 		framerate.setColumns(10);
 		
 		JLabel lblSetHeight = new JLabel("Set Height");
@@ -122,7 +126,7 @@ public class cameraScreen extends JFrame {
 		exposureTime = new JTextField();
 		exposureTime.setHorizontalAlignment(SwingConstants.CENTER);
 		exposureTime.setBounds(110, 91, 86, 20);
-		exposureTime.setText("0.0068");
+		exposureTime.setText(readSettings()[0]);
 		exposureTime.setColumns(10);
 		
 		JLabel lblSetWidth = new JLabel("Set Width");
@@ -151,7 +155,13 @@ public class cameraScreen extends JFrame {
 		btnDeploySettingsTo_1.setBounds(168, 180, 86, 23);
 		btnDeploySettingsTo_1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				System.exit(0);
+				try {
+					deploySettings();
+					System.exit(0);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 
 		});
@@ -186,36 +196,37 @@ public class cameraScreen extends JFrame {
 		setBottom.setBounds(110, 136, 86, 20);
 		contentPane.add(setBottom);
 		
-		JLabel lblTop = new JLabel("Top");
-		lblTop.setBounds(214, 116, 86, 14);
-		contentPane.add(lblTop);
+		JLabel lblLeft = new JLabel("Left");
+		lblLeft.setBounds(214, 116, 86, 14);
+		contentPane.add(lblLeft);
 		
-		setTop = new JTextField();
-		setTop.setHorizontalAlignment(SwingConstants.CENTER);
-		setTop.setText("1");
-		setTop.setColumns(10);
-		setTop.setBounds(214, 136, 86, 20);
-		contentPane.add(setTop);
+		setLeft = new JTextField();
+		setLeft.setHorizontalAlignment(SwingConstants.CENTER);
+		setLeft.setText("1");
+		setLeft.setColumns(10);
+		setLeft.setBounds(214, 136, 86, 20);
+		contentPane.add(setLeft);
 		
 		JButton btnPreview = new JButton("Preview");
 		btnPreview.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e1) {
 				btnDeploySettingsTo_1.setEnabled(true);
 				int binVal = (int) (16*Math.exp(-0.693*binning.getValue()));
-				String b = binVal+"x"+binVal;
+				String b = Integer.toString(binVal);
 				String h = setHeight.getText();
 				String w = setWidth.getText();
 				String e = exposureTime.getText();
 				String f = framerate.getText();
 				String btm = setBottom.getText();
-				String top = setTop.getText();
+				String Left = setLeft.getText();
 				try {
-					writeJsonSettings(b, f, h, e, w, btm, top, false);
+					btnDeploySettingsTo_1.setEnabled(false);
+					writeSettings(b, f, h, e, w, btm, Left);
+					btnDeploySettingsTo_1.setEnabled(true);
 				} catch (Exception e3) {
 					// TODO Auto-generated catch block
 					e3.printStackTrace();
 				}
-				btnDeploySettingsTo_1.setEnabled(true);
 			}
 		});
 		btnPreview.setBounds(72, 180, 86, 23);
@@ -223,24 +234,56 @@ public class cameraScreen extends JFrame {
 	}
 
 
-	private void writeJsonSettings(String b, String f, String h, String e, String w, String btm, String top, Boolean d) throws Exception {
-		FileReader reader;
-		reader = new FileReader("settings.json");
-		JSONTokener tokener = new JSONTokener(reader);
-		JSONObject settings = new JSONObject(tokener);
-		reader.close();
-		JSONObject camera = new JSONObject();
-		camera.put("deployed", d);
-		camera.put("binning", b);
-		camera.put("height", h);
-		camera.put("bottom", btm);
-		camera.put("width", w);
-		camera.put("top", top);
-		camera.put("exposure_time", e);
-		camera.put("framerate", f);
-		settings.put("camera", camera);
-		PrintWriter out = new PrintWriter("settings.json");
-		out.println(settings.toString());
-		out.close();
+	private void deploySettings() throws IOException {
+		// TODO Auto-generated method stub
+		File file = new File("../resources/solis_scripts/settings.txt");
+		FileWriter fr = new FileWriter(file, true);
+		BufferedWriter br = new BufferedWriter(fr);
+		PrintWriter pr = new PrintWriter(br);
+		pr.println("deployed");
+		pr.close();
+		br.close();
+		fr.close();
+	}
+
+	private java.lang.String[] readSettings() throws IOException {
+		// TODO Auto-generated method stub
+		FileReader fr = new FileReader("../resources/solis_scripts/settings.txt");
+		BufferedReader br = new BufferedReader(fr);
+		String line = null;
+		int count = 0;
+		String[] settings = new String[2];
+		while((line= br.readLine()) != null) {
+			if (count == 5) {
+				settings[0] = line;
+			}
+			else if (count == 6){
+				settings[1] = line;
+			}
+			count++;
+		}
+		fr.close();
+		br.close();
+		return settings;
+		
+	}
+
+	private void writeSettings(String b, String f, String h, String e, String w, String btm, String lft) throws Exception {
+		
+		PrintWriter writer = new PrintWriter("../resources/solis_scripts/settings.txt", "UTF-8");
+		writer.println(b);
+		writer.println(h);
+		writer.println(btm);
+		writer.println(w);
+		writer.println(lft);
+		writer.println(e);
+		writer.println(f);
+		writer.println("5.00");
+		writer.println("run0");
+		writer.println("/CCD");
+		writer.println("1");
+		writer.close();
+		exposureTime.setText(readSettings()[0]);
+		framerate.setText(readSettings()[1]);
 	}
 }
