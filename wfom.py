@@ -55,12 +55,29 @@ def update_zyla_settings(path):
                 f.writelines(s+"\n")
     f.close()
 
+def main():
+    andor = Andor()
+    arduino = Arduino("COM4")
+    andor.info_gui()
+    andor.camera_gui()
+    arduino.strobe_gui()
+    arduino.stim_gui()
+    andor.set_parameters(preview=False)
+    arduino.turn_on_strobing()
+    andor.acquire()
+    arduino.turn_off_strobing()
+
+def test():
+    andor = Andor()
+    andor.info_gui()
+
 class Andor():
 
     def __init__(self):
         print("Initializing SOLIS...")
         pids = [(p.pid) for p in psutil.process_iter() if p.name() == "AndorSolis.exe"]
-        if len(pids) < 2:
+        print(pids)
+        if len(pids) < 1:
             print("Opening SOLIS")
             subprocess.Popen("C:\Program Files\Andor SOLIS\AndorSolis.exe")
             while True:
@@ -223,6 +240,9 @@ class Andor():
         settings = update_json_settings(old_settings)
         self.settings = settings
 
+    def run_gui(self):
+        camera = Andor()
+
 class Arduino():
     """ Methods pertaining to Communication with the Arduino """
 
@@ -296,13 +316,4 @@ class Webcam():
         self.connected = 1
 
 if __name__ == '__main__':
-    andor = Andor()
-    arduino = Arduino("COM4")
-    andor.info_gui()
-    andor.camera_gui()
-    arduino.strobe_gui()
-    arduino.stim_gui()
-    andor.set_parameters(preview=False)
-    arduino.turn_on_strobing()
-    andor.acquire()
-    arduino.turn_off_strobing()
+    test()

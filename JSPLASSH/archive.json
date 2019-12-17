@@ -1,5 +1,24 @@
 {
+    "settings": {
+        "default": {
+          "camera":{
+            "binning":"4",
+            "height":"2048",
+            "width":"2048",
+            "exposure":"0.0068",
+            "framerate":"57.00",
+            "bottom":"1",
+            "left":"1",
+          },
+          "run":{},
+          "stim":{},
+          "strobe_order":{},
+        }
+    },
     "mice": {
+        "cm450": {
+            "last_trial": 1
+        },
         "cm122": {
             "last_trial": 94
         },
