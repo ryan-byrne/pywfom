@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <section name="Workbench">
 	<section name="org.eclipse.wb.internal.core.model.property.editor.string.StringPropertyDialog">
-		<item value="455" key="x"/>
-		<item value="530" key="width"/>
-		<item value="257" key="y"/>
-		<item value="346" key="height"/>
+		<item key="x" value="455"/>
+		<item key="width" value="530"/>
+		<item key="y" value="257"/>
+		<item key="height" value="346"/>
+	</section>
+	<section name="org.eclipse.wb.internal.core.editor.actions.errors.ErrorsDialog">
+		<item key="x" value="138"/>
+		<item key="y" value="260"/>
+		<item key="width" value="684"/>
+		<item key="height" value="646"/>
 	</section>
 </section>

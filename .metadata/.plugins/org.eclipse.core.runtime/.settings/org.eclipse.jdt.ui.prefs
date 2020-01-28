@@ -4,7 +4,10 @@ content_assist_number_of_computers=19
 content_assist_proposals_background=255,255,255
 content_assist_proposals_foreground=0,0,0
 eclipse.preferences.version=1
-org.eclipse.jdt.ui.formatterprofiles.version=13
+org.eclipse.jdt.ui.exception.name=e
+org.eclipse.jdt.ui.formatterprofiles.version=18
+org.eclipse.jdt.ui.gettersetter.use.is=true
+org.eclipse.jdt.ui.overrideannotation=true
 org.eclipse.jdt.ui.text.code_templates_migrated=true
 org.eclipse.jdt.ui.text.custom_code_templates=<?xml version\="1.0" encoding\="UTF-8" standalone\="no"?><templates/>
 org.eclipse.jdt.ui.text.custom_templates=<?xml version\="1.0" encoding\="UTF-8" standalone\="no"?><templates/>

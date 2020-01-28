@@ -9,14 +9,14 @@ from pywinauto.controls.menuwrapper import MenuItemNotEnabled
 from pywinauto.findwindows import ElementNotFoundError
 
 def read_json_settings():
-    with open("JSPLASSH/settings.json", "r") as f:
+    with open("JavaGUI/settings.json", "r") as f:
         settings = json.load(f)
     f.close()
     return settings
 
 def update_json_settings(old_settings):
     parameters = ["binning", "height", "bottom", "width", "length", "exposure", "framerate"]
-    with open("JSPLASSH/settings.json", "r+") as f:
+    with open("JavaGUI/settings.json", "r+") as f:
         settings = json.load(f)
         settings["camera"] = {}
         for i in range(len(parameters)):
@@ -70,6 +70,7 @@ def main():
 def test():
     andor = Andor()
     andor.info_gui()
+    andor.camera_gui()
 
 class Andor():
 
@@ -142,8 +143,8 @@ class Andor():
 
         self.settings = read_json_settings()
 
-        print("Moving JSPLASSH/settings.json to "+self.path+"/settings.json")
-        src = "JSPLASSH/settings.json"
+        print("Moving JavaGUI/settings.json to "+self.path+"/settings.json")
+        src = "JavaGUI/settings.json"
         dst = self.path+"/settings.json"
         shutil.move(src, dst)
 
@@ -162,16 +163,15 @@ class Andor():
 
     def info_gui(self):
         print("Waiting for Run Info from GUI...")
-        os.chdir("JSPLASSH")
         if os.path.isfile("settings.json"):
             os.remove("settings.json")
-        subprocess.call(["java", "-jar", "info.jar"])
+        os.chdir("JavaGUI")
+        subprocess.call(["java", "-jar", "JARs/info.jar"])
         os.chdir("..")
-
         cpu_name = os.environ['COMPUTERNAME']
         print("This computer's name is "+cpu_name)
-        if cpu_name == "DESKTOP-TFJIITU":
-            path = "S:/WFOM/data/"
+        if cpu_name == "WFOM1":
+            path = "D:/WFOM/data/"
         else:
             path = "C:/WFOM/data/"
 
@@ -180,7 +180,7 @@ class Andor():
         settings = read_json_settings()
         mouse = settings["info"]["mouse"]
 
-        with open("JSPLASSH/archive.json", "r+") as f:
+        with open("JavaGUI/archive.json", "r+") as f:
             archive = json.load(f)
             d = archive["mice"][mouse]["last_trial"]+1
             archive["mice"][mouse]["last_trial"] = d
@@ -205,8 +205,8 @@ class Andor():
 
     def camera_gui(self):
         print("Opening Camera Settings GUI...")
-        os.chdir("JSPLASSH")
-        subprocess.Popen(["java", "-jar","camera.jar"])
+        os.chdir("JavaGUI")
+        subprocess.Popen(["java", "-jar","JARs/camera.jar"])
         os.chdir("..")
         print("Waiting for Camera settings to be Deployed")
         old_settings = read_zyla_settings()
@@ -287,8 +287,8 @@ class Arduino():
     def strobe_gui(self):
         print("Waiting to Recieve Strobe Settings from GUI...")
         self.disable()
-        os.chdir("JSPLASSH")
-        subprocess.call(["java", "-jar", "strobe.jar"])
+        os.chdir("JavaGUI")
+        subprocess.call(["java", "-jar", "JARs/strobe.jar"])
         os.chdir("..")
         self.enable()
         settings = read_json_settings()
@@ -297,8 +297,8 @@ class Arduino():
 
     def stim_gui(self):
         print("Waiting to Recieve Stim Settings from GUI...")
-        os.chdir("JSPLASSH")
-        subprocess.call(["java", "-jar", "stim.jar"])
+        os.chdir("JavaGUI")
+        subprocess.call(["java", "-jar", "JARs/stim.jar"])
         os.chdir("..")
         print("Updating settings.txt file")
         update_zyla_settings(False)

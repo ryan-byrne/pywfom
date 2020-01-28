@@ -1,37 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <section name="Workbench">
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
-		<item value="false" key="isRegEx"/>
-		<item value="COM4" key="selection"/>
-		<item value="false" key="casesensitive"/>
-		<item value="false" key="incremental"/>
-		<item value="true" key="wrap"/>
-		<item value="false" key="wholeword"/>
+		<item key="isRegEx" value="false"/>
+		<item key="selection" value="archive"/>
+		<item key="casesensitive" value="false"/>
+		<item key="incremental" value="false"/>
+		<item key="wrap" value="true"/>
+		<item key="wholeword" value="false"/>
 		<list key="findhistory">
+			<item value="archive"/>
+			<item value="readJSON"/>
+			<item value=".json"/>
+			<item value="json&quot;"/>
+			<item value="file"/>
+			<item value="file f"/>
+			<item value="writeJSON"/>
+			<item value="&quot;json&quot;"/>
+			<item value="json.json"/>
+			<item value="json"/>
+			<item value="settings"/>
 			<item value="com4"/>
 			<item value="buffer"/>
 			<item value="control"/>
 			<item value="mode"/>
-			<item value="check"/>
-			<item value="deploy"/>
-			<item value="status"/>
-			<item value="checkStatus"/>
-			<item value="writeJsonSettings"/>
-			<item value="slider"/>
-			<item value="controlLeds"/>
-			<item value=".add"/>
-			<item value="btn"/>
-			<item value="clear"/>
-			<item value="selection"/>
 		</list>
 		<list key="replacehistory">
 		</list>
 	</section>
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog_dialogBounds">
-		<item value="284" key="DIALOG_WIDTH"/>
-		<item value="1|Segoe UI|9.0|0|WINDOWS|1|-12|0|0|0|400|0|0|0|1|0|0|0|0|Segoe UI" key="DIALOG_FONT_NAME"/>
-		<item value="391" key="DIALOG_HEIGHT"/>
-		<item value="443" key="DIALOG_X_ORIGIN"/>
-		<item value="420" key="DIALOG_Y_ORIGIN"/>
+		<item key="DIALOG_WIDTH" value="284"/>
+		<item key="DIALOG_FONT_NAME" value="1|Segoe UI|9.0|0|WINDOWS|1|-12|0|0|0|400|0|0|0|1|0|0|0|0|Segoe UI"/>
+		<item key="DIALOG_HEIGHT" value="391"/>
+		<item key="DIALOG_X_ORIGIN" value="628"/>
+		<item key="DIALOG_Y_ORIGIN" value="408"/>
 	</section>
 </section>
