@@ -1,10 +1,21 @@
 {
-    "mice": {
-        "cm102": {
-            "last_trial": 14
+    "settings": {
+        "wfom1": {
+            "binning": "4",
+            "height": "2048",
+            "bottom": "1",
+            "width": "2048",
+            "length": "1",
+            "exposure": "0.0100032",
+            "framerate": "83.7353"
         }
     },
-    "settings": {
-        "wfom1": {}
+    "mice": {
+        "cm102": {
+            "last_trial": 34
+        },
+        "cm203": {
+            "last_trial": 1
+        }
     }
 }

@@ -67,7 +67,7 @@ public class infoScreen extends JFrame {
 		setResizable(false);
 		setTitle("Info");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 143, 375);
+		setBounds(100, 100, 147, 375);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
@@ -136,7 +136,7 @@ public class infoScreen extends JFrame {
 		final JLabel lblSelectTheSettings = new JLabel("Select the Settings");
 		lblSelectTheSettings.setEnabled(false);
 		
-		final JCheckBox chckbxNewSettings = new JCheckBox("Use Existing Settings");
+		final JCheckBox useExistingSettings = new JCheckBox("Use Existing Settings");
 		JButton btnContinue = new JButton("Continue");
 		btnContinue.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
@@ -166,18 +166,17 @@ public class infoScreen extends JFrame {
 					SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
 					info.put("timestamp", formatter.format(date).toString());
 					
-					if (!chckbxNewSettings.isSelected()) {
+					if (useExistingSettings.isSelected()) {
+						// If Existing Settings are to be used
+						String settingsName = comboboxSettings.getSelectedItem().toString();
+						settings.put("camera", settingsName);
 						settings.put("info", info);
 					}
 					else {
-						String settings_name = comboboxSettings.getSelectedItem().toString();
-						settings = archive.getJSONObject("settings").getJSONObject(settings_name);
-						settings.remove("info");
 						settings.put("info", info);
 						
 					}
 					writeJSON(settings, "settings");
-					System.out.println(settings);
 					System.exit(0);
 				} catch (IOException | JSONException e1) {
 					// TODO Auto-generated catch block
@@ -185,9 +184,9 @@ public class infoScreen extends JFrame {
 				}
 			}
 		});
-		chckbxNewSettings.addActionListener(new ActionListener() {
+		useExistingSettings.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if (chckbxNewSettings.isSelected()) {
+				if (useExistingSettings.isSelected()) {
 					comboboxSettings.setEnabled(true);
 					lblSelectTheSettings.setEnabled(true);
 				}
@@ -206,57 +205,57 @@ public class infoScreen extends JFrame {
 		
 		GroupLayout gl_contentPane = new GroupLayout(contentPane);
 		gl_contentPane.setHorizontalGroup(
-			gl_contentPane.createParallelGroup(Alignment.TRAILING)
+			gl_contentPane.createParallelGroup(Alignment.LEADING)
 				.addGroup(gl_contentPane.createSequentialGroup()
 					.addGap(25)
 					.addComponent(btnContinue)
-					.addContainerGap(59, Short.MAX_VALUE))
+					.addContainerGap(27, Short.MAX_VALUE))
 				.addGroup(gl_contentPane.createSequentialGroup()
-					.addContainerGap(17, Short.MAX_VALUE)
-					.addComponent(lblSelectTheSettings, GroupLayout.PREFERRED_SIZE, 98, GroupLayout.PREFERRED_SIZE)
-					.addGap(48))
-				.addGroup(gl_contentPane.createSequentialGroup()
-					.addContainerGap(23, Short.MAX_VALUE)
-					.addComponent(mouseField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-					.addGap(54))
-				.addGroup(gl_contentPane.createSequentialGroup()
-					.addContainerGap(18, Short.MAX_VALUE)
-					.addComponent(comboboxMouse, GroupLayout.PREFERRED_SIZE, 96, GroupLayout.PREFERRED_SIZE)
-					.addGap(49))
-				.addGroup(gl_contentPane.createSequentialGroup()
-					.addContainerGap(25, Short.MAX_VALUE)
-					.addComponent(lblSelectMouse)
-					.addGap(56))
-				.addGroup(gl_contentPane.createSequentialGroup()
-					.addContainerGap(24, Short.MAX_VALUE)
-					.addComponent(chckbxNewMouse)
-					.addGap(54))
-				.addGroup(gl_contentPane.createSequentialGroup()
-					.addContainerGap(23, Short.MAX_VALUE)
-					.addComponent(uniField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-					.addGap(54))
-				.addGroup(gl_contentPane.createSequentialGroup()
-					.addContainerGap(28, Short.MAX_VALUE)
-					.addComponent(lblUni)
-					.addGap(59))
-				.addGroup(Alignment.LEADING, gl_contentPane.createSequentialGroup()
-					.addContainerGap()
-					.addComponent(comboboxSettings, GroupLayout.PREFERRED_SIZE, 96, GroupLayout.PREFERRED_SIZE)
-					.addContainerGap(57, Short.MAX_VALUE))
-				.addGroup(gl_contentPane.createSequentialGroup()
-					.addGroup(gl_contentPane.createParallelGroup(Alignment.TRAILING)
-						.addComponent(separator, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 123, Short.MAX_VALUE)
-						.addGroup(gl_contentPane.createSequentialGroup()
-							.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-							.addComponent(lblEnterTheMouse)))
+					.addComponent(separator, GroupLayout.DEFAULT_SIZE, 123, Short.MAX_VALUE)
 					.addGap(40))
-				.addGroup(Alignment.LEADING, gl_contentPane.createSequentialGroup()
+				.addGroup(gl_contentPane.createSequentialGroup()
 					.addGroup(gl_contentPane.createParallelGroup(Alignment.TRAILING)
 						.addGroup(gl_contentPane.createSequentialGroup()
 							.addGap(14)
 							.addComponent(separator_1, GroupLayout.PREFERRED_SIZE, 111, GroupLayout.PREFERRED_SIZE))
-						.addComponent(chckbxNewSettings, Alignment.LEADING))
-					.addContainerGap(2, Short.MAX_VALUE))
+						.addComponent(useExistingSettings, Alignment.LEADING))
+					.addContainerGap(38, Short.MAX_VALUE))
+				.addGroup(gl_contentPane.createSequentialGroup()
+					.addGap(13)
+					.addComponent(lblSelectTheSettings, GroupLayout.PREFERRED_SIZE, 98, GroupLayout.PREFERRED_SIZE)
+					.addContainerGap(42, Short.MAX_VALUE))
+				.addGroup(gl_contentPane.createSequentialGroup()
+					.addGap(14)
+					.addComponent(comboboxSettings, GroupLayout.PREFERRED_SIZE, 96, GroupLayout.PREFERRED_SIZE)
+					.addContainerGap(43, Short.MAX_VALUE))
+				.addGroup(gl_contentPane.createSequentialGroup()
+					.addGap(23)
+					.addComponent(mouseField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+					.addContainerGap(48, Short.MAX_VALUE))
+				.addGroup(gl_contentPane.createSequentialGroup()
+					.addContainerGap()
+					.addComponent(lblEnterTheMouse)
+					.addContainerGap(34, Short.MAX_VALUE))
+				.addGroup(gl_contentPane.createSequentialGroup()
+					.addGap(18)
+					.addComponent(comboboxMouse, GroupLayout.PREFERRED_SIZE, 96, GroupLayout.PREFERRED_SIZE)
+					.addContainerGap(43, Short.MAX_VALUE))
+				.addGroup(gl_contentPane.createSequentialGroup()
+					.addGap(25)
+					.addComponent(lblSelectMouse)
+					.addContainerGap(50, Short.MAX_VALUE))
+				.addGroup(gl_contentPane.createSequentialGroup()
+					.addGap(24)
+					.addComponent(chckbxNewMouse)
+					.addContainerGap(48, Short.MAX_VALUE))
+				.addGroup(gl_contentPane.createSequentialGroup()
+					.addGap(23)
+					.addComponent(uniField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+					.addContainerGap(48, Short.MAX_VALUE))
+				.addGroup(gl_contentPane.createSequentialGroup()
+					.addGap(28)
+					.addComponent(lblUni)
+					.addContainerGap(53, Short.MAX_VALUE))
 		);
 		gl_contentPane.setVerticalGroup(
 			gl_contentPane.createParallelGroup(Alignment.LEADING)
@@ -265,9 +264,9 @@ public class infoScreen extends JFrame {
 					.addComponent(lblUni)
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addComponent(uniField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-					.addPreferredGap(ComponentPlacement.UNRELATED)
+					.addGap(11)
 					.addComponent(separator, GroupLayout.PREFERRED_SIZE, 2, GroupLayout.PREFERRED_SIZE)
-					.addPreferredGap(ComponentPlacement.UNRELATED)
+					.addGap(7)
 					.addComponent(chckbxNewMouse)
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addComponent(lblSelectMouse)
@@ -280,14 +279,14 @@ public class infoScreen extends JFrame {
 					.addGap(18)
 					.addComponent(separator_1, GroupLayout.PREFERRED_SIZE, 2, GroupLayout.PREFERRED_SIZE)
 					.addGap(7)
-					.addComponent(chckbxNewSettings)
+					.addComponent(useExistingSettings)
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addComponent(lblSelectTheSettings)
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addComponent(comboboxSettings, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addComponent(btnContinue)
-					.addContainerGap(37, Short.MAX_VALUE))
+					.addContainerGap(33, Short.MAX_VALUE))
 		);
 		contentPane.setLayout(gl_contentPane);
 	}

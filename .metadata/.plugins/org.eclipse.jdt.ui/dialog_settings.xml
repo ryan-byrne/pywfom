@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <section name="Workbench">
-	<item key="org.eclipse.jdt.ui.lastextjar" value="C:\Users\rbyrne\Downloads\rxtx-2.1-7-bins-r2\rxtx-2.1-7-bins-r2"/>
+	<item key="org.eclipse.jdt.ui.lastextjar" value="C:\Ryan\JavaGUI\JARs"/>
 	<section name="FatJarPackageWizard">
 		<item key="FatJarPackageWizardPage.ANTSCRIPT_LOCATION" value="C:\Users\rbyrne\eclipse-workspace.xml"/>
 		<item key="FatJarPackageWizardPage.LAUNCH_CONFIGURATION_SELECTION_NAME" value="infoScreen - JavaGUI"/>
