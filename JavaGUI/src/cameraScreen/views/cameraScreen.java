@@ -207,7 +207,6 @@ public class cameraScreen extends JFrame {
 		JButton btnPreview = new JButton("Preview");
 		btnPreview.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e1) {
-				btnDeploySettingsTo_1.setEnabled(true);
 				int binVal = (int) (16*Math.exp(-0.693*binning.getValue()));
 				String b = Integer.toString(binVal);
 				String h = setHeight.getText();
