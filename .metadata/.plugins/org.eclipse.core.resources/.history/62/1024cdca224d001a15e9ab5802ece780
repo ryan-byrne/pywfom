@@ -1,0 +1,104 @@
+package previewScreen.views;
+
+import com.fazecast.jSerialComm.SerialPort;
+import java.awt.Color;
+import java.awt.EventQueue;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import javax.swing.AbstractListModel;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JSlider;
+import javax.swing.SwingConstants;
+import javax.swing.UIManager;
+import javax.swing.border.EmptyBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.json.JSONTokener;
+import javax.swing.JTable;
+import java.awt.BorderLayout;
+
+public class previewScreen extends JFrame {
+	List<String> orderList = new ArrayList<String>();
+	String orderString = new String();
+	int arduinoState = 0;
+	int ledState = 0;
+	int solisState = 0;
+	int mode = 1;
+	boolean stimStatus;
+	boolean ledOn[] = {false, false, false, false};
+	String colors[] = {"Blue","Green","Lime","Red"};
+	String mouse = new String();
+	String uni = new String();
+	boolean readyToDeploy = false;
+	private JTable table;
+
+	/**
+	 * Launch the application.
+	 */
+	public static void main(String[] args) {
+		try {
+			UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+		} catch (Throwable e) {
+			e.printStackTrace();
+		}
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					previewScreen frame = new previewScreen();
+					frame.setVisible(true);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+
+	/**
+	 * Create the frame.
+	 */
+	public previewScreen() {
+		setResizable(false);
+		
+		table = new JTable();
+		getContentPane().add(table, BorderLayout.NORTH);
+		initComponents();
+	}
+	private void initComponents() {
+		setTitle("Preview Settings");
+		JSONObject settings = readJSON("settings.json");
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setBounds(100, 100, 330, 262);;
+	}
+
+
+	protected void writeJSON(JSONObject o, String file) throws IOException {
+		FileWriter f = new FileWriter(file+".json");
+		f.write(o.toString());
+		f.flush();
+		f.close();
+	}
+
+	protected JSONObject readJSON(String file) throws FileNotFoundException, JSONException {
+		FileReader r = new FileReader(file+".json");
+		JSONTokener t = new JSONTokener(r);
+		JSONObject obj = new JSONObject(t);
+		return obj;
+	}
+}

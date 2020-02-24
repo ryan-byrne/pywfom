@@ -6,6 +6,7 @@ import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -22,6 +23,10 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.json.JSONTokener;
 
 public class cameraScreen extends JFrame {
 	
@@ -279,7 +284,17 @@ public class cameraScreen extends JFrame {
 		writer.println("/CCD");
 		writer.println("1");
 		writer.close();
-		exposureTime.setText(readSettings()[0]);
-		framerate.setText(readSettings()[1]);
+		Thread.sleep(3);
+		exposureTime.setText(readJSON("settings").get("exposure").toString());
+		framerate.setText(readSettings()[0]);
+		
+	}
+	protected JSONObject readJSON(String file) throws FileNotFoundException, JSONException {
+		FileReader r = new FileReader(file+".json");
+		JSONTokener t = new JSONTokener(r);
+		JSONObject obj = new JSONObject(t);
+		return obj;
 	}
 }
+
+

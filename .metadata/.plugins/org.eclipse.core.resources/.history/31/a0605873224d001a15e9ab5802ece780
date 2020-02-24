@@ -1,0 +1,140 @@
+package previewScreen.views;
+
+import com.fazecast.jSerialComm.SerialPort;
+import java.awt.Color;
+import java.awt.EventQueue;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import javax.swing.AbstractListModel;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JSlider;
+import javax.swing.SwingConstants;
+import javax.swing.UIManager;
+import javax.swing.border.EmptyBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
+import org.json.JSONObject;
+import org.json.JSONTokener;
+
+public class previewScreen extends JFrame {
+	List<String> orderList = new ArrayList<String>();
+	String orderString = new String();
+	int arduinoState = 0;
+	int ledState = 0;
+	int solisState = 0;
+	int mode = 1;
+	boolean stimStatus;
+	boolean ledOn[] = {false, false, false, false};
+	String colors[] = {"Blue","Green","Lime","Red"};
+	String mouse = new String();
+	String uni = new String();
+	boolean readyToDeploy = false;
+
+	/**
+	 * Launch the application.
+	 */
+	public static void main(String[] args) {
+		try {
+			UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+		} catch (Throwable e) {
+			e.printStackTrace();
+		}
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					previewScreen frame = new previewScreen();
+					frame.setVisible(true);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+
+	/**
+	 * Create the frame.
+	 */
+	public previewScreen() {
+		setResizable(false);
+		initComponents();
+	}
+	private void initComponents() {
+		final OutputStream out = initializeArduino();
+		setTitle("Preview Settings");
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setBounds(100, 100, 330, 262);;
+	}
+
+	private void updateStrobeOrder(java.awt.event.ActionEvent e, JList l, OutputStream out) {
+
+		if(e.getActionCommand().toString() == "Clear"){
+			orderList.clear();
+		}
+		else if ((mode == 0)) {
+			controlLeds(e, out);
+		}
+		else {
+			orderList.add(e.getActionCommand().toString());
+		}
+		final String[] orderArray = new String[orderList.size()];
+		orderList.toArray(orderArray);
+		l.setModel(new AbstractListModel() {
+			public int getSize() {
+				return orderArray.length;
+			}
+			public Object getElementAt(int index) {
+				return((index+1)+". "+orderArray[index]);
+			}
+		});
+
+	}
+
+	private void controlLeds(ActionEvent e, OutputStream out) {
+		String button = e.getActionCommand().toString();
+		int i = Arrays.asList(colors).indexOf(button);
+		StringBuilder message = new StringBuilder("0000");
+		message.setCharAt(i, '1');
+		String msg = message.toString();
+		try {
+			//System.out.println("Sending "+ message +" to arduino");
+			out.write(msg.getBytes());
+			out.flush();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+	}
+
+	private void writeJsonSettings(List<String> s) throws Exception {
+		FileReader reader;
+		if (s.size() < 1) {
+			throw new Exception("The length of the Strobe Array must be greater than 0!");
+		}
+		reader = new FileReader("settings.json");
+		JSONTokener tokener = new JSONTokener(reader);
+		JSONObject settings = new JSONObject(tokener);
+		reader.close();
+		settings.put("strobe_order", s);
+		PrintWriter out = new PrintWriter("settings.json");
+		out.println(settings.toString());
+		out.close();
+	}
+
+	private void clearLeds(OutputStream out) throws IOException {
+		out.write("0000".getBytes());
+		out.flush();
+	}
+}

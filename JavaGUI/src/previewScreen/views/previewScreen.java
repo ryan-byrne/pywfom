@@ -80,7 +80,7 @@ public class previewScreen extends JFrame {
 		JButton editInfo = new JButton("Edit");
 		editInfo.setBounds(150, 47, 89, 23);
 		getContentPane().add(editInfo);
-		JSONObject settings = readJSON("settings.json");
+		JSONObject settings = readJSON("settings");
 		final String[] COLUMN_NAMES = {"User", "Mouse", "Timestamp"};
 		TableModel infoModel = new AbstractTableModel() {
 	          public int getColumnCount() { return 2; }

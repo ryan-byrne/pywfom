@@ -1,0 +1,93 @@
+package previewScreen.views;
+
+import java.awt.EventQueue;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.swing.JFrame;
+import javax.swing.UIManager;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.json.JSONTokener;
+import javax.swing.JTable;
+import java.awt.BorderLayout;
+
+public class previewScreen extends JFrame {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	List<String> orderList = new ArrayList<String>();
+	String orderString = new String();
+	int arduinoState = 0;
+	int ledState = 0;
+	int solisState = 0;
+	int mode = 1;
+	boolean stimStatus;
+	boolean ledOn[] = {false, false, false, false};
+	String colors[] = {"Blue","Green","Lime","Red"};
+	String mouse = new String();
+	String uni = new String();
+	boolean readyToDeploy = false;
+	private JTable table;
+
+	/**
+	 * Launch the application.
+	 */
+	public static void main(String[] args) {
+		try {
+			UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+		} catch (Throwable e) {
+			e.printStackTrace();
+		}
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					previewScreen frame = new previewScreen();
+					frame.setVisible(true);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+
+	/**
+	 * Create the frame.
+	 * @throws JSONException 
+	 * @throws FileNotFoundException 
+	 */
+	public previewScreen() throws FileNotFoundException, JSONException {
+		setResizable(false);
+		JSONObject settings = readJSON("settings.json");
+		System.out.println(settings.toString());
+		table = new JTable();
+		getContentPane().add(table, BorderLayout.NORTH);
+		initComponents();
+	}
+	private void initComponents() throws FileNotFoundException, JSONException {
+		setTitle("Preview Settings");
+		
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setBounds(100, 100, 330, 262);;
+	}
+
+
+	protected void writeJSON(JSONObject o, String file) throws IOException {
+		FileWriter f = new FileWriter(file+".json");
+		f.write(o.toString());
+		f.flush();
+		f.close();
+	}
+
+	protected JSONObject readJSON(String file) throws FileNotFoundException, JSONException {
+		FileReader r = new FileReader(file+".json");
+		JSONTokener t = new JSONTokener(r);
+		JSONObject obj = new JSONObject(t);
+		return obj;
+	}
+}
