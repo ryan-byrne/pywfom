@@ -112,6 +112,7 @@ public class stimScreen extends JFrame {
 						stim.put("post_stim", postStim.getText());
 						stim.put("num_of_stims", numStim.getText());
 						run.put("num_run", numStim.getText());
+						run.put("run_len", len);
 					} catch (JSONException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -279,7 +280,6 @@ public class stimScreen extends JFrame {
 		settings.put("run", run);
 		settings.put("stim", stim);
 		PrintWriter out = new PrintWriter("settings.json");
-		System.out.println(settings.toString());
 		out.println(settings.toString());
 		out.close();
 	}

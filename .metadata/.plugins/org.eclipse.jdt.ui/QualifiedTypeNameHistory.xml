@@ -28,4 +28,6 @@
     <fullyQualifiedTypeName name="javax.swing.table.TableColumn"/>
     <fullyQualifiedTypeName name="javax.swing.table.TableModel"/>
     <fullyQualifiedTypeName name="javax.swing.table.AbstractTableModel"/>
+    <fullyQualifiedTypeName name="javax.swing.JList"/>
+    <fullyQualifiedTypeName name="org.json.JSONArray"/>
 </qualifiedTypeNameHistroy>

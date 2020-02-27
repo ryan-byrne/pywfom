@@ -32,6 +32,10 @@ import org.json.JSONTokener;
 public class strobeScreen extends JFrame {
 	
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
 	List<String> orderList = new ArrayList<String>();
 	String orderString = new String();

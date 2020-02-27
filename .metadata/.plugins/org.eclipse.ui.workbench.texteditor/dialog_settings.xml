@@ -2,18 +2,19 @@
 <section name="Workbench">
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
 		<item key="isRegEx" value="false"/>
-		<item key="selection" value="Preview"/>
+		<item key="selection" value="writeJsonSettings"/>
 		<item key="casesensitive" value="false"/>
 		<item key="incremental" value="false"/>
 		<item key="wrap" value="true"/>
 		<item key="wholeword" value="false"/>
 		<list key="findhistory">
+			<item value="writeJsonSettings"/>
+			<item value=".json"/>
 			<item value="preview"/>
 			<item value="javagui"/>
 			<item value="readjson"/>
 			<item value="archive"/>
 			<item value="readJSON"/>
-			<item value=".json"/>
 			<item value="json&quot;"/>
 			<item value="file"/>
 			<item value="file f"/>
@@ -22,7 +23,6 @@
 			<item value="json.json"/>
 			<item value="json"/>
 			<item value="settings"/>
-			<item value="com4"/>
 		</list>
 		<list key="replacehistory">
 		</list>

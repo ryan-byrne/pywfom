@@ -4,6 +4,11 @@ from serial import Serial
 from datetime import datetime
 from shutil import copyfile
 
+from pywinauto import Application
+from pywinauto.controls.menuwrapper import MenuItemNotEnabled
+from pywinauto.base_wrapper import ElementNotEnabled
+from pywinauto.findwindows import ElementNotFoundError
+
 def read_json_settings():
     with open("JavaGUI/settings.json", "r") as f:
         settings = json.load(f)
@@ -52,20 +57,30 @@ def update_zyla_settings(path, settings):
     f.close()
 
 def main():
-    andor = Andor()
+    # Initialize Andor Class
+    andor = Andor(test=False)
+    # Initialize Arduino Class
     arduino = Arduino("COM4")
-    andor.info_gui()
-    andor.camera_gui()
-    arduino.strobe_gui()
-    arduino.stim_gui()
+    # Open Info GUI
+    andor.info()
+    # Open Camera Settings GUI
+    andor.camera()
+    # Open Strobe Settings GUI
+    arduino.strobe()
+    # Open Stim Settings GUI
+    arduino.stim()
+    # Send Final Settings to Camera
     andor.set_parameters(preview=False)
+    # Begin Strobing
     arduino.turn_on_strobing()
+    # Begin Acquisition
     andor.acquire()
+    # Finish Strobing
     arduino.turn_off_strobing()
 
 def test():
-    andor = Andor(test=True)
-    andor.preview()
+    arduino = Arduino("COM4")
+    arduino.strobe()
 
 class Andor():
 
@@ -75,11 +90,6 @@ class Andor():
             print("Program being run in 'Test Mode'")
             print("SOLIS Will not be opened\n")
         else:
-
-            from pywinauto import Application
-            from pywinauto.controls.menuwrapper import MenuItemNotEnabled
-            from pywinauto.base_wrapper import ElementNotEnabled
-            from pywinauto.findwindows import ElementNotFoundError
 
             self.open_solis()
 
@@ -258,7 +268,6 @@ class Andor():
         subprocess.Popen(["java", "-jar","JARs/preview.jar"])
         os.chdir("..")
 
-
 class Arduino():
     """ Methods pertaining to Communication with the Arduino """
 
@@ -300,7 +309,7 @@ class Arduino():
     def clear(self):
         self.ser.write("0000".encode())
 
-    def strobe_gui(self):
+    def strobe(self):
         print("Waiting to Recieve Strobe Settings from GUI...")
         self.disable()
         os.chdir("JavaGUI")
@@ -311,7 +320,7 @@ class Arduino():
         self.strobe_order = settings["strobe_order"]
         self.set_strobe_order()
 
-    def stim_gui(self):
+    def stim(self):
         print("Waiting to Recieve Stim Settings from GUI...")
         os.chdir("JavaGUI")
         subprocess.call(["java", "-jar", "JARs/stim.jar"])
@@ -330,4 +339,4 @@ class Webcam():
         self.connected = 1
 
 if __name__ == '__main__':
-    test()
+    main()
