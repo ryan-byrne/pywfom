@@ -47,7 +47,6 @@ public class previewScreen<strobeModel> extends JFrame {
 	private JTable stimTable;
 	private JTable runTable;
 	JSONObject settings = readJSON("settings");
-	JSONObject archive = readJSON("archive");
 	private JTextField saveName;
 
 	/**
@@ -166,27 +165,14 @@ public class previewScreen<strobeModel> extends JFrame {
 			buttons[i].addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					int b = Arrays.asList(buttons).indexOf(e.getSource());
-					if (b == 1) {
-						try {
-							JSONObject prevSettings = archive.getJSONObject("settings");
-							prevSettings.put(saveName.getText(), settings);
-							archive.put("settings", prevSettings);
-							writeJSON(archive, "archive");
-						} catch (JSONException | IOException e1) {
-							// TODO Auto-generated catch block
-							e1.printStackTrace();
-						}
+					try {
+						settings.put("status", b);
+						writeJSON(settings, "settings");
+					} catch (JSONException | IOException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
 					}
-					else {
-						try {
-							settings.put("status", b);
-							writeJSON(settings, "settings");
-						} catch (JSONException | IOException e1) {
-							// TODO Auto-generated catch block
-							e1.printStackTrace();
-						}
-						System.exit(0);
-					}
+					System.exit(0);
 				}
 			});
 		}

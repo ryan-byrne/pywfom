@@ -167,15 +167,7 @@ public class previewScreen<strobeModel> extends JFrame {
 				public void actionPerformed(ActionEvent e) {
 					int b = Arrays.asList(buttons).indexOf(e.getSource());
 					if (b == 1) {
-						try {
-							JSONObject prevSettings = archive.getJSONObject("settings");
-							prevSettings.put(saveName.getText(), settings);
-							archive.put("settings", prevSettings);
-							writeJSON(archive, "archive");
-						} catch (JSONException | IOException e1) {
-							// TODO Auto-generated catch block
-							e1.printStackTrace();
-						}
+						//archive.put(saveName., settings);
 					}
 					else {
 						try {

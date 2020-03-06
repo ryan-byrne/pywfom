@@ -79,62 +79,80 @@ def main():
     arduino.turn_off_strobing()
 
 def test():
+
+    """
+
+    settings.json Status Flag:
+
+    0: Begin Acquisition
+    1: Save Settings
+    2: Open Info GUI
+    3: Open Camera GUI
+    4: Open Strobe GUI
+    5: Open Stim GUI
+    6: Open Preview GUI
+    7: Settings Deployed
+
+
+    """
+
+    status = 2
+
+    andor = Andor()
     arduino = Arduino("COM4")
-    arduino.strobe()
+    webcame = Webcam()
+
+    COMMAND_ARRAY = [
+        andor.acquire(),
+        andor.info(),
+        andor.camera(),
+        arduino.strobe(),
+        arduino.stim(),
+        andor.preview()
+    ]
+
+    while status < 6:
+        COMMAND_ARRAY(status)
+        status = read_json_settings()["status"]
 
 class Andor():
 
-    def __init__(self, test):
-        self.test = test
-        if self.test:
-            print("Program being run in 'Test Mode'")
-            print("SOLIS Will not be opened\n")
-        else:
+    def __init__(self):
 
-            self.open_solis()
+        self.path = ""
 
-            self.solis = Application().connect(title_re="Andor")
-            self.soliswin = self.solis.window(title_re="Andor")
-            self.deployed = False
-            self.path = ""
-            time.sleep(1)
+        self.open_solis()
+        time.sleep(1)
+        try:
+            print("Trying to preview")
+            self.view()
+        except MenuItemNotEnabled:
             try:
-                print("Trying to Preview")
-                self.view()
+                print("Trying to Abort Preview")
+                self.abort()
             except MenuItemNotEnabled:
-                try:
-                    print("Trying to Abort Preview")
-                    self.abort()
-                except MenuItemNotEnabled:
-                    print("Andor is not open. Closing all Andor related Processes")
-                    pids = [(p.pid) for p in psutil.process_iter() if p.name() == "AndorSolis.exe"]
-                    for pid in pids:
-                        psutil.Process(pid).terminate()
-                    win32api.MessageBox(0, "Camera is Not Detected", "SOLIS Error")
-                    sys.exit()
+                print("Andor is not open. Closing all Andor related Processes")
+                pids = [(p.pid) for p in psutil.process_iter() if p.name() == "AndorSolis.exe"]
+                for pid in pids:
+                    psutil.Process(pid).terminate()
+                win32api.MessageBox(0, "Camera is Not Detected. You probably didn't turn it on", "SOLIS Error")
+                sys.exit()
 
     def open_solis(self):
-        print("Initializing SOLIS...")
+        print("Checking if SOLIS is Open...")
         pids = [(p.pid) for p in psutil.process_iter() if p.name() == "AndorSolis.exe"]
         if len(pids) < 1:
             print("SOLIS is not open. Opening it now...")
-            subprocess.Popen("C:\Program Files\Andor SOLIS\AndorSolis.exe")
-            while True:
-                try:
-                    self.solis = Application().connect(title_re="Andor")
-                    self.soliswin = self.solis.window(title_re="Andor")
-                    self.deployed = False
-                    print("\n")
-                    break
-                except ElementNotFoundError:
-                    print("Waiting for SOLIS to Open...", end="\r")
-                    pass
+            app = Application().start("C:\Program Files\Andor SOLIS\AndorSolis.exe")
+            app.WindowSpecification.wait('enabled', timeout=10)
+            self.solis = self.app.window(title_re="Andor SOLIS")
+            print("\n")
             print("SOLIS Successfully Initialized...")
 
         else:
             print("SOLIS is already open...")
-            self.solis = Application().connect(title_re="Andor")
-            self.soliswin = self.solis.window(title_re="Andor")
+            self.solis = Application().connect(title_re="Andor SOLIS")
+            self.soliswin = self.solis.window(title_re="Andor SOLIS", found_index=0)
             self.deployed = False
             print("\n")
 
@@ -150,19 +168,10 @@ class Andor():
         open_opt.Button.click()
 
     def view(self):
-        try:
-            print("Viewing Zyla video...")
-            self.soliswin.menu_select("Acquisition->Take Video")
-        except MenuItemNotEnabled:
-            print("Camera already viewing...")
+        self.soliswin.menu_select("Acquisition->Take Video")
 
     def abort(self):
-        try:
-            print("Aborting Zyla Video.")
-            self.soliswin.menu_select("Acquisition->Abort Acquisition")
-        except ElementNotEnabled:
-            print("Acquisition already aborted...")
-            pass
+        self.soliswin.menu_select("Acquisition->Abort Acquisition")
 
     def acquire(self):
 
@@ -195,6 +204,7 @@ class Andor():
         subprocess.Popen(r'explorer /select,"{0}"/'.format(self.path))
 
     def info(self):
+
         print("Waiting for Run Info from GUI...")
         os.chdir("JavaGUI")
         if os.path.isfile("settings.json"):
@@ -286,7 +296,11 @@ class Arduino():
             self.connected = 1
             print("Successfully connected to Arduino at {0}".format(port))
         except serial.SerialException as e:
-            win32api.MessageBox(0, "Can not enable the Arduino", "Arduino Error")
+            win32api.MessageBox(
+                0,
+                "Can not enable the Arduino",
+                "Arduino Error"
+            )
             print(e.strerror)
             sys.exit()
 
@@ -339,4 +353,4 @@ class Webcam():
         self.connected = 1
 
 if __name__ == '__main__':
-    main()
+    test()

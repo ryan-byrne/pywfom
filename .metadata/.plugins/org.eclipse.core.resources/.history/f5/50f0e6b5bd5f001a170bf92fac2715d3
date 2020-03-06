@@ -47,7 +47,6 @@ public class previewScreen<strobeModel> extends JFrame {
 	private JTable stimTable;
 	private JTable runTable;
 	JSONObject settings = readJSON("settings");
-	JSONObject archive = readJSON("archive");
 	private JTextField saveName;
 
 	/**
@@ -125,7 +124,16 @@ public class previewScreen<strobeModel> extends JFrame {
 		getContentPane().add(editInfo);
 		
 		final JButton saveButton = new JButton("Save Settings");
-		saveButton.setEnabled(false);
+		saveButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					JSONObject settings = readJSON("settings");
+				} catch (FileNotFoundException | JSONException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+		});
 		saveButton.setBounds(21, 650, 99, 23);
 		getContentPane().add(saveButton);
 		
@@ -134,8 +142,8 @@ public class previewScreen<strobeModel> extends JFrame {
 		getContentPane().add(beginAcquisition);
 		
 		final JCheckBox saveSettingsChk = new JCheckBox("Save Settings?");
-		saveSettingsChk.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
+		saveSettingsChk.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent e) {
 				if (saveSettingsChk.isSelected()) {
 					saveButton.setEnabled(true);
 					saveName.setEnabled(true);
@@ -154,7 +162,6 @@ public class previewScreen<strobeModel> extends JFrame {
 		getContentPane().add(lblNewLabel);
 		
 		saveName = new JTextField();
-		saveName.setEnabled(false);
 		saveName.setBounds(44, 619, 86, 20);
 		getContentPane().add(saveName);
 		saveName.setColumns(10);
@@ -166,27 +173,14 @@ public class previewScreen<strobeModel> extends JFrame {
 			buttons[i].addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					int b = Arrays.asList(buttons).indexOf(e.getSource());
-					if (b == 1) {
-						try {
-							JSONObject prevSettings = archive.getJSONObject("settings");
-							prevSettings.put(saveName.getText(), settings);
-							archive.put("settings", prevSettings);
-							writeJSON(archive, "archive");
-						} catch (JSONException | IOException e1) {
-							// TODO Auto-generated catch block
-							e1.printStackTrace();
-						}
+					try {
+						settings.put("status", b);
+						writeJSON(settings, "settings");
+					} catch (JSONException | IOException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
 					}
-					else {
-						try {
-							settings.put("status", b);
-							writeJSON(settings, "settings");
-						} catch (JSONException | IOException e1) {
-							// TODO Auto-generated catch block
-							e1.printStackTrace();
-						}
-						System.exit(0);
-					}
+					System.exit(0);
 				}
 			});
 		}

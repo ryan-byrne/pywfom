@@ -94,7 +94,7 @@ public class infoScreen extends JFrame {
 		JSONArray mice = new JSONArray();
 		JSONArray settings = new JSONArray();
 		try {
-			//System.out.println(Paths.get(".").toAbsolutePath().normalize().toString());
+			System.out.println(Paths.get(".").toAbsolutePath().normalize().toString());
 			reader = new FileReader("archive.json");
 			JSONTokener tokener = new JSONTokener(reader);
 			JSONObject obj = new JSONObject(tokener);
@@ -175,13 +175,13 @@ public class infoScreen extends JFrame {
 					if (useExistingSettings.isSelected()) {
 						// If Existing Settings are to be used
 						String settingsName = comboboxSettings.getSelectedItem().toString();
-						settings = readJSON("archive").getJSONObject("settings").getJSONObject(settingsName);
+						settings = readJSON("archive").get("settings").get(settingsName);
+						settings.put("settings", settingsName);
 						settings.put("info", info);
-						settings.put("status", 6);
+						settings.put("status", 2);
 					}
 					else {
 						settings.put("info", info);
-						settings.put("status", 3);
 						
 					}
 					writeJSON(settings, "settings");

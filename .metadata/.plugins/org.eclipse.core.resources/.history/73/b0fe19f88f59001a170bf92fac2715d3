@@ -37,7 +37,6 @@ public class infoScreen extends JFrame {
 	private JTextField uniField;
 	private JLabel lblEnterTheMouse;
 	private JTextField mouseField;
-	JSONObject archive = readJSON("archive");
 
 	/**
 	 * Launch the application.
@@ -66,6 +65,7 @@ public class infoScreen extends JFrame {
 	 * @throws FileNotFoundException 
 	 */
 	public infoScreen() throws JSONException, FileNotFoundException {
+		JSONObject archive = readJSON("archive");
 		setResizable(false);
 		setTitle("Info");
 		initComponents();
@@ -94,7 +94,7 @@ public class infoScreen extends JFrame {
 		JSONArray mice = new JSONArray();
 		JSONArray settings = new JSONArray();
 		try {
-			//System.out.println(Paths.get(".").toAbsolutePath().normalize().toString());
+			System.out.println(Paths.get(".").toAbsolutePath().normalize().toString());
 			reader = new FileReader("archive.json");
 			JSONTokener tokener = new JSONTokener(reader);
 			JSONObject obj = new JSONObject(tokener);
@@ -175,13 +175,13 @@ public class infoScreen extends JFrame {
 					if (useExistingSettings.isSelected()) {
 						// If Existing Settings are to be used
 						String settingsName = comboboxSettings.getSelectedItem().toString();
-						settings = readJSON("archive").getJSONObject("settings").getJSONObject(settingsName);
+						JSONObject settings = readJSON("archive");
+						settings.put("settings", settingsName);
 						settings.put("info", info);
-						settings.put("status", 6);
+						settings.put("status", 2);
 					}
 					else {
 						settings.put("info", info);
-						settings.put("status", 3);
 						
 					}
 					writeJSON(settings, "settings");
@@ -217,55 +217,53 @@ public class infoScreen extends JFrame {
 				.addGroup(gl_contentPane.createSequentialGroup()
 					.addGap(25)
 					.addComponent(btnContinue)
-					.addContainerGap(31, Short.MAX_VALUE))
+					.addContainerGap(27, Short.MAX_VALUE))
+				.addGroup(gl_contentPane.createSequentialGroup()
+					.addComponent(separator, GroupLayout.DEFAULT_SIZE, 123, Short.MAX_VALUE)
+					.addGap(40))
 				.addGroup(gl_contentPane.createSequentialGroup()
 					.addGroup(gl_contentPane.createParallelGroup(Alignment.TRAILING)
 						.addGroup(gl_contentPane.createSequentialGroup()
 							.addGap(14)
 							.addComponent(separator_1, GroupLayout.PREFERRED_SIZE, 111, GroupLayout.PREFERRED_SIZE))
 						.addComponent(useExistingSettings, Alignment.LEADING))
-					.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+					.addContainerGap(38, Short.MAX_VALUE))
 				.addGroup(gl_contentPane.createSequentialGroup()
 					.addGap(13)
 					.addComponent(lblSelectTheSettings, GroupLayout.PREFERRED_SIZE, 98, GroupLayout.PREFERRED_SIZE)
-					.addContainerGap(24, Short.MAX_VALUE))
+					.addContainerGap(42, Short.MAX_VALUE))
 				.addGroup(gl_contentPane.createSequentialGroup()
 					.addGap(14)
 					.addComponent(comboboxSettings, GroupLayout.PREFERRED_SIZE, 96, GroupLayout.PREFERRED_SIZE)
-					.addContainerGap(25, Short.MAX_VALUE))
+					.addContainerGap(43, Short.MAX_VALUE))
 				.addGroup(gl_contentPane.createSequentialGroup()
 					.addGap(23)
 					.addComponent(mouseField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-					.addContainerGap(26, Short.MAX_VALUE))
+					.addContainerGap(48, Short.MAX_VALUE))
 				.addGroup(gl_contentPane.createSequentialGroup()
 					.addContainerGap()
 					.addComponent(lblEnterTheMouse)
-					.addContainerGap(12, Short.MAX_VALUE))
+					.addContainerGap(34, Short.MAX_VALUE))
 				.addGroup(gl_contentPane.createSequentialGroup()
 					.addGap(18)
 					.addComponent(comboboxMouse, GroupLayout.PREFERRED_SIZE, 96, GroupLayout.PREFERRED_SIZE)
-					.addContainerGap(21, Short.MAX_VALUE))
+					.addContainerGap(43, Short.MAX_VALUE))
 				.addGroup(gl_contentPane.createSequentialGroup()
 					.addGap(25)
 					.addComponent(lblSelectMouse)
-					.addContainerGap(28, Short.MAX_VALUE))
+					.addContainerGap(50, Short.MAX_VALUE))
+				.addGroup(gl_contentPane.createSequentialGroup()
+					.addGap(24)
+					.addComponent(chckbxNewMouse)
+					.addContainerGap(48, Short.MAX_VALUE))
 				.addGroup(gl_contentPane.createSequentialGroup()
 					.addGap(23)
 					.addComponent(uniField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-					.addContainerGap(26, Short.MAX_VALUE))
+					.addContainerGap(48, Short.MAX_VALUE))
 				.addGroup(gl_contentPane.createSequentialGroup()
 					.addGap(28)
 					.addComponent(lblUni)
-					.addContainerGap(31, Short.MAX_VALUE))
-				.addGroup(gl_contentPane.createSequentialGroup()
-					.addGroup(gl_contentPane.createParallelGroup(Alignment.TRAILING)
-						.addGroup(gl_contentPane.createSequentialGroup()
-							.addContainerGap()
-							.addComponent(separator, GroupLayout.DEFAULT_SIZE, 95, Short.MAX_VALUE))
-						.addGroup(Alignment.LEADING, gl_contentPane.createSequentialGroup()
-							.addGap(24)
-							.addComponent(chckbxNewMouse)))
-					.addContainerGap(26, Short.MAX_VALUE))
+					.addContainerGap(53, Short.MAX_VALUE))
 		);
 		gl_contentPane.setVerticalGroup(
 			gl_contentPane.createParallelGroup(Alignment.LEADING)
@@ -276,7 +274,7 @@ public class infoScreen extends JFrame {
 					.addComponent(uniField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 					.addGap(11)
 					.addComponent(separator, GroupLayout.PREFERRED_SIZE, 2, GroupLayout.PREFERRED_SIZE)
-					.addPreferredGap(ComponentPlacement.UNRELATED)
+					.addGap(7)
 					.addComponent(chckbxNewMouse)
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addComponent(lblSelectMouse)
