@@ -1,10 +1,10 @@
 import shutil, psutil, json, time, os, subprocess, path, sys, win32api, serial
-
 from serial import Serial
 from datetime import datetime
 from shutil import copyfile
 
 from pywinauto import Application
+from pywinauto.timings import TimeoutError
 from pywinauto.controls.menuwrapper import MenuItemNotEnabled
 from pywinauto.base_wrapper import ElementNotEnabled
 from pywinauto.findwindows import ElementNotFoundError
@@ -56,28 +56,6 @@ def update_zyla_settings(path, settings):
                 f.writelines(s+"\n")
     f.close()
 
-def main():
-    # Initialize Andor Class
-    andor = Andor(test=False)
-    # Initialize Arduino Class
-    arduino = Arduino("COM4")
-    # Open Info GUI
-    andor.info()
-    # Open Camera Settings GUI
-    andor.camera()
-    # Open Strobe Settings GUI
-    arduino.strobe()
-    # Open Stim Settings GUI
-    arduino.stim()
-    # Send Final Settings to Camera
-    andor.set_parameters(preview=False)
-    # Begin Strobing
-    arduino.turn_on_strobing()
-    # Begin Acquisition
-    andor.acquire()
-    # Finish Strobing
-    arduino.turn_off_strobing()
-
 def test():
 
     """
@@ -103,16 +81,18 @@ def test():
     webcame = Webcam()
 
     COMMAND_ARRAY = [
-        andor.acquire(),
-        andor.info(),
-        andor.camera(),
-        arduino.strobe(),
-        arduino.stim(),
-        andor.preview()
+        andor.acquire,
+        "save",
+        andor.info,
+        andor.camera,
+        arduino.strobe,
+        arduino.stim,
+        andor.preview
     ]
 
     while status < 6:
-        COMMAND_ARRAY(status)
+        #print(status)
+        COMMAND_ARRAY[status]()
         status = read_json_settings()["status"]
 
 class Andor():
@@ -121,40 +101,41 @@ class Andor():
 
         self.path = ""
 
-        self.open_solis()
-        time.sleep(1)
-        try:
-            print("Trying to preview")
-            self.view()
-        except MenuItemNotEnabled:
-            try:
-                print("Trying to Abort Preview")
-                self.abort()
-            except MenuItemNotEnabled:
-                print("Andor is not open. Closing all Andor related Processes")
-                pids = [(p.pid) for p in psutil.process_iter() if p.name() == "AndorSolis.exe"]
-                for pid in pids:
-                    psutil.Process(pid).terminate()
-                win32api.MessageBox(0, "Camera is Not Detected. You probably didn't turn it on", "SOLIS Error")
-                sys.exit()
-
-    def open_solis(self):
         print("Checking if SOLIS is Open...")
         pids = [(p.pid) for p in psutil.process_iter() if p.name() == "AndorSolis.exe"]
         if len(pids) < 1:
             print("SOLIS is not open. Opening it now...")
-            app = Application().start("C:\Program Files\Andor SOLIS\AndorSolis.exe")
-            app.WindowSpecification.wait('enabled', timeout=10)
-            self.solis = self.app.window(title_re="Andor SOLIS")
-            print("\n")
-            print("SOLIS Successfully Initialized...")
-
+            self.open_solis()
         else:
             print("SOLIS is already open...")
-            self.solis = Application().connect(title_re="Andor SOLIS")
-            self.soliswin = self.solis.window(title_re="Andor SOLIS", found_index=0)
+        self.connect_to_solis()
+
+    def open_solis(self):
+        try:
+            app = Application().start("C:\Program Files\Andor SOLIS\AndorSolis.exe", timeout=10)
+        except TimeoutError:
+            if input("Opening SOLIS Timed Out. Continue anyway? [y/n] ") == "y":
+                pass
+            else:
+                sys.exit()
+
+    def connect_to_solis(self):
+        print("Attempting to Connect to SOLIS")
+        try:
             self.deployed = False
-            print("\n")
+            self.solis = Application().connect(title_re="Andor SOLIS", timeout=3)
+            self.soliswin = self.solis.window(title_re="Andor SOLIS", found_index=0)
+            self.view()
+        except TimeoutError:
+            if input("Connection to SOLIS Timed Out. Continue anyway? [y/n] ") == "y":
+                pass
+            else:
+                sys.exit()
+        except MenuItemNotEnabled:
+            if input("Connection to the Camera Failed. Continue anyway? [y/n] ") == "y":
+                pass
+            else:
+                sys.exit()
 
     def set_parameters(self, preview):
         self.abort()
@@ -172,6 +153,8 @@ class Andor():
 
     def abort(self):
         self.soliswin.menu_select("Acquisition->Abort Acquisition")
+
+
 
     def acquire(self):
 
@@ -296,13 +279,10 @@ class Arduino():
             self.connected = 1
             print("Successfully connected to Arduino at {0}".format(port))
         except serial.SerialException as e:
-            win32api.MessageBox(
-                0,
-                "Can not enable the Arduino",
-                "Arduino Error"
-            )
-            print(e.strerror)
-            sys.exit()
+            if input("Arduino is not Connected. Continue anyway? [y/n] ") == "y":
+                pass
+            else:
+                sys.exit()
 
     def disable(self):
         print("Enabling Python Arduino Communication")

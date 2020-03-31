@@ -9,3 +9,4 @@
 run0
 /CCD
 1
+deployed

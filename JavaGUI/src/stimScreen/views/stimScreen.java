@@ -100,6 +100,7 @@ public class stimScreen extends JFrame {
 					try {
 						run.put("num_run", r);
 						run.put("run_len", len);
+						stim.put("NO", "STIM");
 					} catch (JSONException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
