@@ -3,11 +3,42 @@ from serial import Serial
 from datetime import datetime
 from shutil import copyfile
 
+from argparse import ArgumentParser
+
 from pywinauto import Application
 from pywinauto.timings import TimeoutError
 from pywinauto.controls.menuwrapper import MenuItemNotEnabled
 from pywinauto.base_wrapper import ElementNotEnabled
 from pywinauto.findwindows import ElementNotFoundError
+
+def get_args():
+
+    parser = ArgumentParser()
+
+    parser.add_argument("-q", "--quiet",
+                    action="store_true", dest="quiet", default=False,
+                    help="Don't print status messages to stdout")
+    parser.add_argument("-y",
+                    action="store_true", dest="yes", default=False,
+                    help="Automatically accept errors and continue")
+
+    args = parser.parse_args()
+
+    return args
+
+args = get_args()
+
+def prompt(msg):
+    if args.quiet:
+        pass
+    else:
+        print(msg)
+
+def error_prompt(msg):
+    if args.yes or (input(msg+"  Continue anyways? [y/n] ") == "y"):
+        pass
+    else:
+        sys.exit()
 
 def read_json_settings():
     with open("JavaGUI/settings.json", "r") as f:
@@ -78,7 +109,7 @@ def test():
 
     andor = Andor()
     arduino = Arduino("COM4")
-    webcame = Webcam()
+    webcam = Webcam()
 
     COMMAND_ARRAY = [
         andor.acquire,
@@ -91,7 +122,7 @@ def test():
     ]
 
     while status < 6:
-        #print(status)
+        prompt(status)
         COMMAND_ARRAY[status]()
         status = read_json_settings()["status"]
 
@@ -101,52 +132,46 @@ class Andor():
 
         self.path = ""
 
-        print("Checking if SOLIS is Open...")
+        prompt("Checking if SOLIS is Open...")
+
         pids = [(p.pid) for p in psutil.process_iter() if p.name() == "AndorSolis.exe"]
         if len(pids) < 1:
-            print("SOLIS is not open. Opening it now...")
+            prompt("SOLIS is not open. Opening it now...")
             self.open_solis()
         else:
-            print("SOLIS is already open...")
+            prompt("SOLIS is already open...")
         self.connect_to_solis()
 
     def open_solis(self):
         try:
             app = Application().start("C:\Program Files\Andor SOLIS\AndorSolis.exe", timeout=10)
         except TimeoutError:
-            if input("Opening SOLIS Timed Out. Continue anyway? [y/n] ") == "y":
-                pass
-            else:
-                sys.exit()
+            error_prompt("Opening SOLIS Timed Out.")
 
     def connect_to_solis(self):
-        print("Attempting to Connect to SOLIS")
+        prompt("Attempting to Connect to SOLIS")
         try:
-            self.deployed = False
             self.solis = Application().connect(title_re="Andor SOLIS", timeout=3)
             self.soliswin = self.solis.window(title_re="Andor SOLIS", found_index=0)
             self.view()
         except TimeoutError:
-            if input("Connection to SOLIS Timed Out. Continue anyway? [y/n] ") == "y":
-                pass
-            else:
-                sys.exit()
+            error_prompt("Connection to SOLIS Timed Out.")
         except MenuItemNotEnabled:
-            if input("Connection to the Camera Failed. Continue anyway? [y/n] ") == "y":
-                pass
-            else:
-                sys.exit()
+            error_prompt("Connection to the Camera Failed.")
 
     def set_parameters(self, preview):
         self.abort()
         cwd = os.getcwd()
         set_param = "resources\solis_scripts\set_parameters.pgm"
         file = '"%s\%s"' % (cwd, set_param)
-        print("Setting parameters in SOLIS...")
-        self.soliswin.menu_select("File -> Run Program By Filename")
-        open_opt = self.solis.window(title_re="Open")
-        file_name = open_opt.Edit.set_text(file)
-        open_opt.Button.click()
+        prompt("Setting parameters in SOLIS...")
+        try:
+            self.soliswin.menu_select("File -> Run Program By Filename")
+            open_opt = self.solis.window(title_re="Open")
+            file_name = open_opt.Edit.set_text(file)
+            open_opt.Button.click()
+        except MenuItemNotEnabled:
+            error_prompt("Menu Item Not Enabled in SOLIS. Camera is likely disconnected.")
 
     def view(self):
         self.soliswin.menu_select("Acquisition->Take Video")
@@ -154,15 +179,13 @@ class Andor():
     def abort(self):
         self.soliswin.menu_select("Acquisition->Abort Acquisition")
 
-
-
     def acquire(self):
 
-        print("Making directory: "+self.path)
+        prompt("Making directory: "+self.path)
         os.mkdir(self.path)
-        print("Making directory: "+self.path+"/CCD")
+        prompt("Making directory: "+self.path+"/CCD")
         os.mkdir(self.path+"/CCD")
-        print("Making directory: "+self.path+"/webcam")
+        prompt("Making directory: "+self.path+"/webcam")
         os.mkdir(self.path+"/webcam")
 
         update_zyla_settings(self.path, self.settings)
@@ -170,7 +193,7 @@ class Andor():
         src = "JavaGUI/settings.json"
         dst = self.path+"/settings.json"
 
-        print("Moving JavaGUI/settings.json to "+self.path+"/settings.json")
+        prompt("Moving JavaGUI/settings.json to "+self.path+"/settings.json")
         shutil.move(src, dst)
 
         self.abort()
@@ -182,13 +205,13 @@ class Andor():
         open_opt = self.solis.window(title_re="Open")
         file_name = open_opt.Edit.set_text(file)
         open_opt.Button.click()
-        print("\n"+"*"*25+"Acquisition Successfully Initiated"+"*"*25+"\n")
+        prompt("\n"+"*"*25+"Acquisition Successfully Initiated"+"*"*25+"\n")
         time.sleep(2*float(self.settings["run"]["run_len"])*float(self.settings["run"]["num_run"]))
         subprocess.Popen(r'explorer /select,"{0}"/'.format(self.path))
 
     def info(self):
 
-        print("Waiting for Run Info from GUI...")
+        prompt("Waiting for Run Info from GUI...")
         os.chdir("JavaGUI")
         if os.path.isfile("settings.json"):
             os.remove("settings.json")
@@ -217,9 +240,10 @@ class Andor():
         self.path = path
 
     def camera(self):
-        print("Opening Camera Settings GUI...")
+        prompt("Opening Camera Settings GUI...")
         if "camera" in self.settings.keys():
             # Settings already established
+            prompt(self.settings)
             SETTINGS_NAME = self.settings["camera"]
             self.settings["camera"] = self.archive["settings"][SETTINGS_NAME]
             self.deployed = True
@@ -227,7 +251,8 @@ class Andor():
             os.chdir("JavaGUI")
             subprocess.Popen(["java", "-jar","JARs/camera.jar"])
             os.chdir("..")
-        print("Waiting for Camera settings to be Deployed")
+            self.deployed = False
+        prompt("Waiting for Camera settings to be Deployed")
         OLD_SETTINGS = read_zyla_settings()
         while not self.deployed:
                 # Read the settings from the txt file generated by the GUI
@@ -246,7 +271,7 @@ class Andor():
                     else:
                         pass
                 if update:
-                    print("Updating Preview with new Settings")
+                    prompt("Updating Preview with new Settings")
                     self.set_parameters(True)
                     time.sleep(3)
                     self.view()
@@ -265,7 +290,7 @@ class Arduino():
     """ Methods pertaining to Communication with the Arduino """
 
     def __init__(self, port):
-        print("Attempting to Connect to Arduino at Serial Port: "+port)
+        prompt("Attempting to Connect to Arduino at Serial Port: "+port)
         self.port = port
         try:
             self.ser = serial.Serial(
@@ -277,19 +302,16 @@ class Arduino():
                     timeout=0)
             time.sleep(3)
             self.connected = 1
-            print("Successfully connected to Arduino at {0}".format(port))
+            prompt("Successfully connected to Arduino at {0}".format(port))
         except serial.SerialException as e:
-            if input("Arduino is not Connected. Continue anyway? [y/n] ") == "y":
-                pass
-            else:
-                sys.exit()
+            error_prompt("Arduino is not Connected.")
 
     def disable(self):
-        print("Enabling Python Arduino Communication")
+        prompt("Enabling Python Arduino Communication")
         self.ser.close()
 
     def enable(self):
-        print("Enabling Python-Arduino Communication")
+        prompt("Enabling Python-Arduino Communication")
         self.ser.open()
         time.sleep(3)
 
@@ -297,14 +319,14 @@ class Arduino():
         order = ""
         for led in self.strobe_order:
             order += led[0]
-        print("Setting the Strobe order on the Arduino to: "+order)
+        prompt("Setting the Strobe order on the Arduino to: "+order)
         self.ser.write(order.encode())
 
     def clear(self):
         self.ser.write("0000".encode())
 
     def strobe(self):
-        print("Waiting to Recieve Strobe Settings from GUI...")
+        prompt("Waiting to Recieve Strobe Settings from GUI...")
         self.disable()
         os.chdir("JavaGUI")
         subprocess.call(["java", "-jar", "JARs/strobe.jar"])
@@ -315,7 +337,7 @@ class Arduino():
         self.set_strobe_order()
 
     def stim(self):
-        print("Waiting to Recieve Stim Settings from GUI...")
+        prompt("Waiting to Recieve Stim Settings from GUI...")
         os.chdir("JavaGUI")
         subprocess.call(["java", "-jar", "JARs/stim.jar"])
         os.chdir("..")
