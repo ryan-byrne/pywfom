@@ -27,9 +27,9 @@
             "info": {
                 "uni": "",
                 "mouse": "cm102",
-                "timestamp": "26-02-2020 13:19:07"
+                "timestamp": "01-04-2020 13:30:26"
             },
-            "status": 1
+            "status": 0
         },
         "ryan": {
             "stim": {
@@ -96,7 +96,7 @@
     },
     "mice": {
         "cm102": {
-            "last_trial": 85
+            "last_trial": 91
         },
         "cm203": {
             "last_trial": 2

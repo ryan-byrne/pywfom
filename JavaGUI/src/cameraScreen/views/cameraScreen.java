@@ -39,7 +39,6 @@ public class cameraScreen extends JFrame {
 	int ledState = 0;
 	int solisState = 0;
 	int mode = 1;
-	boolean stimStatus;
 	boolean ledOn[] = {false, false, false, false};
 	String colors[] = {"Blue","Green","Lime","Red"};
 	String mouse = new String();
@@ -152,15 +151,18 @@ public class cameraScreen extends JFrame {
 		JLabel lblx_3 = new JLabel("8x8");
 		lblx_3.setBounds(68, 142, 18, 14);
 		
-		final JButton btnDeploySettingsTo_1 = new JButton("Continue");
-		btnDeploySettingsTo_1.setEnabled(false);
-		btnDeploySettingsTo_1.setBounds(168, 180, 86, 23);
-		btnDeploySettingsTo_1.addActionListener(new ActionListener() {
+		final JButton btnContinue = new JButton("Continue");
+		btnContinue.setEnabled(false);
+		btnContinue.setBounds(168, 180, 86, 23);
+		btnContinue.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				try {
 					deploySettings();
+					JSONObject settings = readJSON("settings");
+					settings.put("status", 3);
+					writeJSON(settings, "settings");
 					System.exit(0);
-				} catch (IOException e) {
+				} catch (IOException | JSONException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
@@ -170,7 +172,7 @@ public class cameraScreen extends JFrame {
 		JLabel lblStrobeOrder = new JLabel();
 		lblStrobeOrder.setBounds(264, 235, 0, 0);
 		contentPane.setLayout(null);
-		contentPane.add(btnDeploySettingsTo_1);
+		contentPane.add(btnContinue);
 		contentPane.add(lblStrobeOrder);
 		contentPane.add(binning);
 		contentPane.add(lblx_2);
@@ -221,9 +223,9 @@ public class cameraScreen extends JFrame {
 				String btm = setBottom.getText();
 				String Left = setLeft.getText();
 				try {
-					btnDeploySettingsTo_1.setEnabled(false);
+					btnContinue.setEnabled(false);
 					writeSettings(b, f, h, e, w, btm, Left);
-					btnDeploySettingsTo_1.setEnabled(true);
+					btnContinue.setEnabled(true);
 				} catch (Exception e3) {
 					// TODO Auto-generated catch block
 					e3.printStackTrace();
@@ -270,6 +272,7 @@ public class cameraScreen extends JFrame {
 	}
 
 	private void writeSettings(String b, String f, String h, String e, String w, String btm, String lft) throws Exception {
+
 		
 		PrintWriter writer = new PrintWriter("../resources/solis_scripts/settings.txt", "UTF-8");
 		writer.println(b);
@@ -289,11 +292,19 @@ public class cameraScreen extends JFrame {
 		framerate.setText(readSettings()[0]);
 		
 	}
+	
 	protected JSONObject readJSON(String file) throws FileNotFoundException, JSONException {
 		FileReader r = new FileReader(file+".json");
 		JSONTokener t = new JSONTokener(r);
 		JSONObject obj = new JSONObject(t);
 		return obj;
+	}
+	
+	protected void writeJSON(JSONObject o, String file) throws IOException {
+		FileWriter f = new FileWriter(file+".json");
+		f.write(o.toString());
+		f.flush();
+		f.close();
 	}
 }
 

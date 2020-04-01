@@ -177,11 +177,11 @@ public class infoScreen extends JFrame {
 						String settingsName = comboboxSettings.getSelectedItem().toString();
 						settings = readJSON("archive").getJSONObject("settings").getJSONObject(settingsName);
 						settings.put("info", info);
-						settings.put("status", 6);
+						settings.put("status", 5);
 					}
 					else {
 						settings.put("info", info);
-						settings.put("status", 3);
+						settings.put("status", 2);
 						
 					}
 					writeJSON(settings, "settings");

@@ -280,6 +280,7 @@ public class stimScreen extends JFrame {
 		reader.close();
 		settings.put("run", run);
 		settings.put("stim", stim);
+		settings.put("status", 5);
 		PrintWriter out = new PrintWriter("settings.json");
 		out.println(settings.toString());
 		out.close();

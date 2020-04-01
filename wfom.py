@@ -94,18 +94,17 @@ def test():
     settings.json Status Flag:
 
     0: Begin Acquisition
-    1: Save Settings
-    2: Open Info GUI
-    3: Open Camera GUI
-    4: Open Strobe GUI
-    5: Open Stim GUI
-    6: Open Preview GUI
-    7: Settings Deployed
+    1: Open Info GUI
+    2: Open Camera GUI
+    3: Open Strobe GUI
+    4: Open Stim GUI
+    5: Open Preview GUI
+    6: Settings Deployed
 
 
     """
 
-    status = 2
+    status = 5
 
     andor = Andor()
     arduino = Arduino("COM4")
@@ -113,7 +112,6 @@ def test():
 
     COMMAND_ARRAY = [
         andor.acquire,
-        "save",
         andor.info,
         andor.camera,
         arduino.strobe,
@@ -121,8 +119,7 @@ def test():
         andor.preview
     ]
 
-    while status < 6:
-        prompt(status)
+    while status > 0:
         COMMAND_ARRAY[status]()
         status = read_json_settings()["status"]
 
@@ -174,10 +171,18 @@ class Andor():
             error_prompt("Menu Item Not Enabled in SOLIS. Camera is likely disconnected.")
 
     def view(self):
-        self.soliswin.menu_select("Acquisition->Take Video")
+        prompt("Attempting to Initiate Camera Preview in SOLIS")
+        try:
+            self.soliswin.menu_select("Acquisition->Take Video")
+        except MenuItemNotEnabled:
+            error_prompt("Unable to View. Camera not connected.")
 
     def abort(self):
-        self.soliswin.menu_select("Acquisition->Abort Acquisition")
+        prompt("Attempting to Abort Camera Preview in SOLIS")
+        try:
+            self.soliswin.menu_select("Acquisition->Abort Acquisition")
+        except MenuItemNotEnabled:
+            error_prompt("Unable to Abort.")
 
     def acquire(self):
 
