@@ -4,7 +4,7 @@ This project is meant to create a streamlined interface to interact with Wide Fi
 
 ## Getting Started
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+These instructions will help you get the necessary software installed onto your PC.
 
 ### Computer Requirements
 
@@ -19,6 +19,7 @@ Windows (8, 8.1, 10)
 * [Python](https://www.python.org/downloads/) - 3.7 and Up
 * [Java Runtime](https://java.com/en/download/) - 1.8 and Up
 * [Andor SOLIS (4.30 and up)](http://www.andor.com/downloads) - Registration Required
+* [PIP](https://pip.pypa.io/en/stable/installing/) - Latest Version
 
 ### Installing
 
