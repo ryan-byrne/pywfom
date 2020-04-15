@@ -16,13 +16,10 @@ Windows (8, 8.1, 10)
 2.68 GHZ Quad Core
 850 MB/s continuous write Hard Drive
 ```
-
-
-Python (3.6 and up)
-
-Java Runtime (1.8 and up)
-
-Andor SOLIS (4.30 and up)
+Software Requirements
+* [Python](https://www.python.org/downloads/) - 3.7 and Up
+* [Java Runtime](https://java.com/en/download/) - 1.8 and Up
+* [Andor SOLIS (4.30 and up)](http://www.andor.com/downloads) - Registration Required
 
 ### Installing
 
@@ -72,19 +69,15 @@ Add additional notes about how to deploy this on a live system
 * [Maven](https://maven.apache.org/) - Dependency Management
 * [ROME](https://rometools.github.io/rome/) - Used to generate RSS Feeds
 
-## Contributing
-
-Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
-
 ## Versioning
 
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags). 
+We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/ryan-byrne/wfom/tags). 
 
 ## Authors
 
-* **Billie Thompson** - *Initial work* - [PurpleBooth](https://github.com/PurpleBooth)
+* **Ryan Byrne** - *Initial work* - [ryan-byrne](https://github.com/ryan-byrne)
 
-See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
+See also the list of [contributors](https://github.com/ryan-byrne/wfom/contributors) who participated in this project.
 
 ## License
 
