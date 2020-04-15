@@ -1,7 +1,0 @@
-README.md
-setup.py
-wfom.py
-wfom.egg-info/PKG-INFO
-wfom.egg-info/SOURCES.txt
-wfom.egg-info/dependency_links.txt
-wfom.egg-info/top_level.txt
