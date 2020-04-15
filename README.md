@@ -9,7 +9,9 @@ These instructions will get you a copy of the project up and running on your loc
 ### Prerequisites
 
 Python (3.6 and up)
+
 Java Runtime (1.8 and up)
+
 Andor SOLIS (4.30 and up)
 
 ### Installing
