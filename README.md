@@ -8,6 +8,16 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Prerequisites
 
+Computer Requirements
+
+```
+Windows (8, 8.1, 10)
+4GB RAM
+2.68 GHZ Quad Core
+850 MB/s continuous write Hard Drive
+```
+
+
 Python (3.6 and up)
 
 Java Runtime (1.8 and up)
