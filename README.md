@@ -6,9 +6,7 @@ This project is meant to create a streamlined interface to interact with Wide Fi
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
 
-### Prerequisites
-
-Computer Requirements
+### Computer Requirements
 
 ```
 Windows (8, 8.1, 10)
@@ -16,7 +14,8 @@ Windows (8, 8.1, 10)
 2.68 GHZ Quad Core
 850 MB/s continuous write Hard Drive
 ```
-Software Requirements
+### Software Requirements
+
 * [Python](https://www.python.org/downloads/) - 3.7 and Up
 * [Java Runtime](https://java.com/en/download/) - 1.8 and Up
 * [Andor SOLIS (4.30 and up)](http://www.andor.com/downloads) - Registration Required
