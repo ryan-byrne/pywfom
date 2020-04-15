@@ -11,6 +11,7 @@ setup(
     author_email = "ryanbyrne142@gmail.com",
     keywords = "wide field optical mapping",
     url = "http://packages.python.org/wfom",
+    include_package_data=True,
     py_modules=["wfom"],
     long_description=long_description,
     python_requires='>=3.5',
