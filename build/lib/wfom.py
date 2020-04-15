@@ -104,7 +104,7 @@ def test():
 
     """
 
-    status = 5
+    status = 1
 
     andor = Andor()
     arduino = Arduino("COM4")
