@@ -14,60 +14,54 @@ Windows (8, 8.1, 10)
 2.68 GHZ Quad Core
 850 MB/s continuous write Hard Drive
 ```
+
+### Hardware Requirements
+
+For a comprehensive list of hardware requirements, as well as how to assemble them, visit [This Wiki](https://link.to.wiki)
+
 ### Software Requirements
 
 * [Python](https://www.python.org/downloads/) - 3.7 and Up
 * [Java Runtime](https://java.com/en/download/) - 1.8 and Up
 * [Andor SOLIS (4.30 and up)](http://www.andor.com/downloads) - Registration Required
-* [PIP](https://pip.pypa.io/en/stable/installing/) - Latest Version
+* [Git](https://git-scm.com/download/win) - Latest Version
 
-### Installing
+### Installation
 
-A step by step series of examples that tell you how to get a development env running
-
-Say what the step will be
+Open up a Command Prompt and navigate to your machine's root directory by typing the following command:
 
 ```
-Give the example
+cd /
 ```
 
-And repeat
+Clone into the Git repository to download the required files.
 
 ```
-until finished
+git clone https://github.com/ryan-byrne/wfom.git
 ```
 
-End with an example of getting some data out of the system or using it for a little demo
-
-## Running the tests
-
-Explain how to run the automated tests for this system
-
-### Break down into end to end tests
-
-Explain what these tests test and why
+Navigate into the wfom directory, then run the setup.py script to install the neccessary Python packages.
 
 ```
-Give an example
+cd wfom
+python setup.py install
 ```
 
-### And coding style tests
+## Test the Installation
 
-Explain what these tests test and why
+We will now test to see if the files were installed correctly.
 
 ```
-Give an example
+python -m wfom --test
 ```
 
-## Deployment
+Once the diagnostic test is complete, any errors will be logged to a text file at:
 
-Add additional notes about how to deploy this on a live system
+```
+resources/tests/TIMESTAMP_OF_TEST.txt
+```
 
-## Built With
-
-* [Dropwizard](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
-* [Maven](https://maven.apache.org/) - Dependency Management
-* [ROME](https://rometools.github.io/rome/) - Used to generate RSS Feeds
+## Usage
 
 ## Versioning
 
