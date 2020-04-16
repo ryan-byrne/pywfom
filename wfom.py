@@ -22,6 +22,10 @@ def get_args():
                     action="store_true", dest="yes", default=False,
                     help="Automatically accept errors and continue")
 
+    parser.add_argument("-t", "--test",
+                    action="store_true", dest="yes", default=False,
+                    help="Automatically accept errors and continue")
+
     args = parser.parse_args()
 
     return args
@@ -87,7 +91,7 @@ def update_zyla_settings(path, settings):
                 f.writelines(s+"\n")
     f.close()
 
-def test():
+def run():
 
     """
 
@@ -123,38 +127,65 @@ def test():
         COMMAND_ARRAY[status]()
         status = read_json_settings()["status"]
 
+def test():
+
+    """
+
+    This script should be run immediatly after the setup.py installation.
+
+    It checks the following:
+        1) Installation of correct Java Runtime
+        2) Connection to Camera and SOLIS
+        3) Connection to Arduino
+        4) Connection to Webcams
+        5)
+
+    """
+
+    prompt("Running diagnostic test on WFOM directory...")
+
+    prompt("\nTesting connection to Camera and SOLIS")
+    andor = Andor()
+    #arduino = Arduino("COM4")
+    #webcam = Webcam()
+
+
+
+
+
+
 class Andor():
 
     def __init__(self):
 
         self.path = ""
 
-        prompt("Checking if SOLIS is Open...")
+        prompt("\tChecking if SOLIS is Open...")
 
         pids = [(p.pid) for p in psutil.process_iter() if p.name() == "AndorSolis.exe"]
         if len(pids) < 1:
-            prompt("SOLIS is not open. Opening it now...")
+            prompt("\t\tSOLIS is not open. Opening it now...")
             self.open_solis()
         else:
-            prompt("SOLIS is already open...")
+            prompt("\t\tSOLIS is already open...")
         self.connect_to_solis()
 
     def open_solis(self):
         try:
             app = Application().start("C:\Program Files\Andor SOLIS\AndorSolis.exe", timeout=10)
         except TimeoutError:
-            error_prompt("Opening SOLIS Timed Out.")
+            error_prompt("\t\t\tOpening SOLIS Timed Out.")
 
     def connect_to_solis(self):
-        prompt("Attempting to Connect to SOLIS")
+        prompt("\tAttempting to Connect to SOLIS")
         try:
             self.solis = Application().connect(title_re="Andor SOLIS", timeout=3)
             self.soliswin = self.solis.window(title_re="Andor SOLIS", found_index=0)
             self.view()
         except TimeoutError:
-            error_prompt("Connection to SOLIS Timed Out.")
+            error_prompt("\t\tConnection to SOLIS Timed Out.")
         except MenuItemNotEnabled:
-            error_prompt("Connection to the Camera Failed.")
+            error_prompt("\t\tConnection to the Camera Failed.")
 
     def set_parameters(self, preview):
         self.abort()
@@ -171,18 +202,18 @@ class Andor():
             error_prompt("Menu Item Not Enabled in SOLIS. Camera is likely disconnected.")
 
     def view(self):
-        prompt("Attempting to Initiate Camera Preview in SOLIS")
+        prompt("\t\tAttempting to Initiate Camera Preview in SOLIS")
         try:
             self.soliswin.menu_select("Acquisition->Take Video")
         except MenuItemNotEnabled:
-            error_prompt("Unable to View. Camera not connected.")
+            error_prompt("\t\t\tUnable to View. Camera not connected.")
 
     def abort(self):
-        prompt("Attempting to Abort Camera Preview in SOLIS")
+        prompt("\t\tAttempting to Abort Camera Preview in SOLIS")
         try:
             self.soliswin.menu_select("Acquisition->Abort Acquisition")
         except MenuItemNotEnabled:
-            error_prompt("Unable to Abort.")
+            error_prompt("\t\t\tUnable to Abort.")
 
     def acquire(self):
 
@@ -360,4 +391,7 @@ class Webcam():
         self.connected = 1
 
 if __name__ == '__main__':
-    test()
+    if args.test:
+        test()
+    else:
+        run()
