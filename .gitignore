@@ -6,8 +6,8 @@
 /JavaGUI/bin/
 /JavaGUI/src/
 /JavaGUI/.settings/
-/JavaGUI/.project/
-/JavaGUI/.classpath/
+/JavaGUI/.project
+/JavaGUI/.classpath
 
 # Python egg metadata, regenerated from source files by setuptools.
 /*.egg-info
