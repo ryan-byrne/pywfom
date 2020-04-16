@@ -47,18 +47,12 @@ cd wfom
 python setup.py install
 ```
 
-We can then call the ```wfom.py``` from anywhere by simply typing ```wfom``` by using the ```doskey``` command.
-
-```
-doskey wfom=python C:\wfom\wfom.py
-```
-
 ### Test the Installation
 
 We will now test to see if the files were installed correctly.
 
 ```
-wfom --test
+python wfom.py --test
 ```
 
 Once the diagnostic test is complete, any errors will be logged to a text file at:
@@ -69,7 +63,7 @@ C:/wfom/resources/tests/TIMESTAMP_OF_TEST.txt
 
 ## Usage
 
-This section provides information on how to run the wfom.py script, as well as additional command line arguments at your disposal
+This section provides information on how to run the ```wfom``` script, as well as the command line arguments at your disposal
 
 ### Running from the Command Line
 
@@ -93,10 +87,10 @@ python C:\wfom\wfom.py
 
 #### Command Line Arguments
 
-There are also optional command line arguments which can be used to alter the information fed back from the command prompt, or streamline bug testing. They are:
+There are also optional command line arguments which can be used to alter the information fed back from the command prompt, which can help streamline bug testing. They are:
 
 * ```-q``` or ```--quiet``` runs the script in "Quiet Mode", without command line prints
-*  ```-t``` or ```--test``` runs the script in "Test Mode", which we have already run during the installation
+*  ```-t``` or ```--test``` runs the script in "Test Mode", which we should have already run during the installation
 *  ```-y``` automatically continues whenever an error occurs
 
 For example, the following command would run without command line prints, and automatically continue whenever an error occurs:
