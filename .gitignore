@@ -6,6 +6,7 @@
 /build/
 /resources/arduino/
 /resources/webcam/
+/resources/tests/
 /JavaGUI/bin/
 /JavaGUI/src/
 /JavaGUI/.settings/

@@ -2,6 +2,7 @@ import shutil, psutil, json, time, os, subprocess, path, sys, win32api, serial
 from serial import Serial
 from datetime import datetime
 from shutil import copyfile
+from colorama import Fore, Back, Style
 
 from argparse import ArgumentParser
 
@@ -23,7 +24,7 @@ def get_args():
                     help="Automatically accept errors and continue")
 
     parser.add_argument("-t", "--test",
-                    action="store_true", dest="yes", default=False,
+                    action="store_true", dest="test", default=False,
                     help="Automatically accept errors and continue")
 
     args = parser.parse_args()
@@ -39,8 +40,16 @@ def prompt(msg):
         print(msg)
 
 def error_prompt(msg):
-    if args.yes or (input(msg+"  Continue anyways? [y/n] ") == "y"):
-        pass
+
+    script = "ERROR: {0} Continue anyway? [y/n] ".format(msg)
+    if args.test:
+        print("ERROR: "+msg)
+        return
+    if args.yes or (input(script) == "y"):
+        if args.test:
+            print("ERROR: "+msg)
+        else:
+            pass
     else:
         sys.exit()
 
@@ -142,15 +151,21 @@ def test():
 
     """
 
-    prompt("Running diagnostic test on WFOM directory...")
+    prompt("Running diagnostic test on WFOM...")
 
-    prompt("\nTesting connection to Camera and SOLIS")
+    prompt("Testing connection to Camera and SOLIS")
     andor = Andor()
-    #arduino = Arduino("COM4")
-    #webcam = Webcam()
+    prompt("Testing connection to Arduino")
+    arduino = Arduino("COM4")
+    prompt("Testing connection to Webcams")
+    webcam = Webcam()
 
-
-
+    now = datetime.now()
+    log_name = now.strftime("%m-%d-%Y-%H%M%S") + ".txt"
+    with open("resources/tests/{0}".format(log_name), "w+") as f:
+        for line in andor.test+arduino.test:
+            f.write(line+"\n")
+    f.close()
 
 
 
@@ -160,32 +175,40 @@ class Andor():
 
         self.path = ""
 
-        prompt("\tChecking if SOLIS is Open...")
+        self.test = []
+
+        prompt("Checking if SOLIS is Open...")
 
         pids = [(p.pid) for p in psutil.process_iter() if p.name() == "AndorSolis.exe"]
         if len(pids) < 1:
-            prompt("\t\tSOLIS is not open. Opening it now...")
+            prompt("SOLIS is not open. Opening it now...")
             self.open_solis()
         else:
-            prompt("\t\tSOLIS is already open...")
+            prompt("SOLIS is already open...")
         self.connect_to_solis()
 
     def open_solis(self):
         try:
             app = Application().start("C:\Program Files\Andor SOLIS\AndorSolis.exe", timeout=10)
         except TimeoutError:
-            error_prompt("\t\t\tOpening SOLIS Timed Out.")
+            msg = "Opening SOLIS Timed Out."
+            self.test.append(msg)
+            error_prompt(msg)
 
     def connect_to_solis(self):
-        prompt("\tAttempting to Connect to SOLIS")
+        prompt("Attempting to Connect to SOLIS")
         try:
             self.solis = Application().connect(title_re="Andor SOLIS", timeout=3)
             self.soliswin = self.solis.window(title_re="Andor SOLIS", found_index=0)
             self.view()
         except TimeoutError:
-            error_prompt("\t\tConnection to SOLIS Timed Out.")
+            msg = "Connection to SOLIS Timed Out."
+            self.test.append(msg)
+            error_prompt(msg)
         except MenuItemNotEnabled:
-            error_prompt("\t\tConnection to the Camera Failed.")
+            msg = "Connection to the Camera Failed."
+            self.test.append(msg)
+            error_prompt(msg)
 
     def set_parameters(self, preview):
         self.abort()
@@ -199,21 +222,27 @@ class Andor():
             file_name = open_opt.Edit.set_text(file)
             open_opt.Button.click()
         except MenuItemNotEnabled:
-            error_prompt("Menu Item Not Enabled in SOLIS. Camera is likely disconnected.")
+            msg = "Menu Item Not Enabled in SOLIS. Camera is likely disconnected."
+            self.test.append(msg)
+            error_prompt(msg)
 
     def view(self):
-        prompt("\t\tAttempting to Initiate Camera Preview in SOLIS")
+        prompt("Attempting to Initiate Camera Preview in SOLIS")
         try:
             self.soliswin.menu_select("Acquisition->Take Video")
         except MenuItemNotEnabled:
-            error_prompt("\t\t\tUnable to View. Camera not connected.")
+            msg = "Unable to View. Camera not connected."
+            self.test.append(msg)
+            error_prompt(msg)
 
     def abort(self):
-        prompt("\t\tAttempting to Abort Camera Preview in SOLIS")
+        prompt("Attempting to Abort Camera Preview in SOLIS")
         try:
             self.soliswin.menu_select("Acquisition->Abort Acquisition")
         except MenuItemNotEnabled:
-            error_prompt("\t\t\tUnable to Abort.")
+            msg = "Unable to Abort."
+            self.test.append(msg)
+            error_prompt(msg)
 
     def acquire(self):
 
@@ -328,6 +357,7 @@ class Arduino():
     def __init__(self, port):
         prompt("Attempting to Connect to Arduino at Serial Port: "+port)
         self.port = port
+        self.test = []
         try:
             self.ser = serial.Serial(
                 port=self.port,\
@@ -340,7 +370,9 @@ class Arduino():
             self.connected = 1
             prompt("Successfully connected to Arduino at {0}".format(port))
         except serial.SerialException as e:
-            error_prompt("Arduino is not Connected.")
+            msg = "Arduino is not Connected to " + self.port
+            self.test.append(msg)
+            error_prompt(msg)
 
     def disable(self):
         prompt("Enabling Python Arduino Communication")
