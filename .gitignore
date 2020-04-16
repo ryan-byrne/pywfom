@@ -3,6 +3,8 @@
 
 # Setuptools distribution folder.
 /dist/
+/build/
+/resources/arduino/*
 /JavaGUI/bin/
 /JavaGUI/src/
 /JavaGUI/.settings/
