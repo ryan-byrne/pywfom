@@ -15,7 +15,7 @@ setup(
     py_modules=["wfom"],
     long_description=long_description,
     python_requires='>=3.5',
-    license="MIT"
+    license="MIT",
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
