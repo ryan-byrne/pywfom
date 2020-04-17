@@ -40,7 +40,7 @@ Clone into the Git repository to download the required files.
 git clone https://github.com/ryan-byrne/wfom.git
 ```
 
-Navigate into the wfom directory, then run the setup.py script to install the neccessary Python packages.
+Once the download is completed, navigate into the wfom directory, then run the setup.py script to install the neccessary Python packages.
 
 ```
 cd wfom
@@ -67,19 +67,12 @@ This section provides information on how to run the ```wfom``` script, as well a
 
 ### Running from the Command Line
 
-To run the script from the command line, simply type
-
-```
-wfom
-```
-
-which is now the equivilent of
+To run the script from the command line, while inside the ```/wfom``` directory type:
 
 ```
 python wfom.py
 ```
-
-or explicitly refering the the scripts home directory
+If somewhere else in the command prompt, you must explicitly refer to the location of the ```wfom.py``` i.e.:
 
 ```
 python C:\wfom\wfom.py
