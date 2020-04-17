@@ -2,8 +2,9 @@ import shutil, psutil, json, time, os, subprocess, path, sys, win32api, serial
 from serial import Serial
 from datetime import datetime
 from shutil import copyfile
-from colorama import Fore, Back, Style
-
+from pyfiglet import Figlet
+from colorama import init
+from termcolor import colored
 from argparse import ArgumentParser
 
 from pywinauto import Application
@@ -32,6 +33,7 @@ def get_args():
     return args
 
 args = get_args()
+os.system('COLOR 07')
 
 def prompt(msg):
     if args.quiet:
@@ -41,13 +43,16 @@ def prompt(msg):
 
 def error_prompt(msg):
 
-    script = "ERROR: {0} Continue anyway? [y/n] ".format(msg)
+    err = colored('ERROR: ', 'red')
+
+    script = "\n{0} {1} Continue anyway? [y/n] ".format(err, msg)
     if args.test:
-        print("ERROR: "+msg)
+        print(err+msg)
         return
     if args.yes or (input(script) == "y"):
+        print("\n")
         if args.test:
-            print("ERROR: "+msg)
+            print(err+msg)
         else:
             pass
     else:
@@ -166,8 +171,6 @@ def test():
         for line in andor.test+arduino.test:
             f.write(line+"\n")
     f.close()
-
-
 
 class Andor():
 
@@ -423,7 +426,14 @@ class Webcam():
         self.connected = 1
 
 if __name__ == '__main__':
+
+    w = Figlet(font='isometric3')
+    print(w.renderText("WFOM"))
+    m = Figlet(font='slant')
+
     if args.test:
+        print(w.renderText("Test Mode"))
         test()
     else:
+        print(m.renderText("Run Mode"))
         run()

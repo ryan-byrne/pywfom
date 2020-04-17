@@ -1,6 +1,6 @@
 # Wide Field Optical Mapping (WFOM)
 
-This project is meant to create a streamlined interface to interact with Wide Field Optical Mapping (WFOM) Imaging Systems. 
+This project is meant to create a streamlined interface to interact with Wide Field Optical Mapping (WFOM) Imaging Systems.
 
 ## Getting Started
 
@@ -92,9 +92,19 @@ For example, the following command would run without command line prints, and au
 python wfom.py -q -y
 ```
 
+#### Running from the Batch File
+
+Alternatively, you can run the ```wfom.py``` script by running the ```run.bat``` batch file, found at:
+
+```
+C:\wfom\run.bat
+```
+
+You can also run the script without a command prompt by running the ```quiet.bat``` file.
+
 ## Versioning
 
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/ryan-byrne/wfom/tags). 
+We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/ryan-byrne/wfom/tags).
 
 ## Authors
 
