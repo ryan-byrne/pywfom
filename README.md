@@ -89,7 +89,7 @@ There are also optional command line arguments which can be used to alter the in
 For example, the following command would run without command line prints, and automatically continue whenever an error occurs:
 
 ```
-wfom -q -y
+python wfom.py -q -y
 ```
 
 ## Versioning
