@@ -161,6 +161,12 @@ def update_zyla_settings(path, settings):
                 f.writelines(s+"\n")
     f.close()
 
+def startup_message(mode):
+    w = Figlet(font='isometric3')
+    print(w.renderText("WFOM"))
+    m = Figlet(font='slant')
+    print(w.renderText(mode+" Mode"))
+
 def run():
 
     """
@@ -185,6 +191,8 @@ def run():
 
 
     """
+
+    startup_message("Run")
 
     status = 1
 
@@ -219,6 +227,8 @@ def test():
         5)
 
     """
+
+    startup_message("Test")
 
     prompt("Running diagnostic test on WFOM...")
 
@@ -564,14 +574,7 @@ class Webcam():
         self.connected = 1
 
 if __name__ == '__main__':
-
-    w = Figlet(font='isometric3')
-    print(w.renderText("WFOM"))
-    m = Figlet(font='slant')
-
     if args.test:
-        print(w.renderText("Test Mode"))
         test()
     else:
-        print(m.renderText("Run Mode"))
         run()

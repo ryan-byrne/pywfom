@@ -21,12 +21,35 @@ For a comprehensive list of hardware requirements, as well as how to assemble th
 
 ### Software Requirements
 
-* [Python](https://www.python.org/downloads/) - 3.7 and Up
+* [Python](https://www.python.org/downloads/) - 3.6 and Up
 * [Java Runtime](https://java.com/en/download/) - 1.8 and Up
 * [Andor SOLIS (4.30 and up)](http://www.andor.com/downloads) - Registration Required
-* [Git](https://git-scm.com/download/win) - Latest Version
+* [PIP](https://pip.pypa.io/en/stable/installing/) Install Option 1
+* [Git](https://git-scm.com/download/win) - Install Option 2
 
 ### Installation
+
+#### (Option 1) As a Python Package
+
+The easiest way to use ```wfom``` is by importing its Python package directly into an existing script.
+
+It must be first installed alongside your existing Python Packages using ```pip``` from the command line.
+
+Open a new instance of CMD, and enter:
+
+```
+pip install wfom
+```
+
+You can now import the module and run any of its functions, as the ```example.py``` script does below.
+
+```
+import wfom
+
+wfom.test()
+```
+
+#### (Option 2) As a Command Line Script
 
 Open up a Command Prompt and navigate to your machine's root directory by typing the following command:
 
@@ -40,7 +63,8 @@ Clone into the Git repository to download the required files.
 git clone https://github.com/ryan-byrne/wfom.git
 ```
 
-Once the download is completed, navigate into the wfom directory, then run the setup.py script to install the neccessary Python packages.
+Once the download is completed, navigate into the ```/wfom``` directory, and run the ```setup.py``` script
+to install the necessary Python packages.
 
 ```
 cd wfom
@@ -49,7 +73,31 @@ python setup.py install
 
 ### Test the Installation
 
-We will now test to see if the files were installed correctly.
+We will now test to see if the files were installed correctly. Start by opening a new instance of CMD.
+
+#### (Option 1) Test Python Package
+
+Start Python from the command line.
+
+```
+python
+```
+
+Import the package,
+
+```
+>>> import wfom
+```
+
+And run the test function:
+
+```
+>>> wfom.test()
+```
+
+#### (Option 2) Test Command Line Script
+
+**NOTE** ***The command line script can only be run from the ```C:/wfom``` directory***
 
 ```
 python wfom.py --test
@@ -65,7 +113,9 @@ C:/wfom/resources/tests/TIMESTAMP_OF_TEST.txt
 
 This section provides information on how to run the ```wfom``` script, as well as the command line arguments at your disposal
 
-### Running from the Command Line
+### (Option 1) Running the Python Package
+
+### (Option 2) Running from the Command Line
 
 To run the script from the command line, while inside the ```/wfom``` directory type:
 
@@ -118,6 +168,4 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 
 ## Acknowledgments
 
-* Hat tip to anyone whose code was used
-* Inspiration
-* etc
+* Beth Hillman and the rest of the LFOI Team

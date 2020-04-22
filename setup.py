@@ -5,7 +5,7 @@ with open(os.path.join(os.getcwd(), 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
-    name = "wfom-pkg-ryan-byrne",
+    name = "wfom-ryan-byrne",
     version = "0.0.1",
     author = "Ryan Byrne",
     author_email = "ryanbyrne142@gmail.com",
@@ -20,7 +20,7 @@ setup(
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
         "Operating System :: Microsoft :: Windows",
-        "Development Status :: 4 - Beta",
+        "Development Status :: 4 - Beta"
     ],
     project_urls={
         "Bug Reports":"https://github.com/ryan-byrne/wfom/issues",
