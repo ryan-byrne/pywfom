@@ -15,6 +15,13 @@ from pywinauto.findwindows import ElementNotFoundError
 
 def get_args():
 
+    """
+
+    This function simply checks for arguments when the script is called
+    and stores them in their corresponding variable.
+
+    """
+
     parser = ArgumentParser()
 
     parser.add_argument("-q", "--quiet",
@@ -36,12 +43,32 @@ args = get_args()
 os.system('COLOR 07')
 
 def prompt(msg):
+
+    """
+
+    This function is called instead of 'print'
+
+    It checks if the script is running in quiet mode, then prints the message
+    if it is not.
+
+    """
+
     if args.quiet:
         pass
     else:
         print(msg)
 
 def error_prompt(msg):
+
+    """
+
+    This function is called when an error is found.
+
+    * Prints a red 'ERROR'
+    * Prints the message script
+    * Asks if the user would like to continue despite the error
+
+    """
 
     err = colored('ERROR: ', 'red')
 
@@ -59,18 +86,32 @@ def error_prompt(msg):
         sys.exit()
 
 def read_json_settings():
+
+    """
+
+    Reads 'settings.json' file, then returns the settings as a Python dict.
+
+    """
+
     with open("JavaGUI/settings.json", "r") as f:
         settings = json.load(f)
     f.close()
     return settings
 
-def update_json_settings(OLD_SETTINGS):
+def update_json_settings(SETTINGS):
+
+    """
+
+    Takes Python dictionary 'SETTINGS' and updates the 'settings.json' file.
+
+    """
+
     parameters = ["binning", "height", "bottom", "width", "length", "exposure", "framerate"]
     with open("JavaGUI/settings.json", "r+") as f:
         settings = json.load(f)
         settings["camera"] = {}
         for i in range(len(parameters)):
-            settings["camera"][parameters[i]] = OLD_SETTINGS[i]
+            settings["camera"][parameters[i]] = SETTINGS[i]
         f.seek(0)
         json.dump(settings, f)
         f.truncate()
@@ -78,15 +119,30 @@ def update_json_settings(OLD_SETTINGS):
     return settings
 
 def read_zyla_settings():
-    #print("Reading settings.txt file")
+
+    """
+
+    Checks the settings currently deployed to the camera and stored in the
+    'settings.txt' file.
+
+    """
+
     with open("resources/solis_scripts/settings.txt", "r") as f:
         settings = f.readlines()
     f.close()
     return [x.strip() for x in settings]
 
 def update_zyla_settings(path, settings):
-    print("Updating settings.txt file")
-    print("Reading settings from settings.json")
+
+    """
+
+    Updates the 'settings.txt' file found at 'path' with the Python SETTINGS
+    dict
+
+    """
+
+    prompt("Updating settings.txt file")
+    prompt("Reading settings from settings.json")
     json_settings = settings
     with open("resources/solis_scripts/settings.txt", "r+") as f:
         settings = f.readlines()
@@ -108,6 +164,14 @@ def update_zyla_settings(path, settings):
 def run():
 
     """
+
+    This function will execute when an acquisition is to be taken.
+
+    It starts by initiating each of the required classes: Andor, Arduino, and
+    Webcam.
+
+    A specific command will then be run from the COMMAND_ARRAY depending on
+    the status flag contained within the settings.json file.
 
     settings.json Status Flag:
 
@@ -174,6 +238,14 @@ def test():
 
 class Andor():
 
+    """
+
+    This class is used for interaction between the Java GUI's and Andor SOLIS.
+
+    It is initiated in both the Test and Run Modes.
+
+    """
+
     def __init__(self):
 
         self.path = ""
@@ -191,6 +263,15 @@ class Andor():
         self.connect_to_solis()
 
     def open_solis(self):
+
+        """
+
+        Opens a new instance of AndorSolis.exe
+
+        The command will Timeout after 10 seconds
+
+        """
+
         try:
             app = Application().start("C:\Program Files\Andor SOLIS\AndorSolis.exe", timeout=10)
         except TimeoutError:
@@ -199,6 +280,18 @@ class Andor():
             error_prompt(msg)
 
     def connect_to_solis(self):
+
+        """
+
+        Attaches a pywinauto controller to the Andor Window.
+
+        The connection times out after 3 seconds.
+
+        It then creates the variable 'self.soliswin' which will be used by
+        the script later.
+
+        """
+
         prompt("Attempting to Connect to SOLIS")
         try:
             self.solis = Application().connect(title_re="Andor SOLIS", timeout=3)
@@ -214,6 +307,16 @@ class Andor():
             error_prompt(msg)
 
     def set_parameters(self, preview):
+
+        """
+
+        Executes the Solis PGM 'set_parameters.pgm', which reads the SETTINGS
+        from 'settings.txt' and deploys them to the camera.
+
+        If the Menu Item is not enabled, an error prompt will appear.
+
+        """
+
         self.abort()
         cwd = os.getcwd()
         set_param = "resources\solis_scripts\set_parameters.pgm"
@@ -230,7 +333,9 @@ class Andor():
             error_prompt(msg)
 
     def view(self):
+
         prompt("Attempting to Initiate Camera Preview in SOLIS")
+
         try:
             self.soliswin.menu_select("Acquisition->Take Video")
         except MenuItemNotEnabled:
@@ -239,7 +344,9 @@ class Andor():
             error_prompt(msg)
 
     def abort(self):
+
         prompt("Attempting to Abort Camera Preview in SOLIS")
+
         try:
             self.soliswin.menu_select("Acquisition->Abort Acquisition")
         except MenuItemNotEnabled:
@@ -248,6 +355,16 @@ class Andor():
             error_prompt(msg)
 
     def acquire(self):
+
+        """
+
+        * Creates the save directories
+        * Updates the Zyla Settings
+        * Moves 'settings.json' to new directory
+        * Runs the 'acquire.pgm' script
+        * Waits until acquisition is completed and opens explorer to folder
+
+        """
 
         prompt("Making directory: "+self.path)
         os.mkdir(self.path)
@@ -279,7 +396,14 @@ class Andor():
 
     def info(self):
 
+        """
+
+        For information on the 'Info' GUI go here https://example.com
+
+        """
+
         prompt("Waiting for Run Info from GUI...")
+
         os.chdir("JavaGUI")
         if os.path.isfile("settings.json"):
             os.remove("settings.json")
@@ -308,6 +432,13 @@ class Andor():
         self.path = path
 
     def camera(self):
+
+        """
+
+        For information on the 'Camera' GUI go here https://example.com
+
+        """
+
         prompt("Opening Camera Settings GUI...")
         if "camera" in self.settings.keys():
             # Settings already established
@@ -350,6 +481,13 @@ class Andor():
                 time.sleep(3)
 
     def preview(self):
+
+        """
+
+        For information on the 'Preview' GUI go here https://example.com
+
+        """
+
         os.chdir("JavaGUI")
         subprocess.Popen(["java", "-jar","JARs/preview.jar"])
         os.chdir("..")
