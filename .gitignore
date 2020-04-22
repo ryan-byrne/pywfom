@@ -21,4 +21,6 @@ test_token.txt
 /*.egg-info
 /*.egg
 
+/.github/
+
 __pycache__/
