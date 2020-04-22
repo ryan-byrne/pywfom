@@ -25,7 +25,6 @@ setup(
     ],
     project_urls={
         "Bug Reports":"https://github.com/ryan-byrne/wfom/issues",
-        "Say Thanks":"https://saythanks.io/to/ryanbyrne142%40yahoo.com",
         "Hillman Lab":"http://orion.bme.columbia.edu/~hillman/"
     },
 )
