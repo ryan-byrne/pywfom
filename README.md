@@ -1,23 +1,12 @@
-# Wide Field Optical Mapping (WFOM)
+# OpenWFOM
 
-This project is meant to create a streamlined interface to interact with Wide Field Optical Mapping (WFOM) Imaging Systems.
+This repository stores the required software for the OpenWFOM system.
 
 ## Getting Started
 
-These instructions will help you get the necessary software installed onto your PC.
+These instructions will help you get the necessary software installed.
 
-### Computer Requirements
-
-```
-Windows (8, 8.1, 10)
-4GB RAM
-2.68 GHZ Quad Core
-850 MB/s continuous write Hard Drive
-```
-
-### Hardware Requirements
-
-For a comprehensive list of hardware requirements, as well as how to assemble them, visit [This Wiki](https://link.to.wiki)
+***NOTE:*** Before following this installation guide, complete the hardware assembly instructions found on [This Wiki](https://github.com/ryan-byrne/wfom/wiki)
 
 ### Software Requirements
 
