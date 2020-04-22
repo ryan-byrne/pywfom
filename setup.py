@@ -5,8 +5,8 @@ with open(os.path.join(os.getcwd(), 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
-    name = "wfom-ryan-byrne",
-    version = "0.0.1",
+    name = "wfom",
+    version = "0.0.2",
     author = "Ryan Byrne",
     author_email = "ryanbyrne142@gmail.com",
     keywords = "wide field optical mapping",
@@ -14,6 +14,7 @@ setup(
     include_package_data=True,
     py_modules=["wfom"],
     long_description=long_description,
+    long_description_content_type='text/markdown',
     python_requires='>=3.6',
     license="MIT",
     classifiers=[
