@@ -22,5 +22,5 @@ test_token.txt
 /*.egg
 
 /.github/
-
+.gitignore
 __pycache__/
