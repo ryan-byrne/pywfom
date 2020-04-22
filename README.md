@@ -104,6 +104,29 @@ This section provides information on how to run the ```wfom``` script, as well a
 
 ### (Option 1) Running the Python Package
 
+As previously stated, running the ```wfom``` Python Package simply requires importing it into an existing script.
+
+```
+import wfom
+
+wfom.run()
+```
+
+#### Available Classes
+
+The OpenWFOM package is comprised of three classes: *Andor, Arduino, and Webcam*, which can be imported on their own. 
+
+For example, if I simply wanted to import the Arduino class from ```wfom``` I would write:
+
+```
+from wfom import Arduino
+
+# Initiate the Arduino Class
+a = Arduino("COM4")
+# Call the strobe function to open the Strobe GUI
+a.strobe()
+```
+
 ### (Option 2) Running from the Command Line
 
 To run the script from the command line, while inside the ```/wfom``` directory type:
@@ -111,7 +134,8 @@ To run the script from the command line, while inside the ```/wfom``` directory 
 ```
 python wfom.py
 ```
-If somewhere else in the command prompt, you must explicitly refer to the location of the ```wfom.py``` i.e.:
+
+***NOTE:*** If you've navigated to a different directory in the command prompt, you must explicitly refer to the location of ```wfom.py``` i.e.:
 
 ```
 python C:\wfom\wfom.py
@@ -133,13 +157,13 @@ python wfom.py -q -y
 
 #### Running from the Batch File
 
-Alternatively, you can run the ```wfom.py``` script by running the ```run.bat``` batch file, found at:
+Alternatively, if you'd prefer to avoid using the command prompt altogether, you can run the ```wfom.py``` script by opening the ```OpenWFOM.bat``` batch file, found at:
 
 ```
-C:\wfom\run.bat
+C:\wfom\OpenWFOM.bat
 ```
 
-You can also run the script without a command prompt by running the ```quiet.bat``` file.
+***NOTE*** This file can be copy and pasted wherever you'd like for better accessibility.
 
 ## Versioning
 
