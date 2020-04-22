@@ -49,5 +49,4 @@ virtualenv==20.0.17
 visa==1.0.0
 webencodings==0.5.1
 wfom==0.0.2
-wfom-ryan-byrne==0.0.2
 zipp==3.0.0
