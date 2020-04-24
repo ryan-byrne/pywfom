@@ -7,7 +7,7 @@ from colorama import init
 from termcolor import colored
 from argparse import ArgumentParser
 
-from pywinauto import Application
+import pywinauto
 from pywinauto.timings import TimeoutError
 from pywinauto.controls.menuwrapper import MenuItemNotEnabled
 from pywinauto.base_wrapper import ElementNotEnabled
@@ -283,7 +283,7 @@ class Andor():
         """
 
         try:
-            app = Application().start(r"C:\Program Files\Andor SOLIS\AndorSolis.exe", timeout=10)
+            app = pywinauto.Application().start(r"C:\Program Files\Andor SOLIS\AndorSolis.exe", timeout=10)
         except TimeoutError:
             msg = "Opening SOLIS Timed Out."
             self.test.append(msg)
@@ -304,7 +304,7 @@ class Andor():
 
         prompt("Attempting to Connect to SOLIS")
         try:
-            self.solis = Application().connect(title_re="Andor SOLIS", timeout=3)
+            self.solis = pywinauto.Application().connect(title_re="Andor SOLIS", timeout=3)
             self.soliswin = self.solis.window(title_re="Andor SOLIS", found_index=0)
             self.view()
         except TimeoutError:
