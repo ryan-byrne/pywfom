@@ -229,6 +229,9 @@ def test():
 
     """
 
+    if not args.yes:
+        args.yes = True
+
     startup_message("Test")
 
     prompt("Running diagnostic test on WFOM...")
