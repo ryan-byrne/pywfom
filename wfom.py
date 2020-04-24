@@ -283,7 +283,7 @@ class Andor():
         """
 
         try:
-            app = Application().start("C:\Program Files\Andor SOLIS\AndorSolis.exe", timeout=10)
+            app = Application().start(r"C:\Program Files\Andor SOLIS\AndorSolis.exe", timeout=10)
         except TimeoutError:
             msg = "Opening SOLIS Timed Out."
             self.test.append(msg)
@@ -329,8 +329,8 @@ class Andor():
 
         self.abort()
         cwd = os.getcwd()
-        set_param = "resources\solis_scripts\set_parameters.pgm"
-        file = '"%s\%s"' % (cwd, set_param)
+        set_param = r"resources\solis_scripts\set_parameters.pgm"
+        file = r'"%s\%s"' % (cwd, set_param)
         prompt("Setting parameters in SOLIS...")
         try:
             self.soliswin.menu_select("File -> Run Program By Filename")
@@ -393,8 +393,8 @@ class Andor():
 
         self.abort()
         cwd = os.getcwd()
-        acquire = "resources\solis_scripts\\acquire.pgm"
-        file = '"%s\%s"' % (cwd, acquire)
+        acquire = r"resources\solis_scripts\\acquire.pgm"
+        file = r'"%s\%s"' % (cwd, acquire)
 
         self.soliswin.menu_select("File -> Run Program By Filename")
         open_opt = self.solis.window(title_re="Open")
