@@ -1,0 +1,3 @@
+import wfom
+
+wfom.test()
