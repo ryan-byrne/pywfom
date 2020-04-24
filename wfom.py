@@ -8,6 +8,7 @@ from termcolor import colored
 from argparse import ArgumentParser
 
 import pywinauto
+from pywinauto.application import AppStartError
 from pywinauto.timings import TimeoutError
 from pywinauto.controls.menuwrapper import MenuItemNotEnabled
 from pywinauto.base_wrapper import ElementNotEnabled
@@ -165,7 +166,7 @@ def startup_message(mode):
     w = Figlet(font='isometric3')
     print(w.renderText("WFOM"))
     m = Figlet(font='slant')
-    print(w.renderText(mode+" Mode"))
+    print(m.renderText(mode+" Mode"))
 
 def run():
 
@@ -286,6 +287,10 @@ class Andor():
             app = pywinauto.Application().start(r"C:\Program Files\Andor SOLIS\AndorSolis.exe", timeout=10)
         except TimeoutError:
             msg = "Opening SOLIS Timed Out."
+            self.test.append(msg)
+            error_prompt(msg)
+        except AppStartError:
+            msg = "SOLIS is not installed on your machine."
             self.test.append(msg)
             error_prompt(msg)
 
