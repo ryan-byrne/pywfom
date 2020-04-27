@@ -1,6 +1,6 @@
-# OpenWFOM
+# Python Module for the [OpenWFOM](https://hillmanlab.zuckermaninstitute.columbia.edu/content/optical-imaging-and-microscopy-development-and-dissemination) Imaging System
 
-This repository stores the required software for the OpenWFOM system.
+The ```wfom``` Python module and command line tool are ways to declare camera settings, test setup, and start an acquisition on the OpenWFOM imaging system.
 
 ## Getting Started
 
@@ -26,13 +26,13 @@ It must be first installed alongside your existing Python Packages using ```pip`
 
 Open a new instance of CMD, and enter:
 
-```
+``` cmd
 pip install wfom
 ```
 
 You can now import the module and run any of its functions, as the ```example.py``` script does below.
 
-```
+``` python
 import wfom
 
 wfom.test()
@@ -74,13 +74,13 @@ python
 
 Import the package,
 
-```
+``` python
 >>> import wfom
 ```
 
 And run the test function:
 
-```
+``` python
 >>> wfom.test()
 ```
 
