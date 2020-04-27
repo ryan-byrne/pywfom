@@ -1,11 +1,12 @@
 import shutil, psutil, json, time, os, subprocess, path, sys, win32api, serial
-import argparse, pywinauto
+import argparse
 from serial import Serial
 from datetime import datetime
 from shutil import copyfile
 from pyfiglet import Figlet
 from colorama import init
 from termcolor import colored
+from pywinauto import Application
 from pywinauto.application import AppStartError
 from pywinauto.timings import TimeoutError
 from pywinauto.controls.menuwrapper import MenuItemNotEnabled
@@ -198,7 +199,7 @@ def welcome_banner(mode):
     print(w.renderText("OpenWFOM"))
     print("")
 
-    m = Figlet(font='contessa')
+    m = Figlet(font='cyberlarge')
     print(m.renderText(" "*5+"Test Mode"))
     time.sleep(5)
 
@@ -318,7 +319,7 @@ class Andor():
         """
 
         try:
-            app = pywinauto.Application().start(r"C:\Program Files\Andor SOLIS\AndorSolis.exe", timeout=10)
+            app = Application().start(r"C:\Program Files\Andor SOLIS\AndorSolis.exe", timeout=10)
         except TimeoutError:
             msg = "Opening SOLIS Timed Out."
             self.test.append(msg)
@@ -343,7 +344,7 @@ class Andor():
 
         prompt("Attempting to Connect to SOLIS")
         try:
-            self.solis = pywinauto.Application().connect(title_re="Andor SOLIS", timeout=3)
+            self.solis = Application().connect(title_re="Andor SOLIS", timeout=3)
             self.soliswin = self.solis.window(title_re="Andor SOLIS", found_index=0)
             self.view()
         except TimeoutError:
