@@ -13,33 +13,6 @@ from pywinauto.controls.menuwrapper import MenuItemNotEnabled
 from pywinauto.base_wrapper import ElementNotEnabled
 from pywinauto.findwindows import ElementNotFoundError
 
-def get_args():
-
-    """
-
-    This function simply checks for arguments when the script is called
-    and stores them in their corresponding variable.
-
-    """
-
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument("-q", "--quiet",
-                    action="store_true", dest="quiet", default=False,
-                    help="Don't print status messages to stdout")
-    parser.add_argument("-y",
-                    action="store_true", dest="yes", default=False,
-                    help="Automatically accept errors and continue")
-
-    parser.add_argument("-t", "--test",
-                    action="store_true", dest="test", default=False,
-                    help="Runs the test function instead of run")
-
-    args = parser.parse_args()
-
-
-    return args
-
 def prompt(msg):
 
     """
@@ -116,6 +89,74 @@ def render_ascii(name, msg):
             print(line, end="")
     f.close()
 
+def welcome_banner(mode):
+
+    os.system("cls")
+
+    w = Figlet(font='speed')
+    print(w.renderText("OpenWFOM"))
+    print("")
+
+    m = Figlet(font='cybermedium')
+    print(m.renderText(" "*3+"Test Mode"))
+    time.sleep(3)
+
+def update_zyla_settings(path, settings):
+
+    """
+
+    Updates the 'settings.txt' file found at 'path' with the Python SETTINGS
+    dict
+
+    """
+
+    prompt("Updating settings.txt file")
+    prompt("Reading settings from settings.json")
+    json_settings = settings
+    with open("resources/solis_scripts/settings.txt", "r+") as f:
+        settings = f.readlines()
+        settings = [x.strip() for x in settings]
+        count = 0
+        f.seek(0)
+        for s in settings:
+            count += 1
+            if count == 8:
+                f.write(json_settings["run"]["run_len"]+"\n")
+            elif count == 10 and path:
+                f.write(path+"\n")
+            elif count == 11:
+                f.writelines(json_settings["run"]["num_run"]+"\n")
+            else:
+                f.writelines(s+"\n")
+    f.close()
+
+def get_args(skip):
+
+    """
+
+    This function simply checks for arguments when the script is called
+    and stores them in their corresponding variable.
+
+    """
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("-q", "--quiet",
+                    action="store_true", dest="quiet", default=False,
+                    help="Don't print status messages to stdout")
+    parser.add_argument("-y",
+                    action="store_true", dest="yes", default=skip,
+                    help="Automatically accept errors and continue")
+
+    parser.add_argument("-t", "--test",
+                    action="store_true", dest="test", default=False,
+                    help="Runs the test function instead of run")
+
+    args = parser.parse_args()
+
+
+    return args
+
 def read_json_settings():
 
     """
@@ -163,45 +204,15 @@ def read_zyla_settings():
     f.close()
     return [x.strip() for x in settings]
 
-def update_zyla_settings(path, settings):
-
-    """
-
-    Updates the 'settings.txt' file found at 'path' with the Python SETTINGS
-    dict
-
-    """
-
-    prompt("Updating settings.txt file")
-    prompt("Reading settings from settings.json")
-    json_settings = settings
-    with open("resources/solis_scripts/settings.txt", "r+") as f:
-        settings = f.readlines()
-        settings = [x.strip() for x in settings]
-        count = 0
-        f.seek(0)
-        for s in settings:
-            count += 1
-            if count == 8:
-                f.write(json_settings["run"]["run_len"]+"\n")
-            elif count == 10 and path:
-                f.write(path+"\n")
-            elif count == 11:
-                f.writelines(json_settings["run"]["num_run"]+"\n")
-            else:
-                f.writelines(s+"\n")
+def log_test_file(arduino, andor):
+    now = datetime.now()
+    log_name = now.strftime("%m-%d-%Y-%H%M%S") + ".txt"
+    path = "resources\\tests\\{0}".format(log_name)
+    with open(path, "w+") as f:
+        for line in andor+arduino:
+            f.write(line+"\n")
     f.close()
-
-def welcome_banner(mode):
-    os.system("cls")
-
-    w = Figlet(font='speed')
-    print(w.renderText("OpenWFOM"))
-    print("")
-
-    m = Figlet(font='cyberlarge')
-    print(m.renderText(" "*5+"Test Mode"))
-    time.sleep(5)
+    return path
 
 def run():
 
@@ -266,7 +277,6 @@ def test():
 
     welcome_banner("Test")
 
-    args["yes"] = True
     prompt("Running diagnostic test on WFOM...")
 
     prompt("Testing connection to Camera and SOLIS")
@@ -276,12 +286,13 @@ def test():
     prompt("Testing connection to Webcams")
     webcam = Webcam()
 
-    now = datetime.now()
-    log_name = now.strftime("%m-%d-%Y-%H%M%S") + ".txt"
-    with open("resources/tests/{0}".format(log_name), "w+") as f:
-        for line in andor.test+arduino.test:
-            f.write(line+"\n")
-    f.close()
+    prompt("Logging test File")
+    path =log_test_file(arduino.test, andor.test)
+
+    prompt("Test Complete... Errors logged to {0}".format(colored(os.getcwd()+"\\"+path, 'green')))
+
+    for error in arduino.test + andor.test:
+        print(colored('ERROR: ', 'red')+" "+error)
 
 class Andor():
 
@@ -615,10 +626,13 @@ class Webcam():
         self.connected = 1
 
 os.system('COLOR 07')
-args = get_args()
 if __name__ == '__main__':
+    args = get_args(False)
     # wfom.py run from the command line (look for arguments)
     if args.test:
         test()
     else:
         run()
+else:
+    # wfom run as a python module
+    args = get_args(True)
