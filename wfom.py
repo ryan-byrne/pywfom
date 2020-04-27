@@ -1,13 +1,11 @@
 import shutil, psutil, json, time, os, subprocess, path, sys, win32api, serial
+import argparse, pywinauto
 from serial import Serial
 from datetime import datetime
 from shutil import copyfile
 from pyfiglet import Figlet
 from colorama import init
 from termcolor import colored
-from argparse import ArgumentParser
-
-import pywinauto
 from pywinauto.application import AppStartError
 from pywinauto.timings import TimeoutError
 from pywinauto.controls.menuwrapper import MenuItemNotEnabled
@@ -23,7 +21,7 @@ def get_args():
 
     """
 
-    parser = ArgumentParser()
+    parser = argparse.ArgumentParser()
 
     parser.add_argument("-q", "--quiet",
                     action="store_true", dest="quiet", default=False,
@@ -34,14 +32,12 @@ def get_args():
 
     parser.add_argument("-t", "--test",
                     action="store_true", dest="test", default=False,
-                    help="Automatically accept errors and continue")
+                    help="Runs the test function instead of run")
 
     args = parser.parse_args()
 
-    return args
 
-args = get_args()
-os.system('COLOR 07')
+    return args
 
 def prompt(msg):
 
@@ -52,12 +48,21 @@ def prompt(msg):
     It checks if the script is running in quiet mode, then prints the message
     if it is not.
 
+
     """
 
+    os.system("cls")
+
+    w = Figlet(font='speed')
+    print(w.renderText("OpenWFOM"))
+    print("")
+
     if args.quiet:
-        pass
+        render_ascii('mouse', "Running in Quiet Mode")
     else:
-        print(msg)
+        render_ascii('mouse', msg)
+
+    print("")
 
 def error_prompt(msg):
 
@@ -85,6 +90,30 @@ def error_prompt(msg):
             pass
     else:
         sys.exit()
+
+def render_ascii(name, msg):
+    """
+
+    Print the talking mouse
+
+    """
+    # set max len of string
+    mlen = 51
+    l = len(msg)
+    # set indent
+    ind = 5
+    print((ind+1)*" "+"_"*min([l+2, mlen+2]))
+    print(ind*" "+"/ "+min([l+1, mlen+1])*" "+"\\")
+    for i in range(1+int(l/mlen)):
+        msg_line = msg[mlen*i:mlen*(i+1)]
+        print(ind*" "+"| " + msg_line + min(l-len(msg_line), mlen-len(msg_line))*" "+" |")
+    print(ind*" "+"\_"+"_"*13+" "+min([l-13,mlen-13])*"_"+"/")
+    print((ind+15)*" "+"V")
+    with open("resources/asciiart/"+name+".txt") as f:
+        lines = f.readlines()
+        for line in lines:
+            print(line, end="")
+    f.close()
 
 def read_json_settings():
 
@@ -162,11 +191,16 @@ def update_zyla_settings(path, settings):
                 f.writelines(s+"\n")
     f.close()
 
-def startup_message(mode):
-    w = Figlet(font='isometric3')
-    print(w.renderText("WFOM"))
-    m = Figlet(font='slant')
-    print(m.renderText(mode+" Mode"))
+def welcome_banner(mode):
+    os.system("cls")
+
+    w = Figlet(font='speed')
+    print(w.renderText("OpenWFOM"))
+    print("")
+
+    m = Figlet(font='contessa')
+    print(m.renderText(" "*5+"Test Mode"))
+    time.sleep(5)
 
 def run():
 
@@ -193,7 +227,7 @@ def run():
 
     """
 
-    startup_message("Run")
+    welcome_banner("Run")
 
     status = 1
 
@@ -229,10 +263,7 @@ def test():
 
     """
 
-    if not args.yes:
-        args.yes = True
-
-    startup_message("Test")
+    welcome_banner("Test")
 
     prompt("Running diagnostic test on WFOM...")
 
@@ -581,7 +612,10 @@ class Webcam():
     def __init__(self):
         self.connected = 1
 
+os.system('COLOR 07')
+args = get_args()
 if __name__ == '__main__':
+    # wfom.py run from the command line (look for arguments)
     if args.test:
         test()
     else:
