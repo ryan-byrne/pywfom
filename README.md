@@ -1,6 +1,6 @@
 # Python Module for the [OpenWFOM](https://hillmanlab.zuckermaninstitute.columbia.edu/content/optical-imaging-and-microscopy-development-and-dissemination) Imaging System
 
-The ```wfom``` module is a way to access the OpenWFOM
+The ```wfom``` Python module and command line tool are ways to declare camera settings, test setup, and start an acquisition on the OpenWFOM imaging system.
 
 ## Getting Started
 
