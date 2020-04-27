@@ -266,6 +266,7 @@ def test():
 
     welcome_banner("Test")
 
+    args["yes"] = True
     prompt("Running diagnostic test on WFOM...")
 
     prompt("Testing connection to Camera and SOLIS")
