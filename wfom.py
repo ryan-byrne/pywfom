@@ -597,7 +597,7 @@ class Arduino():
         self.ser.write("0000".encode())
 
     def strobe(self):
-        prompt("Waiting to Recieve Strobe Settings from GUI...")
+        prompt("Waiting to Receive Strobe Settings from GUI...")
         self.disable()
         os.chdir("JavaGUI")
         subprocess.call(["java", "-jar", "JARs/strobe.jar"])
@@ -608,7 +608,7 @@ class Arduino():
         self.set_strobe_order()
 
     def stim(self):
-        prompt("Waiting to Recieve Stim Settings from GUI...")
+        prompt("Waiting to Receive Stim Settings from GUI...")
         os.chdir("JavaGUI")
         subprocess.call(["java", "-jar", "JARs/stim.jar"])
         os.chdir("..")
