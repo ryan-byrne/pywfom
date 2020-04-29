@@ -293,7 +293,11 @@ def test():
     webcam = Webcam()
 
     prompt("Logging test File")
-    path =log_test_file(arduino.test, andor.test)
+
+    try:
+        path = log_test_file(arduino.test, andor.test)
+    except FileNotFoundError:
+        error_prompt("Could not create the log file...")
 
     prompt("Test Complete... Errors logged to {0}".format(colored(os.getcwd()+"\\"+path, 'green')))
 
@@ -350,7 +354,7 @@ class Andor():
 
         prompt("JRE {0} is installed".format(version))
 
-        if float(version[:2]) < 1.8:
+        if float(version[:3]) < 1.8:
             msg = "JRE 1.8 or higher is required to run OpenWFOM"
             self.test.append(msg)
             error_prompt(msg)
