@@ -8,7 +8,6 @@ chardet==3.0.4
 colorama==0.4.3
 comtypes==1.1.7
 cycler==0.10.0
-Cython==0.29.16
 distlib==0.3.0
 docutils==0.16
 filelock==3.0.12

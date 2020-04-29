@@ -1,4 +1,4 @@
-import shutil, psutil, json, time, os, subprocess, path, sys, win32api, serial
+import shutil, psutil, json, time, os, subprocess, path, sys, win32api, serial, re
 import argparse
 from serial import Serial
 from datetime import datetime
@@ -32,7 +32,8 @@ def prompt(msg):
     print("")
 
     if args.quiet:
-        render_ascii('mouse', "Running in Quiet Mode")
+        render_ascii('mouse', "Shh. I am running in 'Quiet Mode'. I will only\
+        notify you if an Error occurs.")
     else:
         render_ascii('mouse', msg)
 
@@ -53,15 +54,14 @@ def error_prompt(msg):
     err = colored('ERROR: ', 'red')
 
     script = "\n{0} {1} Continue anyway? [y/n] ".format(err, msg)
-    if args.test:
-        print(err+msg)
-        return
-    if args.yes or (input(script) == "y"):
+
+
+    if args.yes:
         print("\n")
-        if args.test:
-            print(err+msg)
-        else:
-            pass
+        print(err, msg)
+        time.sleep(3)
+    elif (input(script) == "y"):
+        pass
     else:
         sys.exit()
 
@@ -98,8 +98,14 @@ def welcome_banner(mode):
     print("")
 
     m = Figlet(font='cybermedium')
-    print(m.renderText(" "*3+"Test Mode"))
-    time.sleep(3)
+    print(m.renderText(" "*3+mode+" Mode"))
+
+    if mode == "Test":
+        print("\n A diagnostic test of your OpenWFOM installation will begin shortly.")
+    else:
+        print("\n The screen to input 'Run Settings' will appear shortly.")
+
+    time.sleep(5)
 
 def update_zyla_settings(path, settings):
 
@@ -310,6 +316,8 @@ class Andor():
 
         self.test = []
 
+        self.check_java()
+
         prompt("Checking if SOLIS is Open...")
 
         pids = [(p.pid) for p in psutil.process_iter() if p.name() == "AndorSolis.exe"]
@@ -319,6 +327,19 @@ class Andor():
         else:
             prompt("SOLIS is already open...")
         self.connect_to_solis()
+
+    def check_java(self):
+
+        prompt("Checking Version of Java Runtime Environment")
+
+        v = subprocess.check_output(['java', '-version'], stderr=subprocess.STDOUT)[14:17].decode("utf-8")
+
+        prompt("JRE {0} is installed".format(v))
+
+        if float(v) < 2.0:
+            msg = "JRE 1.8 or higher is required to run OpenWFOM"
+            self.test.append(msg)
+            error_prompt(msg)
 
     def open_solis(self):
 
@@ -460,7 +481,7 @@ class Andor():
 
         """
 
-        For information on the 'Info' GUI go here https://example.com
+        For information on the 'Info' GUI go here https://github.com/ryan-byrne/wfom/wiki/Usage#1-info-gui
 
         """
 
@@ -472,7 +493,13 @@ class Andor():
         subprocess.call(["java", "-jar", "JARs/info.jar"])
         os.chdir("..")
 
-        self.settings = read_json_settings()
+        try:
+            self.settings = read_json_settings()
+        except FileNotFoundError:
+            prompt("I was unable to find a 'settings.json'. Please restart \
+            the acquisition.")
+            sys.exit()
+
 
         mouse = self.settings["info"]["mouse"]
         path = "D:/WFOM/data/"
@@ -497,7 +524,7 @@ class Andor():
 
         """
 
-        For information on the 'Camera' GUI go here https://example.com
+        For information on the 'Camera' GUI go here https://github.com/ryan-byrne/wfom/wiki/Usage#2-camera-gui
 
         """
 
@@ -546,7 +573,7 @@ class Andor():
 
         """
 
-        For information on the 'Preview' GUI go here https://example.com
+        For information on the 'Preview' GUI go here https://github.com/ryan-byrne/wfom/wiki/Usage#5-preview-gui
 
         """
 
@@ -597,6 +624,13 @@ class Arduino():
         self.ser.write("0000".encode())
 
     def strobe(self):
+
+        """
+
+        For information on the 'Strobe' GUI go here https://github.com/ryan-byrne/wfom/wiki/Usage#3-strobe-gui
+
+        """
+
         prompt("Waiting to Recieve Strobe Settings from GUI...")
         self.disable()
         os.chdir("JavaGUI")
@@ -608,6 +642,13 @@ class Arduino():
         self.set_strobe_order()
 
     def stim(self):
+
+        """
+
+        For information on the 'Stim' GUI go here https://github.com/ryan-byrne/wfom/wiki/Usage#4-stim-gui
+
+        """
+
         prompt("Waiting to Recieve Stim Settings from GUI...")
         os.chdir("JavaGUI")
         subprocess.call(["java", "-jar", "JARs/stim.jar"])
