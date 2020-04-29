@@ -40,7 +40,6 @@ pytz==2019.1
 PyVISA==1.9.1
 pywin32==227
 pywin32-ctypes==0.2.0
-pywinauto==0.6.8
 PyYAML==5.1.1
 readme-renderer==25.0
 requests==2.22.0
