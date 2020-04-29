@@ -12,7 +12,7 @@ These instructions will help you get the necessary software installed.
 
 * [Python](https://www.python.org/downloads/) - 3.6 and Up
 * [Java Runtime](https://java.com/en/download/) - 1.8 and Up
-* [Andor SOLIS (4.30 and up)](http://www.andor.com/downloads) - Registration Required
+* [Andor SOLIS (4.30 and up)](http://my.andor.com/login.aspx) - Registration Required
 * [PIP](https://pip.pypa.io/en/stable/installing/) Install Option 1
 * [Git](https://git-scm.com/download/win) - Install Option 2
 
