@@ -18,11 +18,8 @@ importlib-metadata==1.5.0
 iso8601==0.1.12
 keyring==21.2.0
 kiwisolver==1.1.0
-matplotlib==3.2.1
 more-itertools==8.2.0
-numpy==1.18.3
 packaging==20.3
-pandas==1.0.3
 path==13.2.0
 pkginfo==1.5.0.1
 pluggy==0.13.1
@@ -38,8 +35,6 @@ pytest==4.0.0
 python-dateutil==2.8.0
 pytz==2019.1
 PyVISA==1.9.1
-pywin32==227
-pywin32-ctypes==0.2.0
 PyYAML==5.1.1
 readme-renderer==25.0
 requests==2.22.0

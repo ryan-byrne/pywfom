@@ -28,7 +28,6 @@ jobs:
         python -m pip install --upgrade pip
         pip install pywinauto
         pip install cython
-        pip install matplotlib
         pip install -r requirements.txt
     - name: Lint with flake8
       run: |
