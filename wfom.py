@@ -81,7 +81,7 @@ def render_ascii(name, msg):
     for i in range(1+int(l/mlen)):
         msg_line = msg[mlen*i:mlen*(i+1)]
         print(ind*" "+"| " + msg_line + min(l-len(msg_line), mlen-len(msg_line))*" "+" |")
-    print(ind*" "+"\_"+"_"*13+" "+min([l-13,mlen-13])*"_"+"/")
+    print((ind-1)*" "+" \_"+"_"*13+" "+min([l-13,mlen-13])*"_"+"/")
     print((ind+15)*" "+"V")
     with open("resources/asciiart/"+name+".txt") as f:
         lines = f.readlines()

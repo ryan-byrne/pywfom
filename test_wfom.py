@@ -1,3 +1,4 @@
 import wfom
 
-wfom.test()
+def test_mod():
+    wfom.test()
