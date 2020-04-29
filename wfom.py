@@ -333,16 +333,24 @@ class Andor():
         prompt("Checking Version of Java Runtime Environment")
 
         try:
-            v = subprocess.check_output(['java', '-version'], stderr=subprocess.STDOUT).decode("utf-8")
-            print(v)
+            out = subprocess.check_output(['java', '-version'], stderr=subprocess.STDOUT).decode("utf-8")
+            version = ""
+            for l in out:
+                if len(version) > 0 and l == '"':
+                    break
+                elif l in [".", "_"] or l.isdigit():
+                    version += l
+                else:
+                    continue
+
         except FileNotFoundError:
             msg = "Java Runtime Environment is not installed on your Machine."
             self.test.append(msg)
             error_prompt(msg)
 
-        prompt("JRE {0} is installed".format(v))
+        prompt("JRE {0} is installed".format(version))
 
-        if float(v) < 2.0:
+        if float(version[:2]) < 1.8:
             msg = "JRE 1.8 or higher is required to run OpenWFOM"
             self.test.append(msg)
             error_prompt(msg)
