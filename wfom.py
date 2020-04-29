@@ -297,6 +297,7 @@ def test():
     try:
         path = log_test_file(arduino.test, andor.test)
     except FileNotFoundError:
+        path = "Nowhere"
         error_prompt("Could not create the log file...")
 
     prompt("Test Complete... Errors logged to {0}".format(colored(os.getcwd()+"\\"+path, 'green')))
