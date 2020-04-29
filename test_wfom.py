@@ -1,7 +1,7 @@
 import wfom
+from wfom import Andor
 
-def test_test():
-    wfom.test()
-
-if __name__ == '__main__':
+def test_acquire():
     wfom.run()
+
+wfom.run()

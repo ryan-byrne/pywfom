@@ -1,5 +1,5 @@
-import shutil, psutil, json, time, os, subprocess, path, sys, win32api, serial, re
-import argparse
+import shutil, psutil, json, time, os, subprocess, path, sys, win32api, serial
+import argparse, re
 from serial import Serial
 from datetime import datetime
 from shutil import copyfile
@@ -104,36 +104,7 @@ def welcome_banner(mode):
     else:
         print("\n The screen to input 'Run Settings' will appear shortly.")
 
-    time.sleep(5)
-
-def update_zyla_settings(path, settings):
-
-    """
-
-    Updates the 'settings.txt' file found at 'path' with the Python SETTINGS
-    dict
-
-    """
-
-    prompt("Updating settings.txt file")
-    prompt("Reading settings from settings.json")
-    json_settings = settings
-    with open("resources/solis_scripts/settings.txt", "r+") as f:
-        settings = f.readlines()
-        settings = [x.strip() for x in settings]
-        count = 0
-        f.seek(0)
-        for s in settings:
-            count += 1
-            if count == 8:
-                f.write(json_settings["run"]["run_len"]+"\n")
-            elif count == 10 and path:
-                f.write(path+"\n")
-            elif count == 11:
-                f.writelines(json_settings["run"]["num_run"]+"\n")
-            else:
-                f.writelines(s+"\n")
-    f.close()
+    time.sleep(3)
 
 def get_args(skip):
 
@@ -161,53 +132,6 @@ def get_args(skip):
 
 
     return args
-
-def read_json_settings():
-
-    """
-
-    Reads 'settings.json' file, then returns the settings as a Python dict.
-
-    """
-
-    with open("JavaGUI/settings.json", "r") as f:
-        settings = json.load(f)
-    f.close()
-    return settings
-
-def update_json_settings(SETTINGS):
-
-    """
-
-    Takes Python dictionary 'SETTINGS' and updates the 'settings.json' file.
-
-    """
-
-    parameters = ["binning", "height", "bottom", "width", "length", "exposure", "framerate"]
-    with open("JavaGUI/settings.json", "r+") as f:
-        settings = json.load(f)
-        settings["camera"] = {}
-        for i in range(len(parameters)):
-            settings["camera"][parameters[i]] = SETTINGS[i]
-        f.seek(0)
-        json.dump(settings, f)
-        f.truncate()
-    f.close()
-    return settings
-
-def read_zyla_settings():
-
-    """
-
-    Checks the settings currently deployed to the camera and stored in the
-    'settings.txt' file.
-
-    """
-
-    with open("resources/solis_scripts/settings.txt", "r") as f:
-        settings = f.readlines()
-    f.close()
-    return [x.strip() for x in settings]
 
 def log_test_file(arduino, andor):
     now = datetime.now()
@@ -246,24 +170,36 @@ def run():
 
     welcome_banner("Run")
 
-    status = 1
-
     andor = Andor()
     arduino = Arduino("COM4")
     webcam = Webcam()
 
-    COMMAND_ARRAY = [
-        andor.acquire,
-        andor.info,
-        andor.camera,
-        arduino.strobe,
-        arduino.stim,
-        andor.preview
-    ]
+    # Create the dict for the required
+    COMMANDS = {
+        "info":andor.info,
+        "camera":andor.camera,
+        "strobe_order":arduino.strobe,
+        "stim":arduino.stim,
+        "run":arduino.stim,
+        "preview":andor.preview
+    }
 
-    while status > 0:
-        COMMAND_ARRAY[status]()
-        status = read_json_settings()["status"]
+    # Loop until you've completed the settings.json file
+    while True:
+        # See which settings are missing from settings.json
+        st = set(andor.JSON_SETTINGS.keys())
+        TO_BE_COMPLETED = [ele for ele in COMMANDS.keys() if ele not in st]
+        # See if there are any missing settings
+        if len(TO_BE_COMPLETED) == 0:
+            # Exit loop if no
+            break
+        else:
+            # Run command if yes
+            COMMANDS[TO_BE_COMPLETED[0]]()
+            andor.read_json_settings()
+
+    # Begin Acquisition
+    andor.acquire()
 
 def test():
 
@@ -316,9 +252,11 @@ class Andor():
 
     def __init__(self):
 
-        self.path = ""
+        self.PATH_TO_FILES = ""
 
-        self.test = []
+        self.JSON_SETTINGS = {}
+
+        self.TEST_RESULTS = []
 
         self.check_java()
 
@@ -349,14 +287,14 @@ class Andor():
 
         except FileNotFoundError:
             msg = "Java Runtime Environment is not installed on your Machine."
-            self.test.append(msg)
+            self.TEST_RESULTS.append(msg)
             error_prompt(msg)
 
         prompt("JRE {0} is installed".format(version))
 
         if float(version[:3]) < 1.8:
             msg = "JRE 1.8 or higher is required to run OpenWFOM"
-            self.test.append(msg)
+            self.TEST_RESULTS.append(msg)
             error_prompt(msg)
 
     def open_solis(self):
@@ -373,11 +311,11 @@ class Andor():
             app = Application().start(r"C:\Program Files\Andor SOLIS\AndorSolis.exe", timeout=10)
         except TimeoutError:
             msg = "Opening SOLIS Timed Out."
-            self.test.append(msg)
+            self.TEST_RESULTS.append(msg)
             error_prompt(msg)
         except AppStartError:
             msg = "SOLIS is not installed on your machine."
-            self.test.append(msg)
+            self.TEST_RESULTS.append(msg)
             error_prompt(msg)
 
     def connect_to_solis(self):
@@ -400,14 +338,14 @@ class Andor():
             self.view()
         except TimeoutError:
             msg = "Connection to SOLIS Timed Out."
-            self.test.append(msg)
+            self.TEST_RESULTS.append(msg)
             error_prompt(msg)
         except MenuItemNotEnabled:
             msg = "Connection to the Camera Failed."
-            self.test.append(msg)
+            self.TEST_RESULTS.append(msg)
             error_prompt(msg)
 
-    def set_parameters(self, preview):
+    def set_parameters(self):
 
         """
 
@@ -430,7 +368,7 @@ class Andor():
             open_opt.Button.click()
         except MenuItemNotEnabled:
             msg = "Menu Item Not Enabled in SOLIS. Camera is likely disconnected."
-            self.test.append(msg)
+            self.TEST_RESULTS.append(msg)
             error_prompt(msg)
 
     def view(self):
@@ -441,7 +379,7 @@ class Andor():
             self.soliswin.menu_select("Acquisition->Take Video")
         except MenuItemNotEnabled:
             msg = "Unable to View. Camera not connected."
-            self.test.append(msg)
+            self.TEST_RESULTS.append(msg)
             error_prompt(msg)
 
     def abort(self):
@@ -452,48 +390,116 @@ class Andor():
             self.soliswin.menu_select("Acquisition->Abort Acquisition")
         except MenuItemNotEnabled:
             msg = "Unable to Abort."
-            self.test.append(msg)
+            self.TEST_RESULTS.append(msg)
             error_prompt(msg)
+
+    def make_directories(self):
+        try:
+            prompt("Making directory: "+self.PATH_TO_FILES)
+            os.mkdir(self.PATH_TO_FILES)
+            prompt("Making directory: "+self.PATH_TO_FILES+"/CCD")
+            os.mkdir(self.PATH_TO_FILES+"/CCD")
+            prompt("Making directory: "+self.PATH_TO_FILES+"/webcam")
+            os.mkdir(self.PATH_TO_FILES+"/webcam")
+            src = "JavaGUI/settings.json"
+            dst = self.PATH_TO_FILES+"/settings.json"
+
+            prompt("Moving JavaGUI/settings.json to "+self.PATH_TO_FILES+"/settings.json")
+            shutil.move(src, dst)
+        except (PermissionError, FileNotFoundError):
+            error_prompt("Could not save the file to "+self.PATH_TO_FILES)
+
+    def update_zyla_settings(self):
+
+        prompt("Updating settings.txt file")
+        prompt("Reading settings from settings.json")
+
+        self.update_json_settings()
+
+        # Loop through each settings (or)
+        for setting in self.read_zyla_settings():
+            count += 1
+            if count == 8:
+                f.write(self.JSON_SETTINGS["run"]["run_len"]+"\n")
+            elif count == 10 and self.PATH_TO_FILES:
+                f.write(self.PATH_TO_FILES+"\n")
+            elif count == 11:
+                f.writelines(self.JSON_SETTINGS["run"]["num_run"]+"\n")
+            else:
+                f.writelines(s+"\n")
+
+    def read_zyla_settings(self):
+
+        """
+
+        Checks the settings currently deployed to the camera and stored in the
+        'settings.txt' file.
+
+        """
+
+        with open("resources/solis_scripts/settings.txt", "r") as f:
+            ZYLA_SETTINGS = f.readlines()
+        f.close()
+        self.ZYLA_SETTINGS = [x.strip() for x in ZYLA_SETTINGS]
+
+    def read_json_settings(self):
+
+        prompt("Reading the 'settings.json' file...")
+        try:
+            with open("JavaGUI/settings.json", "r+") as f:
+                self.JSON_SETTINGS = json.load(f)
+            f.close()
+        except FileNotFoundError:
+            error_prompt("Unable to find 'settings.json'")
+
+    def update_json_camera_settings(self):
+
+        """
+
+        Takes Python dictionary 'SETTINGS' and updates the 'settings.json' file.
+
+        """
+
+        prompt("Updating the Camera settings in 'settings.json'")
+        parameters = ["binning", "height", "bottom", "width", "length", "exposure", "framerate"]
+
+        with open("JavaGUI/settings.json", "r+") as f:
+            settings["camera"] = {}
+            for i in range(len(parameters)):
+                settings["camera"][parameters[i]] = SETTINGS[i]
+            f.seek(0)
+            json.dump(settings, f)
+            f.truncate()
+        f.close()
 
     def acquire(self):
 
         """
 
-        * Creates the save directories
-        * Updates the Zyla Settings
-        * Moves 'settings.json' to new directory
-        * Runs the 'acquire.pgm' script
-        * Waits until acquisition is completed and opens explorer to folder
+        * Read the current Zyla Settings
+        * Write the settings to 'settings.json'
+        * Make the acquisition directories and send 'settings.json' to them
 
         """
 
-        prompt("Making directory: "+self.path)
-        os.mkdir(self.path)
-        prompt("Making directory: "+self.path+"/CCD")
-        os.mkdir(self.path+"/CCD")
-        prompt("Making directory: "+self.path+"/webcam")
-        os.mkdir(self.path+"/webcam")
+        self.read_json_settings()
 
-        update_zyla_settings(self.path, self.settings)
-
-        src = "JavaGUI/settings.json"
-        dst = self.path+"/settings.json"
-
-        prompt("Moving JavaGUI/settings.json to "+self.path+"/settings.json")
-        shutil.move(src, dst)
+        self.make_directories()
 
         self.abort()
         cwd = os.getcwd()
-        acquire = r"resources\solis_scripts\\acquire.pgm"
+        acquire = r"resources\solis_scripts\acquire.pgm"
         file = r'"%s\%s"' % (cwd, acquire)
 
         self.soliswin.menu_select("File -> Run Program By Filename")
         open_opt = self.solis.window(title_re="Open")
         file_name = open_opt.Edit.set_text(file)
         open_opt.Button.click()
-        prompt("\n"+"*"*25+"Acquisition Successfully Initiated"+"*"*25+"\n")
-        time.sleep(2*float(self.settings["run"]["run_len"])*float(self.settings["run"]["num_run"]))
-        subprocess.Popen(r'explorer /select,"{0}"/'.format(self.path))
+        self.acquisition_countdown()
+        subprocess.Popen(r'explorer /select,"{0}"/'.format(self.PATH_TO_FILES))
+
+    def acquisition_countdown(self):
+        
 
     def info(self):
 
@@ -511,16 +517,12 @@ class Andor():
         subprocess.call(["java", "-jar", "JARs/info.jar"])
         os.chdir("..")
 
-        try:
-            self.settings = read_json_settings()
-        except FileNotFoundError:
-            prompt("I was unable to find a 'settings.json'. Please restart \
-            the acquisition.")
-            sys.exit()
+        self.read_json_settings()
 
+        self.create_path_to_files()
 
-        mouse = self.settings["info"]["mouse"]
-        path = "D:/WFOM/data/"
+    def create_path_to_files(self):
+        mouse = self.JSON_SETTINGS["info"]["mouse"]
         with open("JavaGUI/archive.json", "r+") as f:
             archive = json.load(f)
             d = archive["mice"][mouse]["last_trial"]+1
@@ -528,15 +530,14 @@ class Andor():
             f.seek(0)
             json.dump(archive, f, indent=4)
             f.truncate()
-            self.archive = archive
         f.close()
-
+        mouse = self.JSON_SETTINGS["info"]["mouse"]
+        path = "D:/WFOM/data/"
         if not os.path.isdir(path + mouse + "_" + str(d)):
             path = path + mouse + "_" + str(d)
         else:
             path = path + mouse + "_" + str(d+1)
-
-        self.path = path
+        self.PATH_TO_FILES = path
 
     def camera(self):
 
@@ -545,32 +546,27 @@ class Andor():
         For information on the 'Camera' GUI go here https://github.com/ryan-byrne/wfom/wiki/Usage#2-camera-gui
 
         """
-
         prompt("Opening Camera Settings GUI...")
-        if "camera" in self.settings.keys():
-            # Settings already established
-            prompt(self.settings)
-            SETTINGS_NAME = self.settings["camera"]
-            self.settings["camera"] = self.archive["settings"][SETTINGS_NAME]
-            self.deployed = True
-        else:
-            os.chdir("JavaGUI")
-            subprocess.Popen(["java", "-jar","JARs/camera.jar"])
-            os.chdir("..")
-            self.deployed = False
+        os.chdir("JavaGUI")
+        subprocess.Popen(["java", "-jar","JARs/camera.jar"])
+        os.chdir("..")
+
         prompt("Waiting for Camera settings to be Deployed")
-        OLD_SETTINGS = read_zyla_settings()
-        while not self.deployed:
+        self.read_zyla_settings()
+        OLD_ZYLA_SETTINGS = self.ZYLA_SETTINGS
+        while True:
                 # Read the settings from the txt file generated by the GUI
-                settings = read_zyla_settings()
+                self.read_zyla_settings()
                 update = False
                 # Loop through each setting
-                for i in range(len(OLD_SETTINGS)):
+                for i in range(len(self.ZYLA_SETTINGS)):
                     if i > 7:
                         # Stop when you get to the File Names
                         break
-                    old = float(OLD_SETTINGS[i])
-                    new = float(settings[i])
+                    # Setting from Last Scan
+                    old = float(OLD_ZYLA_SETTINGS[i])
+                    # Setting from latest scan
+                    new = float(self.ZYLA_SETTINGS[i])
                     if old != new:
                         # Get ready to update if a setting has changed
                         update = True
@@ -581,9 +577,9 @@ class Andor():
                     self.set_parameters(True)
                     time.sleep(3)
                     self.view()
-                OLD_SETTINGS = read_zyla_settings()
-                if len(OLD_SETTINGS) == 12:
-                    self.deployed = True
+                self.read_zyla_settings()
+                OLD_ZYLA_SETTINGS = self.ZYLA_SETTINGS
+                if len(OLD_ZYLA_SETTINGS) == 12:
                     self.settings = update_json_settings(OLD_SETTINGS)
                 time.sleep(3)
 
@@ -595,8 +591,10 @@ class Andor():
 
         """
 
+        prompt("Review the Settings. Select 'Begin Acquisition' start.")
+
         os.chdir("JavaGUI")
-        subprocess.Popen(["java", "-jar","JARs/preview.jar"])
+        subprocess.call(["java", "-jar","JARs/preview.jar"])
         os.chdir("..")
 
 class Arduino():
@@ -605,7 +603,7 @@ class Arduino():
     def __init__(self, port):
         prompt("Attempting to Connect to Arduino at Serial Port: "+port)
         self.port = port
-        self.test = []
+        self.TEST_RESULTS = []
         try:
             self.ser = serial.Serial(
                 port=self.port,\
@@ -619,7 +617,7 @@ class Arduino():
             prompt("Successfully connected to Arduino at {0}".format(port))
         except serial.SerialException as e:
             msg = "Arduino is not Connected to " + self.port
-            self.test.append(msg)
+            self.TEST_RESULTS.append(msg)
             error_prompt(msg)
 
     def disable(self):
@@ -654,10 +652,6 @@ class Arduino():
         os.chdir("JavaGUI")
         subprocess.call(["java", "-jar", "JARs/strobe.jar"])
         os.chdir("..")
-        self.enable()
-        settings = read_json_settings()
-        self.strobe_order = settings["strobe_order"]
-        self.set_strobe_order()
 
     def stim(self):
 
@@ -683,6 +677,7 @@ class Webcam():
 
     def __init__(self):
         self.connected = 1
+
 os.system('COLOR 07')
 if __name__ == '__main__':
     args = get_args(False)

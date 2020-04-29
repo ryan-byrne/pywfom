@@ -1,0 +1,122 @@
+#
+# There is insufficient memory for the Java Runtime Environment to continue.
+# Native memory allocation (mmap) failed to map 4096 bytes for card table last card
+# Possible reasons:
+#   The system is out of physical RAM or swap space
+#   The process is running with CompressedOops enabled, and the Java Heap may be blocking the growth of the native heap
+# Possible solutions:
+#   Reduce memory load on the system
+#   Increase physical memory or swap space
+#   Check if swap backing store is full
+#   Decrease Java heap size (-Xmx/-Xms)
+#   Decrease number of Java threads
+#   Decrease Java thread stack sizes (-Xss)
+#   Set larger code cache with -XX:ReservedCodeCacheSize=
+# This output file may be truncated or incomplete.
+#
+#  Out of Memory Error (os_windows.cpp:3377), pid=712, tid=0x0000000000001dd4
+#
+# JRE version:  (8.0_251-b08) (build )
+# Java VM: Java HotSpot(TM) 64-Bit Server VM (25.251-b08 mixed mode windows-amd64 compressed oops)
+# Failed to write core dump. Minidumps are not enabled by default on client versions of Windows
+#
+
+---------------  T H R E A D  ---------------
+
+Current thread (0x00000000022c2800):  JavaThread "Unknown thread" [_thread_in_vm, id=7636, stack(0x0000000002180000,0x0000000002280000)]
+
+Stack: [0x0000000002180000,0x0000000002280000]
+[error occurred during error reporting (printing stack bounds), id 0xc0000005]
+
+Native frames: (J=compiled Java code, j=interpreted, Vv=VM code, C=native code)
+
+
+---------------  P R O C E S S  ---------------
+
+Java Threads: ( => current thread )
+
+Other Threads:
+
+=>0x00000000022c2800 (exited) JavaThread "Unknown thread" [_thread_in_vm, id=7636, stack(0x0000000002180000,0x0000000002280000)]
+
+VM state:not at safepoint (not fully initialized)
+
+VM Mutex/Monitor currently owned by a thread: None
+
+heap address: 0x0000000081800000, size: 2024 MB, Compressed Oops mode: Non-zero based:0x00000000817ff000
+Narrow klass base: 0x0000000000000000, Narrow klass shift: 0
+
+GC Heap History (0 events):
+No events
+
+Deoptimization events (0 events):
+No events
+
+Classes redefined (0 events):
+No events
+
+Internal exceptions (0 events):
+No events
+
+Events (0 events):
+No events
+
+
+Dynamic libraries:
+0x00007ff771680000 - 0x00007ff7716b7000 	C:\Program Files (x86)\Common Files\Oracle\Java\javapath\java.exe
+0x00007fff49180000 - 0x00007fff49370000 	C:\WINDOWS\SYSTEM32\ntdll.dll
+0x00007fff48200000 - 0x00007fff482b2000 	C:\WINDOWS\System32\KERNEL32.DLL
+0x00007fff46300000 - 0x00007fff465a3000 	C:\WINDOWS\System32\KERNELBASE.dll
+0x00007fff49060000 - 0x00007fff49103000 	C:\WINDOWS\System32\ADVAPI32.dll
+0x00007fff47230000 - 0x00007fff472ce000 	C:\WINDOWS\System32\msvcrt.dll
+0x00007fff48570000 - 0x00007fff48607000 	C:\WINDOWS\System32\sechost.dll
+0x00007fff48610000 - 0x00007fff48730000 	C:\WINDOWS\System32\RPCRT4.dll
+0x00007fff48730000 - 0x00007fff488c4000 	C:\WINDOWS\System32\USER32.dll
+0x00007fff465d0000 - 0x00007fff465f1000 	C:\WINDOWS\System32\win32u.dll
+0x00007fff49110000 - 0x00007fff49136000 	C:\WINDOWS\System32\GDI32.dll
+0x00007fff46160000 - 0x00007fff462f4000 	C:\WINDOWS\System32\gdi32full.dll
+0x00007fff46780000 - 0x00007fff4681e000 	C:\WINDOWS\System32\msvcp_win.dll
+0x00007fff468d0000 - 0x00007fff469ca000 	C:\WINDOWS\System32\ucrtbase.dll
+0x00007fff38230000 - 0x00007fff384b5000 	C:\WINDOWS\WinSxS\amd64_microsoft.windows.common-controls_6595b64144ccf1df_6.0.18362.778_none_e6c6b761130d4fb8\COMCTL32.dll
+0x00007fff47e20000 - 0x00007fff48156000 	C:\WINDOWS\System32\combase.dll
+0x00007fff469d0000 - 0x00007fff46a50000 	C:\WINDOWS\System32\bcryptPrimitives.dll
+0x00007fff484e0000 - 0x00007fff4850e000 	C:\WINDOWS\System32\IMM32.DLL
+0x00000000763f0000 - 0x00000000764c2000 	C:\Program Files\Java\jre1.8.0_251\bin\msvcr100.dll
+0x00000000758a0000 - 0x000000007614b000 	C:\Program Files\Java\jre1.8.0_251\bin\server\jvm.dll
+0x00007fff488d0000 - 0x00007fff488d8000 	C:\WINDOWS\System32\PSAPI.DLL
+0x00007fff44000000 - 0x00007fff44009000 	C:\WINDOWS\SYSTEM32\WSOCK32.dll
+0x00007fff48390000 - 0x00007fff483ff000 	C:\WINDOWS\System32\WS2_32.dll
+0x00007fff43fc0000 - 0x00007fff43fe4000 	C:\WINDOWS\SYSTEM32\WINMM.dll
+0x00007fff391b0000 - 0x00007fff391ba000 	C:\WINDOWS\SYSTEM32\VERSION.dll
+0x00007fff43f90000 - 0x00007fff43fbd000 	C:\WINDOWS\SYSTEM32\WINMMBASE.dll
+0x00007fff46110000 - 0x00007fff4615a000 	C:\WINDOWS\System32\cfgmgr32.dll
+0x00007fff36b80000 - 0x00007fff36b8f000 	C:\Program Files\Java\jre1.8.0_251\bin\verify.dll
+0x00007fff1b6d0000 - 0x00007fff1b6f9000 	C:\Program Files\Java\jre1.8.0_251\bin\java.dll
+0x00007fff36910000 - 0x00007fff36926000 	C:\Program Files\Java\jre1.8.0_251\bin\zip.dll
+
+VM Arguments:
+java_command: JARs/preview.jar
+java_class_path (initial): JARs/preview.jar
+Launcher Type: SUN_STANDARD
+
+Environment Variables:
+USERNAME=rbyrne
+OS=Windows_NT
+PROCESSOR_IDENTIFIER=Intel64 Family 6 Model 61 Stepping 4, GenuineIntel
+
+
+
+---------------  S Y S T E M  ---------------
+
+OS: Windows 10.0 , 64 bit Build 18362 (10.0.18362.778)
+
+CPU:total 4 (initial active 4) (2 cores per cpu, 2 threads per core) family 6 model 61 stepping 4, cmov, cx8, fxsr, mmx, sse, sse2, sse3, ssse3, sse4.1, sse4.2, popcnt, avx, avx2, aes, clmul, erms, rtm, 3dnowpref, lzcnt, ht, tsc, tscinvbit, bmi1, bmi2, adx
+
+Memory: 4k page, physical 8288672k(981332k free), swap 18736768k(5116k free)
+
+vm_info: Java HotSpot(TM) 64-Bit Server VM (25.251-b08) for windows-amd64 JRE (1.8.0_251-b08), built on Mar 12 2020 06:31:49 by "" with MS VC++ 10.0 (VS2010)
+
+time: Wed Apr 29 14:37:43 2020
+timezone: Eastern Daylight Time
+elapsed time: 2 seconds (0d 0h 0m 2s)
+
