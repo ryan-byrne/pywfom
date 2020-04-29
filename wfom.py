@@ -6,8 +6,7 @@ from shutil import copyfile
 from pyfiglet import Figlet
 from colorama import init
 from termcolor import colored
-from pywinauto import Application
-from pywinauto.application import AppStartError
+from pywinauto.application import Application, AppStartError
 from pywinauto.timings import TimeoutError
 from pywinauto.controls.menuwrapper import MenuItemNotEnabled
 from pywinauto.base_wrapper import ElementNotEnabled
