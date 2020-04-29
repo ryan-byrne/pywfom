@@ -332,7 +332,13 @@ class Andor():
 
         prompt("Checking Version of Java Runtime Environment")
 
-        v = subprocess.check_output(['java', '-version'], stderr=subprocess.STDOUT)[14:17].decode("utf-8")
+        try:
+            v = subprocess.check_output(['java', '-version'], stderr=subprocess.STDOUT).decode("utf-8")
+            print(v)
+        except FileNotFoundError:
+            msg = "Java Runtime Environment is not installed on your Machine."
+            self.test.append(msg)
+            error_prompt(msg)
 
         prompt("JRE {0} is installed".format(v))
 
@@ -665,7 +671,6 @@ class Webcam():
 
     def __init__(self):
         self.connected = 1
-
 os.system('COLOR 07')
 if __name__ == '__main__':
     args = get_args(False)
