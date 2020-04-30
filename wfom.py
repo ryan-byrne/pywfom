@@ -416,7 +416,7 @@ class Andor():
             open_opt = self.solis.window(title_re="Open")
             file_name = open_opt.Edit.set_text(file)
             open_opt.Button.click()
-        except Exception as e:
+        except (Exception, MenuItemNotEnabled) as e:
             msg = "The camera is likely not attached and/or plugged in."
             self.TEST_RESULTS.append(e)
             error_prompt(e, msg)
@@ -575,16 +575,20 @@ class Andor():
         self.make_directories()
 
         self.abort()
+
         cwd = os.getcwd()
         acquire = r"resources\solis_scripts\acquire.pgm"
         file = r'"%s\%s"' % (cwd, acquire)
-
-        self.soliswin.menu_select("File -> Run Program By Filename")
-        open_opt = self.solis.window(title_re="Open")
-        file_name = open_opt.Edit.set_text(file)
-        open_opt.Button.click()
-        self.acquisition_countdown()
-        subprocess.Popen(r'explorer /select,"{0}"/'.format(self.PATH_TO_FILES))
+        try:
+            self.soliswin.menu_select("File -> Run Program By Filename")
+            open_opt = self.solis.window(title_re="Open")
+            file_name = open_opt.Edit.set_text(file)
+            open_opt.Button.click()
+            self.acquisition_countdown()
+        except (Exception, MenuItemNotEnabled) as e:
+            msg = "The camera is likely not attached and/or plugged in."
+            self.TEST_RESULTS.append(e)
+            error_prompt(e, msg)
 
     def acquisition_countdown(self):
         total_time = 2*float(self.JSON_SETTINGS["run"]["run_len"])*float(self.JSON_SETTINGS["run"]["num_run"])
