@@ -138,12 +138,12 @@ def get_args(skip):
 
     return args
 
-def log_test_file(arduino, andor):
+def log_test_file(results):
     now = datetime.now()
     log_name = now.strftime("%m-%d-%Y-%H%M%S") + ".txt"
     path = "resources\\tests\\{0}".format(log_name)
     with open(path, "w+") as f:
-        for line in andor+arduino:
+        for line in results:
             f.write(line+"\n")
     f.close()
     return path
@@ -206,8 +206,6 @@ def run():
     # Begin Acquisition
     andor.acquire()
 
-    exit_function()
-
 def test():
 
     """
@@ -237,16 +235,16 @@ def test():
     prompt("Logging test File")
 
     try:
-        path = log_test_file(arduino.TEST_RESULTS, andor.TEST_RESULTS)
+        path = log_test_file(arduino.TEST_RESULTS+andor.TEST_RESULTS)
     except Exception as e:
+        path = "nowhere"
         msg = "Could not create the log test file."
-        self.TEST_RESULTS.append(e)
         error_prompt(e, msg)
 
     prompt("Test Complete... The Following Errors were logged to {0}".format(colored(os.getcwd()+"\\"+path, 'green')))
 
     for error in arduino.TEST_RESULTS + andor.TEST_RESULTS:
-        print(colored('ERROR: ', 'red')+" "+error)
+        print(colored('ERROR: ', 'red')+" "+str(error))
 
 class Andor():
 
