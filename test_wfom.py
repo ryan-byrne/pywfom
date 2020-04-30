@@ -5,3 +5,7 @@ def test_run():
 
 def test_test():
     wfom.test()
+
+a = wfom.Andor()
+
+a.acquire()

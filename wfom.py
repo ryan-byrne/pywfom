@@ -38,7 +38,7 @@ def prompt(msg):
 
     print("")
 
-def error_prompt(msg):
+def error_prompt(e, msg):
 
     """
 
@@ -52,14 +52,19 @@ def error_prompt(msg):
 
     err = colored('ERROR: ', 'red')
 
-    script = "\n{0} {1} Continue anyway? [y/n] ".format(err, msg)
+    q = colored('Continue anyway? [y/n] ', 'yellow')
 
+    msg = colored(msg, 'red', attrs=['blink'])
+
+    input_script = "{0} \n\n{1}".format(msg, q)
+
+    print(err, e)
+    print("\n")
 
     if args.yes:
-        print("\n")
-        print(err, msg)
+        print(msg)
         time.sleep(3)
-    elif (input(script) == "y"):
+    elif (input(input_script) == "y"):
         pass
     else:
         sys.exit()
@@ -201,6 +206,8 @@ def run():
     # Begin Acquisition
     andor.acquire()
 
+    exit_function()
+
 def test():
 
     """
@@ -230,14 +237,15 @@ def test():
     prompt("Logging test File")
 
     try:
-        path = log_test_file(arduino.test, andor.test)
-    except FileNotFoundError:
-        path = "Nowhere"
-        error_prompt("Could not create the log file...")
+        path = log_test_file(arduino.TEST_RESULTS, andor.TEST_RESULTS)
+    except Exception as e:
+        msg = "Could not create the log test file."
+        self.TEST_RESULTS.append(e)
+        error_prompt(e, msg)
 
-    prompt("Test Complete... Errors logged to {0}".format(colored(os.getcwd()+"\\"+path, 'green')))
+    prompt("Test Complete... The Following Errors were logged to {0}".format(colored(os.getcwd()+"\\"+path, 'green')))
 
-    for error in arduino.test + andor.test:
+    for error in arduino.TEST_RESULTS + andor.TEST_RESULTS:
         print(colored('ERROR: ', 'red')+" "+error)
 
 class Andor():
@@ -332,7 +340,48 @@ class Andor():
                 OLD_ZYLA_SETTINGS = self.ZYLA_SETTINGS
                 if len(OLD_ZYLA_SETTINGS) == 12:
                     self.deploy_json_camera_settings()
+                    break
                 time.sleep(3)
+
+    def open_solis(self):
+
+        """
+
+        Opens a new instance of AndorSolis.exe
+
+        The command will Timeout after 10 seconds
+
+        """
+
+        try:
+            app = Application().start(r"C:\Program Files\Andor SOLIS\AndorSolis.exe", timeout=10)
+        except Exception as e:
+            msg = "You may not have SOLIS Installed."
+            self.TEST_RESULTS.append(e)
+            error_prompt(e, msg)
+
+    def connect_to_solis(self):
+
+        """
+
+        Attaches a pywinauto controller to the Andor Window.
+
+        The connection times out after 3 seconds.
+
+        It then creates the variable 'self.soliswin' which will be used by
+        the script later.
+
+        """
+
+        prompt("Attempting to Connect to SOLIS")
+        try:
+            self.solis = Application().connect(title_re="Andor SOLIS", timeout=3)
+            self.soliswin = self.solis.window(title_re="Andor SOLIS", found_index=0)
+            self.view()
+        except Exception as e:
+            msg = "The window to SOLIS may have closed."
+            self.TEST_RESULTS.append(e)
+            error_prompt(e, msg)
 
     def preview(self):
 
@@ -369,31 +418,37 @@ class Andor():
             open_opt = self.solis.window(title_re="Open")
             file_name = open_opt.Edit.set_text(file)
             open_opt.Button.click()
-        except MenuItemNotEnabled:
-            msg = "Menu Item Not Enabled in SOLIS. Camera is likely disconnected."
-            self.TEST_RESULTS.append(msg)
-            error_prompt(msg)
+        except Exception as e:
+            msg = "The camera is likely not attached and/or plugged in."
+            self.TEST_RESULTS.append(e)
+            error_prompt(e, msg)
 
     def deploy_json_camera_settings(self):
 
         """
 
-        Takes Python dictionary 'SETTINGS' and updates the 'settings.json' file.
+        Reads the Zyla 'settings.txt' file, converts it to a Python dict and
+        sends the settings to 'settings.json'
 
         """
+
+        # Update the self.ZYLA_SETTINGS list file
+        self.read_zyla_settings()
 
         prompt("Updating the Camera settings in 'settings.json'")
         parameters = ["binning", "height", "bottom", "width", "length", "exposure", "framerate"]
 
+        # Open 'settings.json' to be editable
         with open("JavaGUI/settings.json", "r+") as f:
-            settings["camera"] = {}
+            # Create an empty dict under self.JSON_SETTINGS.camera
+            self.JSON_SETTINGS["camera"] = {}
+            # Iterate through each parameter and match it with its ZYLA_SETTING
             for i in range(len(parameters)):
-                settings["camera"][parameters[i]] = SETTINGS[i]
+                self.JSON_SETTINGS["camera"][parameters[i]] = self.ZYLA_SETTINGS[i]
             f.seek(0)
-            json.dump(settings, f)
+            json.dump(self.JSON_SETTINGS, f)
             f.truncate()
         f.close()
-
 
     def check_java(self):
 
@@ -410,63 +465,15 @@ class Andor():
                 else:
                     continue
 
-        except FileNotFoundError:
-            msg = "Java Runtime Environment is not installed on your Machine."
-            self.TEST_RESULTS.append(msg)
-            error_prompt(msg)
+        except Exception as e:
+            msg = ""
+            self.TEST_RESULTS.append(e)
+            error_prompt(e, msg)
 
         prompt("JRE {0} is installed".format(version))
 
         if float(version[:3]) < 1.8:
             msg = "JRE 1.8 or higher is required to run OpenWFOM"
-            self.TEST_RESULTS.append(msg)
-            error_prompt(msg)
-
-    def open_solis(self):
-
-        """
-
-        Opens a new instance of AndorSolis.exe
-
-        The command will Timeout after 10 seconds
-
-        """
-
-        try:
-            app = Application().start(r"C:\Program Files\Andor SOLIS\AndorSolis.exe", timeout=10)
-        except TimeoutError:
-            msg = "Opening SOLIS Timed Out."
-            self.TEST_RESULTS.append(msg)
-            error_prompt(msg)
-        except AppStartError:
-            msg = "SOLIS is not installed on your machine."
-            self.TEST_RESULTS.append(msg)
-            error_prompt(msg)
-
-    def connect_to_solis(self):
-
-        """
-
-        Attaches a pywinauto controller to the Andor Window.
-
-        The connection times out after 3 seconds.
-
-        It then creates the variable 'self.soliswin' which will be used by
-        the script later.
-
-        """
-
-        prompt("Attempting to Connect to SOLIS")
-        try:
-            self.solis = Application().connect(title_re="Andor SOLIS", timeout=3)
-            self.soliswin = self.solis.window(title_re="Andor SOLIS", found_index=0)
-            self.view()
-        except TimeoutError:
-            msg = "Connection to SOLIS Timed Out."
-            self.TEST_RESULTS.append(msg)
-            error_prompt(msg)
-        except MenuItemNotEnabled:
-            msg = "Connection to the Camera Failed."
             self.TEST_RESULTS.append(msg)
             error_prompt(msg)
 
@@ -476,10 +483,10 @@ class Andor():
 
         try:
             self.soliswin.menu_select("Acquisition->Take Video")
-        except MenuItemNotEnabled:
-            msg = "Unable to View. Camera not connected."
-            self.TEST_RESULTS.append(msg)
-            error_prompt(msg)
+        except Exception as e:
+            msg = "The camera is likely not attached and/or plugged in."
+            self.TEST_RESULTS.append(e)
+            error_prompt(e, msg)
 
     def abort(self):
 
@@ -487,10 +494,10 @@ class Andor():
 
         try:
             self.soliswin.menu_select("Acquisition->Abort Acquisition")
-        except MenuItemNotEnabled:
-            msg = "Unable to Abort."
-            self.TEST_RESULTS.append(msg)
-            error_prompt(msg)
+        except Exception as e:
+            msg = "The camera is likely not attached and/or plugged in."
+            self.TEST_RESULTS.append(e)
+            error_prompt(e, msg)
 
     def make_directories(self):
         try:
@@ -505,8 +512,10 @@ class Andor():
 
             prompt("Moving JavaGUI/settings.json to "+self.PATH_TO_FILES+"/settings.json")
             shutil.move(src, dst)
-        except (PermissionError, FileNotFoundError):
-            error_prompt("Could not save the file to "+self.PATH_TO_FILES)
+        except Exception as e:
+            msg = "Could make the directories at {0}".format(self.PATH_TO_FILES)
+            self.TEST_RESULTS.append(e)
+            error_prompt(e, msg)
 
     def update_zyla_settings(self):
 
@@ -548,8 +557,10 @@ class Andor():
             with open("JavaGUI/settings.json", "r+") as f:
                 self.JSON_SETTINGS = json.load(f)
             f.close()
-        except FileNotFoundError:
-            error_prompt("Unable to find 'settings.json'")
+        except Exception as e:
+            msg = "Unable to find the 'settings.json' file. It may have been deleted."
+            self.TEST_RESULTS.append(e)
+            error_prompt(e, msg)
 
     def acquire(self):
 
@@ -579,12 +590,17 @@ class Andor():
 
     def acquisition_countdown(self):
         total_time = 2*float(self.JSON_SETTINGS["run"]["run_len"])*float(self.JSON_SETTINGS["run"]["num_run"])
-        while total_time > 0:
+        while total_time > -1:
 
-            min = round(total_time/60, 0)
-            sec = total_time % 60
+            min = str(int(total_time/60))
+            sec = str(int(total_time % 60))
 
-            prompt("Acquisition Successfully Initiated. {0} min {1} sec remaining".format(min, sec))
+            if min == "0":
+                msg = "{0} sec Remaining".format(sec)
+            else:
+                msg = "{0} min {1} sec Remaining".format(min, sec)
+
+            prompt("Acquisition Started. "+msg)
 
             time.sleep(1)
             total_time -= 1
@@ -624,19 +640,29 @@ class Arduino():
                     timeout=0)
             time.sleep(3)
             self.connected = 1
-            prompt("Successfully connected to Arduino at {0}".format(port))
-        except serial.SerialException as e:
-            msg = "Arduino is not Connected to " + self.port
-            self.TEST_RESULTS.append(msg)
-            error_prompt(msg)
+            prompt("Successfully connected to Arduino at {0}".format(self.port))
+        except Exception as e:
+            msg = "Unable to connect to the Arduino. Ensure that it is plugged in and connected to "+self.port
+            self.TEST_RESULTS.append(e)
+            error_prompt(e, msg)
 
     def disable(self):
-        prompt("Enabling Python Arduino Communication")
-        self.ser.close()
+        prompt("Disabling Python <-> Arduino Communication")
+        try:
+            self.ser.close()
+        except Exception as e:
+            msg = "Unable to connect to the Arduino. Ensure that it is plugged in and connected to "+self.port
+            self.TEST_RESULTS.append(e)
+            error_prompt(e, msg)
 
     def enable(self):
-        prompt("Enabling Python-Arduino Communication")
-        self.ser.open()
+        prompt("Enabling Python <-> Arduino Communication")
+        try:
+            self.ser.open()
+        except Exception as e:
+            msg = "Unable to connect to the Arduino. Ensure that it is plugged in and connected to "+self.port
+            self.TEST_RESULTS.append(e)
+            error_prompt(e, msg)
         time.sleep(3)
 
     def set_strobe_order(self):
@@ -644,7 +670,12 @@ class Arduino():
         for led in self.strobe_order:
             order += led[0]
         prompt("Setting the Strobe order on the Arduino to: "+order)
-        self.ser.write(order.encode())
+        try:
+            self.ser.write(order.encode())
+        except Exception as e:
+            msg = "Unable to connect to the Arduino. Ensure that it is plugged in and connected to "+self.port
+            self.TEST_RESULTS.append(e)
+            error_prompt(e, msg)
 
     def clear(self):
         self.ser.write("0000".encode())
