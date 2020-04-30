@@ -1,7 +1,7 @@
 import wfom
-from wfom import Andor
 
-def test_acquire():
+def test_run():
     wfom.run()
 
-wfom.run()
+def test_test():
+    wfom.test()
