@@ -5,12 +5,12 @@ with open(os.path.join(os.getcwd(), 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
-    name = "wfom",
-    version = "0.0.2",
+    name = "OpenWFOM",
+    version = "0.0.1",
     author = "Ryan Byrne",
     author_email = "ryanbyrne142@gmail.com",
     keywords = "wide field optical mapping",
-    url = "https://github.com/ryan-byrne/wfom",
+    url = "https://github.com/ryan-byrne/OpenWFOM",
     include_package_data=True,
     py_modules=["wfom"],
     long_description=long_description,
