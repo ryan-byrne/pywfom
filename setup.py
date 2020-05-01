@@ -13,6 +13,16 @@ setup(
     url = "https://github.com/ryan-byrne/OpenWFOM",
     include_package_data=True,
     py_modules=["wfom"],
+    install_requires=[
+        "pywinauto",
+        "path",
+        "pyfiglet",
+        "pyserial",
+        "psutil",
+        "pyfiglet",
+        "colorama",
+        "termcolor"
+    ],
     long_description=long_description,
     long_description_content_type='text/markdown',
     python_requires='>=3.6',

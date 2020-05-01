@@ -4,7 +4,6 @@ from serial import Serial
 from datetime import datetime
 from shutil import copyfile
 from pyfiglet import Figlet
-from colorama import init
 from termcolor import colored
 from pywinauto.application import Application, AppStartError
 from pywinauto.timings import TimeoutError

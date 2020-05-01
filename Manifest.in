@@ -1,0 +1,5 @@
+include JavaGUI/JARs/*
+include JavaGUI/archive.json
+include JavaGUI/settings.json
+include resources/asciiart/*
+include resources/solis_scripts/*
