@@ -27,7 +27,7 @@ It must be first installed alongside your existing Python Packages using ```pip`
 Open a new instance of CMD, and enter:
 
 ``` cmd
-pip install wfom
+pip install openwfom
 ```
 
 You can now import the module and run any of its functions, as the ```example.py``` script does below.
@@ -49,14 +49,14 @@ cd /
 Clone into the Git repository to download the required files.
 
 ```
-git clone https://github.com/ryan-byrne/wfom.git
+git clone https://github.com/ryan-byrne/OpenWFOM.git
 ```
 
-Once the download is completed, navigate into the ```/wfom``` directory, and run the ```setup.py``` script
+Once the download is completed, navigate into the ```/OpenWFOM``` directory, and run the ```setup.py``` script
 to install the necessary Python packages.
 
 ```
-cd wfom
+cd OpenWFOM
 python setup.py install
 ```
 
@@ -86,7 +86,7 @@ And run the test function:
 
 #### (Option 2) Test Command Line Script
 
-**NOTE** ***The command line script can only be run from the ```C:/wfom``` directory***
+**NOTE** ***The command line script can only be run from the ```C:/OpenWFOM``` directory***
 
 ```
 python wfom.py --test
@@ -95,8 +95,12 @@ python wfom.py --test
 Once the diagnostic test is complete, any errors will be logged to a text file at:
 
 ```
-C:/wfom/resources/tests/TIMESTAMP_OF_TEST.txt
+C:/OpenWFOM/resources/tests/TIMESTAMP_OF_TEST.txt
 ```
+
+#### Test Using the Provided Batch File
+
+Alternatively, there is a batch file called ```Test.bat``` included in the ```OpenWFOM``` directory, which will open up the test script simply being double-clicked.
 
 ## Usage
 
@@ -114,7 +118,7 @@ wfom.run()
 
 #### Available Classes
 
-The OpenWFOM package is comprised of three classes: *Andor, Arduino, and Webcam*, which can be imported on their own. 
+The OpenWFOM package is comprised of three classes: *Andor, Arduino, and Webcam*, which can be imported on their own.
 
 For example, if I simply wanted to import the Arduino class from ```wfom``` I would write:
 
@@ -129,7 +133,7 @@ a.strobe()
 
 ### (Option 2) Running from the Command Line
 
-To run the script from the command line, while inside the ```/wfom``` directory type:
+To run the script from the command line, while inside the ```/OpenWFOM``` directory type:
 
 ```
 python wfom.py
@@ -138,7 +142,7 @@ python wfom.py
 ***NOTE:*** If you've navigated to a different directory in the command prompt, you must explicitly refer to the location of ```wfom.py``` i.e.:
 
 ```
-python C:\wfom\wfom.py
+python C:\OpenWFOM\wfom.py
 ```
 
 #### Command Line Arguments
