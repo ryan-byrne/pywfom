@@ -1,4 +1,4 @@
-import shutil, psutil, json, time, os, subprocess, path, sys, win32api, serial
+import shutil, psutil, json, time, os, subprocess, path, sys, serial
 import argparse, re
 from serial import Serial
 from datetime import datetime
