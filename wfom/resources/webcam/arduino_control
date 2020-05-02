@@ -1,0 +1,4 @@
+import pyfirmata
+
+board = pyfirmata.Arduino('COM6')
+get_pin('d:3:o').write(1)
