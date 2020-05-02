@@ -14,14 +14,13 @@ setup(
     include_package_data=True,
     py_modules=["wfom"],
     install_requires=[
-        "pywinauto",
-        "path",
-        "pyfiglet",
-        "pyserial",
-        "psutil",
-        "pyfiglet",
-        "colorama",
-        "termcolor"
+        "colorama>=0.4.3",
+        "path>=13.0.0",
+        "psutil>=5.7.0",
+        "pyfiglet>=0.8.post1",
+        "pyserial>=3.4",
+        "pywinauto==0.6.3",
+        "termcolor==1.1.0"
     ],
     long_description=long_description,
     long_description_content_type='text/markdown',
