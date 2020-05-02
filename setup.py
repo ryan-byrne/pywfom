@@ -6,7 +6,7 @@ with open(os.path.join(os.getcwd(), 'README.md'), encoding='utf-8') as f:
 
 setup(
     name = "OpenWFOM",
-    version = "0.0.1",
+    version = "0.0.1b1",
     author = "Ryan Byrne",
     author_email = "ryanbyrne142@gmail.com",
     keywords = "wide field optical mapping",
