@@ -25,7 +25,7 @@ setup(
     ],
     long_description=long_description,
     long_description_content_type='text/markdown',
-    python_requires=['3.5','3.6','3.8'],
+    python_requires='>=3.5,!=3.7.6',
     license="MIT",
     classifiers=[
         "Programming Language :: Python :: 3",
