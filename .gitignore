@@ -1,0 +1,7 @@
+*.pyc
+/AndorSDK
+/build
+/dist
+/openwfom.egg*
+JavaGUI/*
+!JavaGUI/JARs/
