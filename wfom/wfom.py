@@ -1,5 +1,5 @@
 import shutil, psutil, json, time, os, subprocess, path, sys, serial
-import argparse, re, importlib, inquirer
+import argparse, re, importlib
 from serial import Serial
 from datetime import datetime
 from shutil import copyfile
@@ -226,6 +226,7 @@ def test():
     """
 
     welcome_banner("Test")
+
 
     prompt("Running diagnostic test on WFOM...")
 

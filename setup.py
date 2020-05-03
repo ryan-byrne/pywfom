@@ -6,7 +6,7 @@ with open(os.path.join(os.getcwd(), 'README.md'), encoding='utf-8') as f:
 
 setup(
     name = "openwfom",
-    version = "0.0.1b5",
+    version = "0.0.1b13",
     author = "Ryan Byrne",
     author_email = "ryanbyrne142@gmail.com",
     keywords = "wide field optical mapping",
@@ -21,8 +21,7 @@ setup(
         "psutil",
         "pyfiglet",
         "colorama",
-        "termcolor",
-        "python-inquirer"
+        "termcolor"
     ],
     long_description=long_description,
     long_description_content_type='text/markdown',
