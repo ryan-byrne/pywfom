@@ -27,6 +27,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+        pip install -i https://test.pypi.org/simple/ openwfom
     - name: Test with pytest
       run: |
         pip install pytest
