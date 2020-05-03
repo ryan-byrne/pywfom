@@ -1,0 +1,8 @@
+pywinauto
+path
+pyfiglet
+pyserial
+psutil
+pyfiglet
+colorama
+termcolor

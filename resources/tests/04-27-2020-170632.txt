@@ -1,0 +1,2 @@
+Unable to View. Camera not connected.
+Arduino is not Connected to COM4

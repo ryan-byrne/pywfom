@@ -1,0 +1,2 @@
+Connection to SOLIS Timed Out.
+Arduino is not Connected to COM4

@@ -1,5 +1,3 @@
-include wfom/JavaGUI/JARs/*
-include wfom/JavaGUI/archive.json
-include wfom/JavaGUI/settings.json
-include wfom/resources/asciiart/*
-include wfom/resources/solis_scripts/*
+include JavaGUI/JARs/*
+include resources/solis_scripts/*
+include resources/asciiart/*

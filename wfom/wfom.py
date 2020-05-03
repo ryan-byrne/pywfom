@@ -1,5 +1,5 @@
 import shutil, psutil, json, time, os, subprocess, path, sys, serial
-import argparse, re
+import argparse, re, importlib, inquirer
 from serial import Serial
 from datetime import datetime
 from shutil import copyfile
@@ -75,6 +75,7 @@ def render_ascii(name, msg):
 
     """
     # set max len of string
+
     mlen = 51
     l = len(msg)
     # set indent
@@ -94,6 +95,10 @@ def render_ascii(name, msg):
 
 def welcome_banner(mode):
 
+    # Set CWD to the location of 'wfom' Python Package
+    os.chdir(os.path.dirname(os.__file__)+"\\site-packages\\wfom")
+
+    # Clear the Command Prompt Screen
     os.system("cls")
 
     w = Figlet(font='speed')

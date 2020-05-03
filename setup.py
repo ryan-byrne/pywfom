@@ -1,18 +1,18 @@
 import os
-from setuptools import setup
+from setuptools import setup, find_packages
 
 with open(os.path.join(os.getcwd(), 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
-    name = "OpenWFOM",
-    version = "0.0.1b8",
+    name = "openwfom",
+    version = "0.0.1b5",
     author = "Ryan Byrne",
     author_email = "ryanbyrne142@gmail.com",
     keywords = "wide field optical mapping",
     url = "https://github.com/ryan-byrne/OpenWFOM",
     include_package_data=True,
-    py_modules=["wfom"],
+    packages=find_packages(),
     install_requires=[
         "pywinauto",
         "path",
@@ -21,7 +21,8 @@ setup(
         "psutil",
         "pyfiglet",
         "colorama",
-        "termcolor"
+        "termcolor",
+        "python-inquirer"
     ],
     long_description=long_description,
     long_description_content_type='text/markdown',

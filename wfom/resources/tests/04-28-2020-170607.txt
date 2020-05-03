@@ -1,3 +1,0 @@
-JRE 1.8 or higher is required to run OpenWFOM
-Unable to View. Camera not connected.
-Arduino is not Connected to COM4

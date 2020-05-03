@@ -1,0 +1,132 @@
+{
+    "settings": {
+        "": {
+            "stim": {
+                "stim_length": "4.00",
+                "pre_stim": "6.00",
+                "num_of_stims": "1",
+                "post_stim": "12.00"
+            },
+            "strobe_order": [
+                "Red",
+                "Green"
+            ],
+            "run": {
+                "num_run": "1",
+                "run_len": "22.0"
+            },
+            "camera": {
+                "exposure": "0.100003",
+                "bottom": "1",
+                "framerate": "9.09911",
+                "width": "2048",
+                "length": "1",
+                "binning": "1",
+                "height": "2048"
+            },
+            "info": {
+                "uni": "",
+                "mouse": "cm102",
+                "timestamp": "01-04-2020 13:30:26"
+            },
+            "status": 0
+        },
+        "ryan": {
+            "stim": {
+                "stim_length": "4.00",
+                "pre_stim": "6.00",
+                "num_of_stims": "1",
+                "post_stim": "12.00"
+            },
+            "strobe_order": [
+                "Red",
+                "Green"
+            ],
+            "run": {
+                "num_run": "1",
+                "run_len": "22.0"
+            },
+            "camera": {
+                "exposure": "0.100003",
+                "bottom": "1",
+                "framerate": "9.09911",
+                "width": "2048",
+                "length": "1",
+                "binning": "1",
+                "height": "2048"
+            },
+            "info": {
+                "uni": "",
+                "mouse": "cm102",
+                "timestamp": "26-02-2020 13:19:07"
+            },
+            "status": 1
+        },
+        "new": {
+            "stim": {
+                "NO": "STIM"
+            },
+            "strobe_order": [
+                "Green",
+                "Blue"
+            ],
+            "run": {
+                "num_run": "1",
+                "run_len": "5.000"
+            },
+            "camera": {
+                "exposure": "0.5",
+                "bottom": "1",
+                "framerate": "9.09911",
+                "width": "2048",
+                "length": "1",
+                "binning": "1",
+                "height": "2048"
+            },
+            "info": {
+                "uni": "",
+                "mouse": "cm102",
+                "timestamp": "30-04-2020 14:14:48"
+            }
+        },
+        "wfom1": {
+            "stim": {
+                "stim_length": "4.00",
+                "pre_stim": "6.00",
+                "num_of_stims": "1",
+                "post_stim": "12.00"
+            },
+            "strobe_order": [
+                "Red",
+                "Green"
+            ],
+            "run": {
+                "num_run": "1",
+                "run_len": "22.0"
+            },
+            "camera": {
+                "exposure": "0.100003",
+                "bottom": "1",
+                "framerate": "9.09911",
+                "width": "2048",
+                "length": "1",
+                "binning": "1",
+                "height": "2048"
+            },
+            "info": {
+                "uni": "",
+                "mouse": "cm102",
+                "timestamp": "26-02-2020 13:19:07"
+            },
+            "status": 0
+        }
+    },
+    "mice": {
+        "cm102": {
+            "last_trial": 152
+        },
+        "cm203": {
+            "last_trial": 2
+        }
+    }
+}
