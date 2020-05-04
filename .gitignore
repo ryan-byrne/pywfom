@@ -5,5 +5,5 @@
 /openwfom.egg*
 JavaGUI/*
 !JavaGUI/JARs/
-resources/test/*
+resources/tests/*
 resources/webcam/*
