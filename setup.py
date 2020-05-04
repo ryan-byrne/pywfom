@@ -6,11 +6,11 @@ with open(os.path.join(os.getcwd(), 'README.md'), encoding='utf-8') as f:
 
 setup(
     name = "openwfom",
-    version = "0.0.1b13",
+    version = "0.0.1b15",
     author = "Ryan Byrne",
     author_email = "ryanbyrne142@gmail.com",
     keywords = "wide field optical mapping",
-    url = "https://github.com/ryan-byrne/OpenWFOM",
+    url = "https://github.com/ryan-byrne/openwfom",
     include_package_data=True,
     packages=find_packages(),
     install_requires=[
@@ -23,6 +23,7 @@ setup(
         "colorama",
         "termcolor"
     ],
+    scripts=['bin/wfom-test','bin/wfom-run'],
     long_description=long_description,
     long_description_content_type='text/markdown',
     python_requires='>3.5,!=3.7.6',
@@ -35,6 +36,6 @@ setup(
     ],
     project_urls={
         "Bug Reports":"https://github.com/ryan-byrne/wfom/issues",
-        "Hillman Lab":"http://orion.bme.columbia.edu/~hillman/"
+        "Hillman Lab":"https://hillmanlab.zuckermaninstitute.columbia.edu/"
     },
 )
