@@ -28,7 +28,7 @@ jobs:
         python -m pip install --upgrade pip
     - name: Install OpenWFOM
       run: |
-        pip install --extra-index-url https://test.pypi.org/simple/ openwfom
+        pip install --extra-index-url https://test.pypi.org/simple/ openwfom==0.0.1b26
     - name: Run wfom-test test script
       run: |
         wfom-test -y
