@@ -15,7 +15,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        python-version: [3.5, 3.6]
+        python-version: [3.5, 3.6, 3.8]
 
     steps:
     - uses: actions/checkout@v2
@@ -28,7 +28,7 @@ jobs:
         python -m pip install --upgrade pip
     - name: Install OpenWFOM
       run: |
-        pip install --extra-index-url https://test.pypi.org/simple/ openwfom==0.0.1b26
+        pip install --extra-index-url https://test.pypi.org/simple/ openwfom==0.0.1b27
     - name: Run wfom-test test script
       run: |
         wfom-test -y
