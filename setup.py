@@ -6,7 +6,7 @@ with open(os.path.join(os.getcwd(), 'README.md'), encoding='utf-8') as f:
 
 setup(
     name = "openwfom",
-    version = "0.0.1b15",
+    version = "0.0.1b26",
     author = "Ryan Byrne",
     author_email = "ryanbyrne142@gmail.com",
     keywords = "wide field optical mapping",
@@ -23,7 +23,11 @@ setup(
         "colorama",
         "termcolor"
     ],
-    scripts=['bin/wfom-test','bin/wfom-run'],
+    entry_points={
+        'console_scripts':[
+            'wfom-test = openwfom.command_line:test',
+            'wfom-run = openwfom.command_line:run'
+        ] },
     long_description=long_description,
     long_description_content_type='text/markdown',
     python_requires='>3.5,!=3.7.6',

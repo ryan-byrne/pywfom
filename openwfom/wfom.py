@@ -11,6 +11,10 @@ from pywinauto.controls.menuwrapper import MenuItemNotEnabled
 from pywinauto.base_wrapper import ElementNotEnabled
 from pywinauto.findwindows import ElementNotFoundError
 
+os.system('COLOR 07')
+
+args = {}
+
 def _prompt(msg, style):
 
     """
@@ -23,17 +27,22 @@ def _prompt(msg, style):
 
     """
 
-    os.system("cls")
-
-    w = Figlet(font='speed')
-    print(w.renderText("OpenWFOM"))
-    print("")
-
-    if args.quiet:
-        _render_ascii('quiet', "Shh. I am running in 'Quiet Mode'. I will only\
-        notify you if an Error occurs.")
+    if args["verbose"]:
+        print(msg)
+        _log_message(msg)
+        return
     else:
-        _render_ascii(style, msg)
+
+        os.system("cls")
+        w = Figlet(font='speed')
+        print(w.renderText("OpenWFOM"))
+        print("")
+
+        if args["quiet"]:
+            _render_ascii('quiet', "Shh. I am running in 'Quiet Mode'. I will only\
+            notify you if an Error occurs.")
+        else:
+            _render_ascii(style, msg)
 
     print("")
 
@@ -71,11 +80,15 @@ def _error_prompt(e, msg):
     err = colored('ERROR: ', 'red')
     c_msg = colored(msg, 'yellow')
 
-    _prompt(err+e_msg+". "+c_msg, 'two_staring')
+    if args["verbose"]:
+        script = colored("\n***ERROR*** "+msg+"\n", 'red')
+    else:
+        script = err + c_msg
 
-    if args.yes:
+    _prompt(script, 'two_staring')
+
+    if args["auto_yes"]:
         print("Continuing...")
-        time.sleep(3)
     elif (_options_prompt("Continue anyways?", ["Yes", "No"]) == "Yes"):
         pass
     else:
@@ -100,19 +113,19 @@ def _render_ascii(file, msg):
         print(ind*" "+"| " + msg_line + min(l-len(msg_line), mlen-len(msg_line))*" "+" |")
     print((ind-1)*" "+" \_"+"_"*13+" "+min([l-13,mlen-13])*"_"+"/")
     print((ind+15)*" "+"V")
-    with open(_path_to_openwfom()+"\\resources\\asciiart\\"+file+"_mouse.txt") as f:
+    with open("resources\\asciiart\\"+file+"_mouse.txt") as f:
         lines = f.readlines()
         for line in lines:
             print(line, end="")
     f.close()
 
 def _path_to_openwfom():
-    return os.path.dirname(os.__file__)+"\site-packages\wfom"
+    return os.path.dirname(os.__file__)+"\site-packages\openwfom"
 
 def _welcome_banner(mode):
 
     # Set CWD to the location of 'wfom' Python Package
-    os.chdir(os.path.dirname(os.__file__)+"\\site-packages\\wfom")
+    os.chdir(os.path.dirname(os.__file__)+"\\site-packages\\openwfom")
 
     # Clear the Command Prompt Screen
     os.system("cls")
@@ -131,54 +144,19 @@ def _welcome_banner(mode):
 
     time.sleep(3)
 
-def _get_args():
-
-    """
-
-    This function simply checks for arguments when the script is called
-    and stores them in their corresponding variable.
-
-    """
-
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument("-q", "--quiet",
-                    action="store_true", dest="quiet", default=False,
-                    help="Don't print status messages to stdout")
-
-    parser.add_argument("-y", "--auto-yes",
-                    action="store_true", dest="yes", default=False,
-                    help="Automatically accept errors and continue")
-
-    parser.add_argument("-t", "--test",
-                    action="store_true", dest="test", default=False,
-                    help="Runs the test function instead of run")
-
-    parser.add_argument("-v", "--verbose",
-                    action="store_true", dest="test", default=False,
-                    help="Runs the test function instead of run")
-
-    args = parser.parse_args()
-
-
-    return args
-
 def _get_drive():
     drives = win32api.GetLogicalDriveStrings().split('\000')[:-1]
     d = _options_prompt("Which drive would you like to save your data to?", drives)
     return d
 
-def _log_test_file(results):
-    now = datetime.now()
-    log_name = now.strftime("%m-%d-%Y-%H%M%S") + ".txt"
-    path = "resources\\tests\\{0}".format(log_name)
-    with open(path, "w+") as f:
-        for line in results:
-            f.write(line+"\n")
+def _log_message(msg):
+    f_name = _path_to_openwfom()+"\\resources\\logs\\"+datetime.utcnow().strftime('%m%d%y_%H')+".txt"
+    with open(f_name, "a+") as f:
+        f.write(msg+"\n")
     f.close()
-    return path
+    return f_name
 
-def run():
+def run(verbose=False, quiet=False, auto_yes=False):
 
     """
 
@@ -203,6 +181,14 @@ def run():
 
     """
 
+    global args
+
+    args = {
+        "verbose":verbose,
+        "quiet":quiet,
+        "auto_yes":auto_yes
+    }
+
     _welcome_banner("Run")
 
     andor = Andor()
@@ -214,8 +200,8 @@ def run():
         "info":andor._info,
         "camera":andor._camera,
         "strobe_order":arduino._strobe,
-        "stim":arduino.stim,
-        "run":arduino.stim,
+        "stim":arduino._stim,
+        "run":arduino._stim,
         "preview":andor._preview
     }
 
@@ -236,7 +222,7 @@ def run():
     # Begin Acquisition
     andor._acquire()
 
-def test():
+def test(verbose=False, quiet=False, auto_yes=False):
 
     """
 
@@ -251,6 +237,14 @@ def test():
 
     """
 
+    global args
+
+    args = {
+        "verbose":verbose,
+        "quiet":quiet,
+        "auto_yes":auto_yes
+    }
+
     _welcome_banner("Test")
 
     _prompt("Running diagnostic test on WFOM...", "standing")
@@ -262,19 +256,14 @@ def test():
     _prompt("Testing connection to Webcams", "standing")
     webcam = Webcam()
 
-    _prompt("Logging test File", "share_mouse")
+    f_name = _log_message("\n"+"*"*25+"End of Test"+"*"*25+"\n")
 
-    try:
-        path = _log_test_file(arduino.TEST_RESULTS+andor.TEST_RESULTS)
-    except Exception as e:
-        path = "nowhere"
-        msg = "Could not create the log test file."
-        _error_prompt(e, msg)
-
-    _prompt("Test Complete... The Following Errors were logged to {0}".format(colored(os.getcwd()+"\\"+path, 'green')), "sitting")
-
-    for error in arduino.TEST_RESULTS + andor.TEST_RESULTS:
-        print(colored('ERROR: ', 'red')+" "+str(error))
+    if args["verbose"]:
+        print("Test completed and logged to:\n")
+        print(colored(f_name, 'yellow'))
+        print("")
+    else:
+        _prompt("Test completed. Use the 'verbose' option to generate a log file", 'finished')
 
 def erase_archive():
     pass
@@ -733,15 +722,3 @@ class Webcam():
 
     def __init__(self):
         self.connected = 1
-
-os.system('COLOR 07')
-if __name__ == '__main__':
-    args = _get_args()
-    # wfom.py run from the command line (look for arguments)
-    if args.test:
-        test()
-    else:
-        run()
-else:
-    # wfom run as a python module
-    args = _get_args()

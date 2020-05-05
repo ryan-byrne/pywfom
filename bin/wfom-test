@@ -1,3 +1,0 @@
-from openwfom import wfom
-
-wfom.test()

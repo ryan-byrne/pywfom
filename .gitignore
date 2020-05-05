@@ -3,7 +3,7 @@
 /build
 /dist
 /openwfom.egg*
-JavaGUI/*
-!JavaGUI/JARs/
-resources/tests/*
-resources/webcam/*
+openwfom/JavaGUI/*
+!openwfom/JavaGUI/JARs/
+openwfom/resources/tests/*
+openwfom/resources/webcam/*

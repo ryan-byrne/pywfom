@@ -1,3 +1,3 @@
-include JavaGUI/JARs/*
-include resources/solis_scripts/*
-include resources/asciiart/*
+include openwfom/JavaGUI/JARs/*
+include openwfom/resources/solis_scripts/*
+include openwfom/resources/asciiart/*
