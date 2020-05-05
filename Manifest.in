@@ -1,3 +1,4 @@
 include openwfom/JavaGUI/JARs/*
 include openwfom/resources/solis_scripts/*
 include openwfom/resources/asciiart/*
+include openwfom/resources/logs/
