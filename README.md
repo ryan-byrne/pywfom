@@ -41,6 +41,8 @@ The test script will run, automatically bypassing any errors it recieves, and pr
 /path/to/site-packages/openwfom/resources/logs
 ```
 
+**Note:** *If any errors occur, post a screenshot of the command line and the output of ```pip freeze``` to this repository's [Issues Page](https://github.com/ryan-byrne/openwfom/issues).*
+
 ## Usage
 
 This section provides information on how to use the ```openwfom``` package, as well as the command line arguments that were installed to the path.
