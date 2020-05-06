@@ -150,6 +150,9 @@ def _get_drive():
     return d
 
 def _log_message(msg):
+    log_path = _path_to_openwfom()+"\\resources\\logs"
+    if not os.path.isdir(log_path):
+        os.mkdir(log_path)
     f_name = _path_to_openwfom()+"\\resources\\logs\\"+datetime.utcnow().strftime('%m%d%y_%H')+".txt"
     with open(f_name, "a+") as f:
         f.write(msg+"\n")
