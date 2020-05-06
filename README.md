@@ -10,7 +10,7 @@ These instructions will help you get the necessary software installed.
 
 ### Software Requirements
 
-* [Python](https://www.python.org/downloads/) - 3.6 and Up
+* [Python](https://www.python.org/downloads/) - 3.5 and Up
 * [Java Runtime](https://java.com/en/download/) - 1.7 and Up
 * [Andor SOLIS (4.30 and up)](http://my.andor.com/login.aspx) - Registration Required
 * [PIP](https://pip.pypa.io/en/stable/installing/)
