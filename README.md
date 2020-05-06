@@ -1,6 +1,6 @@
 # Python Module for the [OpenWFOM](https://hillmanlab.zuckermaninstitute.columbia.edu/content/optical-imaging-and-microscopy-development-and-dissemination) Imaging System
 
-The ```wfom``` Python module and command line tool are ways to declare camera settings, test setup, and start an acquisition on the OpenWFOM imaging system.
+The ```openwfom``` Python Package and command line tool are ways to declare camera settings, test setup, and start an acquisition on an OpenWFOM imaging system.
 
 ## Getting Started
 
@@ -11,163 +11,93 @@ These instructions will help you get the necessary software installed.
 ### Software Requirements
 
 * [Python](https://www.python.org/downloads/) - 3.6 and Up
-* [Java Runtime](https://java.com/en/download/) - 1.8 and Up
+* [Java Runtime](https://java.com/en/download/) - 1.7 and Up
 * [Andor SOLIS (4.30 and up)](http://my.andor.com/login.aspx) - Registration Required
-* [PIP](https://pip.pypa.io/en/stable/installing/) Install Option 1
-* [Git](https://git-scm.com/download/win) - Install Option 2
+* [PIP](https://pip.pypa.io/en/stable/installing/)
 
 ### Installation
 
-#### (Option 1) As a Python Package
+#### Installing the ```openwfom``` Python Package with PIP
 
-The easiest way to use ```wfom``` is by importing its Python package directly into an existing script.
-
-It must be first installed alongside your existing Python Packages using ```pip``` from the command line.
-
-Open a new instance of CMD, and enter:
+Make sure you have [PIP](https://pip.pypa.io/en/stable/installing/) installed on your machine. Open a new instance of CMD, and enter:
 
 ``` cmd
 pip install openwfom
 ```
 
-You can now import the module and run any of its functions, as the ```example.py``` script does below.
-
-``` python
-import wfom
-
-wfom.test()
-```
-
-#### (Option 2) As a Command Line Script
-
-Open up a Command Prompt and navigate to your machine's root directory by typing the following command:
-
-```
-cd /
-```
-
-Clone into the Git repository to download the required files.
-
-```
-git clone https://github.com/ryan-byrne/OpenWFOM.git
-```
-
-Once the download is completed, navigate into the ```/OpenWFOM``` directory, and run the ```setup.py``` script
-to install the necessary Python packages.
-
-```
-cd OpenWFOM
-python setup.py install
-```
+The ```openwfom``` Python Package is now installed in your Python ```site-packages```. ```wfom-test``` and ```wfom-run``` have also been added to your PATH to be used as **command line tools**. More on that later. 
 
 ### Test the Installation
 
-We will now test to see if the files were installed correctly. Start by opening a new instance of CMD.
+We will now test to see if ```openwfom``` and it's required files were installed correctly. Start by opening a new instance of CMD and type:
 
-#### (Option 1) Test Python Package
-
-Start Python from the command line.
-
-```
-python
+``` cmd
+wfom-test -v -y
 ```
 
-Import the package,
-
-``` python
->>> import wfom
-```
-
-And run the test function:
-
-``` python
->>> wfom.test()
-```
-
-#### (Option 2) Test Command Line Script
-
-**NOTE** ***The command line script can only be run from the ```C:/OpenWFOM``` directory***
+The test script will run, automatically bypassing any errors it recieves, and print each message recieved to the command prompt. It will also generate a log file, whose path will be printed at the end of the script at:
 
 ```
-python wfom.py --test
+/path/to/site-packages/openwfom/resources/logs
 ```
-
-Once the diagnostic test is complete, any errors will be logged to a text file at:
-
-```
-C:/OpenWFOM/resources/tests/TIMESTAMP_OF_TEST.txt
-```
-
-#### Test Using the Provided Batch File
-
-Alternatively, there is a batch file called ```Test.bat``` included in the ```OpenWFOM``` directory, which will open up the test script simply being double-clicked.
 
 ## Usage
 
-This section provides information on how to run the ```wfom``` script, as well as the command line arguments at your disposal
+This section provides information on how to use the ```openwfom``` package, as well as the command line arguments that were installed to the path.
 
-### (Option 1) Running the Python Package
+### (Option 1) Using the Python Package
 
-As previously stated, running the ```wfom``` Python Package simply requires importing it into an existing script.
+Using the ```openwfom``` Python Package simply requires importing it's ```wfom``` module. ```wfom```'s functions can now be used in your custom script.
 
-```
-import wfom
+``` python
+from openwfom import wfom
 
 wfom.run()
 ```
 
 #### Available Classes
 
-The OpenWFOM package is comprised of three classes: *Andor, Arduino, and Webcam*, which can be imported on their own.
+The OpenWFOM package is comprised of three classes: **Andor, Arduino, and Webcam**, which can be imported on their own.
 
 For example, if I simply wanted to import the Arduino class from ```wfom``` I would write:
 
-```
-from wfom import Arduino
+``` python
+from openwfom import wfom
 
 # Initiate the Arduino Class
-a = Arduino("COM4")
+a = wfom.Arduino("COM4")
 # Call the strobe function to open the Strobe GUI
 a.strobe()
 ```
 
 ### (Option 2) Running from the Command Line
 
-To run the script from the command line, while inside the ```/OpenWFOM``` directory type:
+During the ```pip``` installation of our ```openwfom``` package, there were two executable scripts that were installed to our PATH: ```wfom-test``` and ```wfom-run```. To run either, simply enter them into CMD.
 
 ```
-python wfom.py
+wfom-test
 ```
 
-***NOTE:*** If you've navigated to a different directory in the command prompt, you must explicitly refer to the location of ```wfom.py``` i.e.:
+or
 
 ```
-python C:\OpenWFOM\wfom.py
+wfom-run
 ```
-
 #### Command Line Arguments
 
-There are also optional command line arguments which can be used to alter the information fed back from the command prompt, which can help streamline bug testing. They are:
+To run the **command line script** with more (or less) funtionality, optional command line arguments were built in:
 
 * ```-q``` or ```--quiet``` runs the script in "Quiet Mode", without command line prints
-*  ```-t``` or ```--test``` runs the script in "Test Mode", which we should have already run during the installation
-*  ```-y``` automatically continues whenever an error occurs
+*  ```-v``` or ```--verbose``` runs the script in "Verbose Mode", which prints each message on a successive line, and exports the log to a file.
+*  ```-y``` or ```--auto_yes``` automatically continues whenever an error occurs
 
-For example, the following command would run without command line prints, and automatically continue whenever an error occurs:
+**Note:** *"Quiet" and "Verbose" modes cannot be run concurrently.*
 
-```
-python wfom.py -q -y
-```
-
-#### Running from the Batch File
-
-Alternatively, if you'd prefer to avoid using the command prompt altogether, you can run the ```wfom.py``` script by opening the ```OpenWFOM.bat``` batch file, found at:
+For example, the following command would run an acquisition without command line prints, and automatically continue whenever an error occurs:
 
 ```
-C:\wfom\OpenWFOM.bat
+wfom-run -q -y
 ```
-
-***NOTE*** This file can be copy and pasted wherever you'd like for better accessibility.
 
 ## Versioning
 
