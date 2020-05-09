@@ -125,7 +125,7 @@ def _path_to_openwfom():
 def _welcome_banner(mode):
 
     # Set CWD to the location of 'wfom' Python Package
-    os.chdir(os.path.dirname(os.__file__)+"\\site-packages\\openwfom")
+    os.chdir(os.path.dirname(pywinauto.__file__)+"\\site-packages\\openwfom")
 
     # Clear the Command Prompt Screen
     os.system("cls")
@@ -357,14 +357,15 @@ class Andor():
                 if update:
                     _prompt("Updating Preview with new Settings", "standing")
                     self._set_parameters()
-                    time.sleep(3)
-                    self._view()
+                    try:
+                        self._view()
+                    except:
+                        self._abort()
                 self._read_zyla_settings()
                 OLD_ZYLA_SETTINGS = self.ZYLA_SETTINGS
                 if len(OLD_ZYLA_SETTINGS) == 12:
                     self._deploy_json_camera_settings()
                     break
-                time.sleep(3)
 
     def _open_solis(self):
 
@@ -497,22 +498,12 @@ class Andor():
     def _view(self):
 
         _prompt("Attempting to Initiate Camera Preview in SOLIS", "standing")
-
-        try:
-            self.soliswin.menu_select("Acquisition->Take Video")
-        except Exception as e:
-            msg = "The camera is likely not attached and/or plugged in."
-            _error_prompt(e, msg)
+        self.soliswin.menu_select("Acquisition->Take Video")
 
     def _abort(self):
 
         _prompt("Attempting to Abort Camera Preview in SOLIS", "standing")
-
-        try:
-            self.soliswin.menu_select("Acquisition->Abort Acquisition")
-        except Exception as e:
-            msg = "The camera is likely not attached and/or plugged in."
-            _error_prompt(e, msg)
+        self.soliswin.menu_select("Acquisition->Abort Acquisition")
 
     def _make_directories(self):
         try:
@@ -539,6 +530,8 @@ class Andor():
         'settings.txt' file.
 
         """
+
+        _prompt("Reading settings fom 'settings.txt' file", "standing")
 
         with open("resources\\solis_scripts\\settings.txt", "r") as f:
             ZYLA_SETTINGS = f.readlines()
