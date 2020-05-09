@@ -10,16 +10,16 @@ These instructions will help you get the necessary software installed.
 
 ### Software Requirements
 
-* [Python](https://www.python.org/downloads/) - 3.5 and Up
-* [Java Runtime](https://java.com/en/download/) - 1.7 and Up
+* [Python](https://packaging.python.org/tutorials/installing-packages/#ensure-you-can-run-python-from-the-command-line) - 3.5 and Up
+* [Java Runtime](https://www.java.com/en/download/help/download_options.xml#windows) - 1.7 and Up
 * [Andor SOLIS (4.30 and up)](http://my.andor.com/login.aspx) - Registration Required
-* [PIP](https://pip.pypa.io/en/stable/installing/)
+* [PIP](https://packaging.python.org/tutorials/installing-packages/#ensure-you-can-run-pip-from-the-command-line)
 
 ### Installation
 
 #### Installing the ```openwfom``` Python Package with PIP
 
-Make sure you have [PIP](https://pip.pypa.io/en/stable/installing/) installed on your machine. Open a new instance of CMD, and enter:
+Make sure you have [PIP](https://packaging.python.org/tutorials/installing-packages/#ensure-you-can-run-pip-from-the-command-line) installed on your machine. Open a new instance of CMD, and enter:
 
 ``` cmd
 pip install openwfom
