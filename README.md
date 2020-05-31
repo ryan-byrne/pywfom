@@ -13,8 +13,9 @@ These instructions will help you get the necessary software installed.
 * [Python](https://packaging.python.org/tutorials/installing-packages/#ensure-you-can-run-python-from-the-command-line) - 3.5 and Up
 * [Java Runtime](https://www.java.com/en/download/help/download_options.xml#windows) - 1.7 and Up
 * [Andor SOLIS (4.30 and up)](http://my.andor.com/login.aspx) - Registration Required
-* [Spinnaker SDK](https://www.flir.com/products/spinnaker-sdk/)
-* [PIP](https://packaging.python.org/tutorials/installing-packages/#ensure-you-can-run-pip-from-the-command-line)
+* [Spinnaker SDK](https://www.flir.com/products/spinnaker-sdk/) - FLIR Webcam Drivers
+* [Arduino IDE](https://www.arduino.cc/en/main/software) - Arduino Drivers
+
 
 
 ### Installation
