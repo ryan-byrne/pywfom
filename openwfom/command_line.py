@@ -34,3 +34,6 @@ def run():
 def test():
     args = _get_args()
     wfom.test(**args)
+
+if __name__ == '__main__':
+    test()
