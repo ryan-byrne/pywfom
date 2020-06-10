@@ -46,7 +46,7 @@ All Python scripts will now be run within our new virtual environment ```wfom```
 
 #### Installing the ```openwfom``` Python Package with PIP
 
-Make sure you have [PIP](https://packaging.python.org/tutorials/installing-packages/#ensure-you-can-run-pip-from-the-command-line) installed on your machine. Open a new instance of CMD, and enter:
+Make sure you have [PIP](https://packaging.python.org/tutorials/installing-packages/#ensure-you-can-run-pip-from-the-command-line) installed on your machine. Enter:
 
 ``` cmd
 pip install openwfom
