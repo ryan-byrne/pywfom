@@ -77,11 +77,6 @@ void loop() {
   }
 }
 
-void flash(){
-  digitalWrite(blueLed, HIGH);
-  delay(1000);
-  digitalWrite(blueLed, LOW);
-}
 
 void controlLed(String msg){
   // Example Message : 0100

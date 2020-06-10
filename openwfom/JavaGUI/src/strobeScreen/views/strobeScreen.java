@@ -271,7 +271,8 @@ public class strobeScreen extends JFrame {
 	}
 	
 	public OutputStream initializeArduino() {
-		SerialPort sp = SerialPort.getCommPort("COM4");
+		String commPort = System.getenv("WFOM_ARDUINO");
+		SerialPort sp = SerialPort.getCommPort(commPort);
 		sp.setComPortParameters(115200, 8, 1, 0);
 		sp.setComPortTimeouts(SerialPort.TIMEOUT_WRITE_BLOCKING, 0, 0);
 		if (sp.openPort()) {
@@ -308,6 +309,7 @@ public class strobeScreen extends JFrame {
 	}
 	
 	private void controlLeds(ActionEvent e, OutputStream out) {
+		System.out.println(out.toString());
 		String button = e.getActionCommand().toString();
 		int i = Arrays.asList(colors).indexOf(button);
 		StringBuilder message = new StringBuilder("0000");

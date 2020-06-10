@@ -119,6 +119,17 @@ def _render_ascii(file, msg):
             print(line, end="")
     f.close()
 
+def _set_environ_var(env_var, env_val):
+    print("")
+    print("To the Environment Varaible {0} -> {1}".format(env_var, env_val))
+    print("")
+    print(10*"*"+" COPY AND PASTE THE FOLLOWING COMMAND "+10*"*")
+    print("")
+    print(colored("set {0}={1}".format(env_var, env_val), color='yellow'))
+    print("")
+    print("*"*55)
+    sys.exit()
+
 def _path_to_openwfom():
     return(sysconfig.get_paths()["purelib"]+"\\openwfom")
 
@@ -195,7 +206,7 @@ def run(verbose=False, quiet=False, auto_yes=False):
     _welcome_banner("Run")
 
     andor = Andor()
-    arduino = Arduino("COM4")
+    arduino = Arduino()
     webcam = Webcam()
 
     # Create the dict for the required
@@ -255,7 +266,7 @@ def test(verbose=False, quiet=False, auto_yes=False):
     _prompt("Testing connection to Camera and SOLIS", "standing")
     andor = Andor()
     _prompt("Testing connection to Arduino", "standing")
-    arduino = Arduino("COM4")
+    arduino = Arduino()
     _prompt("Testing connection to Webcams", "standing")
     webcam = Webcam()
 
@@ -328,8 +339,6 @@ class Andor():
 
         self._create_path_to_files()
 
-        print("penis")
-        print(self.JSON_SETTINGS)
         time.sleep(10)
 
     def _camera(self):
@@ -661,9 +670,9 @@ class Andor():
 class Arduino():
     """ Methods pertaining to Communication with the Arduino """
 
-    def __init__(self, port):
-        _prompt("Attempting to Connect to Arduino at Serial Port: "+port, "standing")
-        self.port = port
+    def __init__(self):
+        self.port = os.environ.get("WFOM_ARDUINO")
+        _prompt("Attempting to Connect to Arduino at Serial Port: "+self.port, "standing")
         self.TEST_RESULTS = []
         try:
             self.ser = serial.Serial(
@@ -673,40 +682,29 @@ class Arduino():
                 stopbits=serial.STOPBITS_ONE,\
                 bytesize=serial.EIGHTBITS,\
                     timeout=0)
-            time.sleep(3)
-            self.connected = 1
+            time.sleep(1)
             _prompt("Successfully connected to Arduino at {0}".format(self.port), "standing")
-        except Exception as e:
-            msg = "Unable to connect to the Arduino. Ensure that it is plugged in and connected to "+self.port
+        except serial.SerialException as e:
+            msg = "Unable to connect to the Arduino at {0}. Ensure that it is plugged in.".format(self.port)
             _error_prompt(e, msg)
+            arduino_port = _options_prompt("Which COM Port is the Arduino attached to?", self._list_com_ports())
+            _set_environ_var("WFOM_ARDUINO", arduino_port)
 
     def _disable(self):
         _prompt("Disabling Python <-> Arduino Communication", "standing")
-        try:
-            self.ser.close()
-        except Exception as e:
-            msg = "Unable to connect to the Arduino. Ensure that it is plugged in and connected to "+self.port
-            _error_prompt(e, msg)
+        self.ser.close()
 
     def _enable(self):
         _prompt("Enabling Python <-> Arduino Communication", "standing")
-        try:
-            self.ser.open()
-        except Exception as e:
-            msg = "Unable to connect to the Arduino. Ensure that it is plugged in and connected to "+self.port
-            _error_prompt(e, msg)
-        time.sleep(3)
+        self.ser.open()
+        time.sleep(1)
 
     def _set_strobe_order(self):
         order = ""
         for led in self.strobe_order:
             order += led[0]
         _prompt("Setting the Strobe order on the Arduino to: "+order, "standing")
-        try:
-            self.ser.write(order.encode())
-        except Exception as e:
-            msg = "Unable to connect to the Arduino. Ensure that it is plugged in and connected to "+self.port
-            _error_prompt(msg)
+        self.ser.write(order.encode())
 
     def _clear(self):
         self.ser.write("0000".encode())
@@ -744,6 +742,25 @@ class Arduino():
 
     def _turn_off_strobing(self):
         self.ser.write("s".encode())
+
+    def _list_com_ports(self):
+        """ Lists serial port names
+
+            :raises EnvironmentError:
+                On unsupported or unknown platforms
+            :returns:
+                A list of the serial ports available on the system
+        """
+        ports = ['COM%s' % (i + 1) for i in range(256)]
+        result = []
+        for port in ports:
+            try:
+                s = serial.Serial(port)
+                s.close()
+                result.append(port)
+            except (OSError, serial.SerialException):
+                pass
+        return result
 
 class Webcam():
     """docstring for Webcam."""
