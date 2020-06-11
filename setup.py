@@ -21,7 +21,10 @@ setup(
         "psutil",
         "pyfiglet",
         "colorama",
-        "termcolor"
+        "termcolor",
+        "matplotlib",
+        "numpy",
+        "Pillow"
     ],
     entry_points={
         'console_scripts':[

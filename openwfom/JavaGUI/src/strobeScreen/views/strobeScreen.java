@@ -309,7 +309,6 @@ public class strobeScreen extends JFrame {
 	}
 	
 	private void controlLeds(ActionEvent e, OutputStream out) {
-		System.out.println(out.toString());
 		String button = e.getActionCommand().toString();
 		int i = Arrays.asList(colors).indexOf(button);
 		StringBuilder message = new StringBuilder("0000");
