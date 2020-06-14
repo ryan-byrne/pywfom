@@ -279,7 +279,7 @@ public class cameraScreen extends JFrame {
 		writer.println(e);
 		writer.println(f);
 		writer.println("5.00");
-		writer.println("run0");
+		writer.println("run");
 		writer.println("/CCD");
 		writer.println("1");
 		if (deploy == true) {

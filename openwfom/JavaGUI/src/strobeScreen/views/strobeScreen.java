@@ -48,7 +48,7 @@ public class strobeScreen extends JFrame {
 	int mode = 1;
 	boolean stimStatus;
 	boolean ledOn[] = {false, false, false, false};
-	String colors[] = {"Blue","Green","Lime","Red"};
+	String colors[] = {"Green","Red","Lime","Blue"};
 	String mouse = new String();
 	String uni = new String();
 	boolean readyToDeploy = false;
@@ -315,7 +315,7 @@ public class strobeScreen extends JFrame {
 		message.setCharAt(i, '1');
 		String msg = message.toString();
 		try {
-			//System.out.println("Sending "+ message +" to arduino");
+			System.out.println("Sending "+ message +" to arduino");
 			out.write(msg.getBytes());
 			out.flush();
 		} catch (IOException e1) {

@@ -1,4 +1,5 @@
 import PySpin, cv2
+from threading import Thread
 import matplotlib.pyplot as plt
 
 class Andor():
@@ -25,39 +26,37 @@ class Flir():
         else:
             print("There are {0} FLIR Camera(s) attached".format(self.cam_list.GetSize()))
 
-    def preview(self):
-
-        print("Previewing FLIR Cameras")
-
-        for enum, cam in enumerate(self.cam_list):
-
-            cam.Init()
-            cam.BeginAcquisition()
-
-            while True:
-                image = cam.GetNextImage(1000)
-                cv2.imshow("%i" % enum, image.GetNDArray())
-                if cv2.waitKey(1) & 0xFF == ord('q'):
-                    break
-
-            image.Release()
-            cv2.destroyAllWindows()
-
-            cam.EndAcquisition()
-            cam.DeInit()
-
-
-
     def close(self):
+
         self.cam_list.Clear()
         self.system.ReleaseInstance()
 
+    def capture(self, id):
 
+        print("Previewing FLIR Camera {0}".format(id))
+
+        cam = self.cam_list[id]
+
+        cam.Init()
+        cam.BeginAcquisition()
+
+        while True:
+            image = cam.GetNextImage(1000)
+            
+            cv2.imshow("%i" % id, image.GetNDArray())
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+
+        image.Release()
+        cv2.destroyAllWindows()
+
+        cam.EndAcquisition()
+        cam.DeInit()
 
 if __name__ == '__main__':
+
     andor = Andor()
     flir = Flir()
 
-    flir.preview()
-
-    flir.close()
+    for  i in range(len(flir.cam_list)):
+        Thread(target=flir.capture, args=(i,)).start()

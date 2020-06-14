@@ -1,11 +1,11 @@
-#define greenLed    7
-#define redLed      8
+#define greenLed    10
+#define redLed      11
 #define blueLed     12
-#define limeLed     10
-#define trig        3
+#define limeLed     13
+#define trig        2
 
 int ledArray[4] = {greenLed, redLed, blueLed, limeLed};
-String orderString = "RLGB";
+String orderString = "GRBL";
 bool last;
 String msg, ord;
 bool strobing;
@@ -57,10 +57,9 @@ void loop() {
     else{
       // Set Strobe Order
       ord = msg;
-      Serial.println(ord);
     }
   }
-  // Waits until the order is set, and the shutter is open to begin strobing
+  // Waits until the order is set, the shutter is open, and strobing is enabled
   if ((digitalRead(trig))&&(ord.length()>0)&&(strobing)){
     // Sensor is exposed
     if (last == false){

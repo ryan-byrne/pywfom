@@ -1,4 +1,4 @@
-import shutil, win32api, sysconfig, psutil, json, time, os, subprocess, path
+import shutil, sysconfig, psutil, json, time, os, subprocess, path, PySpin
 import sys, serial, argparse
 from serial import Serial
 from datetime import datetime
@@ -155,11 +155,6 @@ def _welcome_banner(mode):
 
     time.sleep(1)
 
-def _get_drive():
-    drives = win32api.GetLogicalDriveStrings().split('\000')[:-1]
-    d = _options_prompt("Which drive would you like to save your data to?", drives)
-    return d
-
 def _log_message(msg):
     log_path = _path_to_openwfom()+"\\resources\\logs"
     if not os.path.isdir(log_path):
@@ -233,8 +228,11 @@ def run(verbose=False, quiet=False, auto_yes=False):
             COMMANDS[TO_BE_COMPLETED[0]]()
             andor._read_json_settings()
 
+    arduino._turn_on_strobing(andor.JSON_SETTINGS["strobe_order"])
     # Begin Acquisition
     andor._acquire()
+    arduino._turn_off_strobing()
+    print("Files were saved to:\n"+andor.PATH_TO_FILES)
 
 def test(verbose=False, quiet=False, auto_yes=False):
 
@@ -382,16 +380,18 @@ class Andor():
                     pass
             if update:
                 _prompt("Updating Preview with new Settings", "standing")
+                # Set the new parameters
                 self._set_parameters()
                 time.sleep(1)
                 try:
                     self._view()
                 except:
                     self._abort()
-                self._read_zyla_settings()
+            # Read settings from settings.txt
             self._read_zyla_settings()
             OLD_ZYLA_SETTINGS = self.ZYLA_SETTINGS
             time.sleep(0.05)
+        # Create the Camera object in settings.json
         self._deploy_json_camera_settings()
 
     def _reset_zyla_settings(self):
@@ -401,7 +401,6 @@ class Andor():
             f.writelines([line for line in lines[:-1]])
             f.truncate()
         f.close()
-
 
     def _open_solis(self):
 
@@ -575,7 +574,6 @@ class Andor():
             os.mkdir(self.PATH_TO_FILES+"/webcam")
             src = "JavaGUI/settings.json"
             dst = self.PATH_TO_FILES+"/settings.json"
-
             _prompt("Moving JavaGUI/settings.json to "+self.PATH_TO_FILES+"\\settings.json", "share")
             shutil.move(src, dst)
         except Exception as e:
@@ -620,6 +618,8 @@ class Andor():
         self._read_json_settings()
 
         self._make_directories()
+
+        self._finalise_zyla_settings()
 
         self._abort()
 
@@ -669,7 +669,7 @@ class Andor():
             f.truncate()
         f.close()
         mouse = self.JSON_SETTINGS["info"]["mouse"]
-        drive = _get_drive()
+        drive = "C:\\"
         path = drive+"wfom_data\\files\\"
         if os.path.isdir(drive+"wfom_data"):
             pass
@@ -683,6 +683,35 @@ class Andor():
         else:
             path = path + mouse + "_" + str(d+1)
         self.PATH_TO_FILES = path
+
+    def _finalise_zyla_settings(self):
+
+        self._read_zyla_settings()
+
+        """
+        settings.txt format:
+
+        0 binning
+        1 height
+        2 bottom
+        3 width
+        4 left
+        5 exposure time
+        6 Framerate
+        7 Run Duration
+        8 Spool File Stem
+        9 Spool File Directory
+        10 Number of Runs
+
+        """
+
+        self.ZYLA_SETTINGS[7] = self.JSON_SETTINGS["run"]["run_len"]
+        self.ZYLA_SETTINGS[9] = self.PATH_TO_FILES + "\\CCD"
+        self.ZYLA_SETTINGS[10] = self.JSON_SETTINGS["run"]["num_run"]
+        with open("resources\\solis_scripts\\settings.txt", "r+") as f:
+            f.seek(0)
+            f.writelines([line + "\n" for line in self.ZYLA_SETTINGS])
+        f.close()
 
 class Arduino():
     """ Methods pertaining to Communication with the Arduino """
@@ -754,10 +783,21 @@ class Arduino():
         subprocess.call(["java", "-jar", "JARs/stim.jar"])
         os.chdir("..")
 
-    def _turn_on_strobing(self):
+    def _turn_on_strobing(self, strobe_order):
+        _prompt("Strobing the LEDs with the order: {0}".format(strobe_order), "standing")
+
+        ord = ""
+
+        for color in strobe_order:
+            ord += color[0]
+
+        # Send a 1-4 digit color code to Arduino i.e. RGBL
+        self.ser.write(ord.encode())
+        time.sleep(1)
         self.ser.write("S".encode())
 
     def _turn_off_strobing(self):
+        _prompt("Turning off the LED strobing...", "standing")
         self.ser.write("s".encode())
 
     def _list_com_ports(self):
@@ -780,10 +820,49 @@ class Arduino():
         return result
 
 class Webcam():
-    """docstring for Webcam."""
+    """docstring for Flir."""
 
     def __init__(self):
-        pass
+
+        _prompt("Initializing FLIR Cameras...", 'standing')
+
+        self.system = PySpin.System.GetInstance()
+        self.cam_list = self.system.GetCameras()
+
+        if 0 in [self.cam_list.GetSize()]:
+            _prompt("There are no FLIR Cameras attached", 'sitting')
+            self.cam_list.Clear()
+            self.system.ReleaseInstance()
+            return False
+        else:
+            _prompt("There are {0} FLIR Camera(s) attached".format(self.cam_list.GetSize()), 'standing')
+
+    def close(self):
+
+        self.cam_list.Clear()
+        self.system.ReleaseInstance()
+
+    def capture(self, id):
+
+        _prompt("Previewing FLIR Camera {0}".format(id), 'standing')
+
+        cam = self.cam_list[id]
+
+        cam.Init()
+        cam.BeginAcquisition()
+
+        while True:
+            image = cam.GetNextImage(1000)
+
+            cv2.imshow("%i" % id, image.GetNDArray())
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+
+        image.Release()
+        cv2.destroyAllWindows()
+
+        cam.EndAcquisition()
+        cam.DeInit()
 
 if __name__ == '__main__':
     run()
