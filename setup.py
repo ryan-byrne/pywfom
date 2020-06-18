@@ -22,9 +22,8 @@ setup(
         "pyfiglet",
         "colorama",
         "termcolor",
-        "matplotlib",
         "numpy",
-        "Pillow"
+        "h5py"
     ],
     entry_points={
         'console_scripts':[

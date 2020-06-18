@@ -1,12 +1,8 @@
-import PySpin, cv2
-from threading import Thread
-import matplotlib.pyplot as plt
+import cv2, PySpin
 
-class Andor():
-    """docstring for Andor."""
+class FlirError(Exception):
+    pass
 
-    def __init__(self):
-        pass
 
 class Flir():
     """docstring for Flir."""
@@ -19,10 +15,9 @@ class Flir():
         self.cam_list = self.system.GetCameras()
 
         if 0 in [self.cam_list.GetSize()]:
-            print("There are no FLIR Cameras attached")
             self.cam_list.Clear()
             self.system.ReleaseInstance()
-            return False
+            raise FlirError("There are no FLIR Cameras attached")
         else:
             print("There are {0} FLIR Camera(s) attached".format(self.cam_list.GetSize()))
 
@@ -42,7 +37,7 @@ class Flir():
 
         while True:
             image = cam.GetNextImage(1000)
-            
+
             cv2.imshow("%i" % id, image.GetNDArray())
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
@@ -52,11 +47,3 @@ class Flir():
 
         cam.EndAcquisition()
         cam.DeInit()
-
-if __name__ == '__main__':
-
-    andor = Andor()
-    flir = Flir()
-
-    for  i in range(len(flir.cam_list)):
-        Thread(target=flir.capture, args=(i,)).start()

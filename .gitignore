@@ -7,5 +7,3 @@ openwfom/JavaGUI/.settings
 openwfom/JavaGUI/.project
 openwfom/JavaGUI/.classpath
 openwfom/JavaGUI/*.json
-openwfom/resources/tests/*
-openwfom/resources/webcam/*
