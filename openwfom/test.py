@@ -1,24 +1,27 @@
 from imaging import flir, andor
+import time, cv2
 
 if __name__ == '__main__':
     zyla = andor.Camera(0)
     settings = {
         "PixelEncoding":"Mono16",
-        "RollingShutterGlobalClear":True,
-        "TriggerMode":"Software",
+        "TiggerMode":"Software",
+        "FastAOIFrameRateEnable":True,
+        "AOIHeight":500,
+        "AOIWidth":500,
+        "CycleMode":"Continuous",
+        "ExposureTime":0.001
     }
+
     zyla.set(settings)
 
-    for dim in [2000,1000,500,200,100]:
-        for exp in [0.01, 0.001, 0.0001, 0.00001]:
-            settings = {
-                "AOIHeight":dim,
-                "AOIWidth":dim,
-                "ExposureTime":exp
-            }
-            zyla.set(settings)
-            print("{0}x{0}, {1} exp -> {2} fps".format(dim, exp, zyla.get("FrameRate")))
+    zyla.capture('frames', 1000)
 
-    #flirs = flir.Flir()
+    print(zyla.get("FrameRate"))
+
+    while zyla.active:
+        cv2.imshow(zyla.serial_number, zyla.frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+          break
 
     zyla.shutdown()

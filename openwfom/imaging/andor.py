@@ -1,5 +1,5 @@
 from ctypes import POINTER, c_int, c_uint, c_double
-import time, os, ctypes, platform, queue, cv2, threading, sys
+import time, os, ctypes, platform, queue, threading, sys
 import numpy as np
 
 _stdcall_libraries = {}
@@ -285,11 +285,18 @@ class Camera(object):
         self.camNum = camNum
         self.settings = {}
         self._handle = Open(self.camNum)
-        self.active = True
-        self.num_bufs = 100
-        print("\nSuccessfully Opened Camera {0}\nSN: {1}\nFirmware Version: {2}\n".format(camNum, self.get("SerialNumber"), self.get("FirmwareVersion")))
+        self.num_bufs = 10
+        self.frames_per_file = 10
+        self.tf = 0
+        self.active = False
+        self.serial_number =  self.get("SerialNumber")
+        # Create Queues for buffers
+        self._buffers = queue.Queue()
+        # Creating buffers
+        self._create_buffers()
+        print("\nSuccessfully Opened Camera {0}\nSN: {1}\nFirmware Version: {2}\n".format(camNum, self.serial_number, self.get("FirmwareVersion")))
 
-    def set(self, val, param=""):
+    def set(self, param, val=""):
 
         """
 
@@ -310,13 +317,20 @@ class Camera(object):
 
         """
 
-        if type(val).__name__ == 'dict':
-            for setting in val.keys():
-                self._set(setting, val[setting])
+        if type(param).__name__ == 'dict':
+            for setting in param.keys():
+                self._set(setting, param[setting])
         else:
             self._set(param, val)
 
+        # Create camera buffers for new settings
+        self._create_buffers()
+
     def _set(self, setting, value):
+
+        """
+        Internal method for changing a setting on the Camera
+        """
 
         cmd = {
             'bool':SetBool,
@@ -325,7 +339,7 @@ class Camera(object):
             'float':SetFloat
         }
 
-        #print("Setting {0} -> {1}".format(setting, value))
+        print("Setting {0} -> {1}".format(setting, value))
 
         try:
             cmd[type(value).__name__](self._handle, setting, value)
@@ -338,6 +352,10 @@ class Camera(object):
                 raise
 
     def get(self, param):
+
+        """
+        External method for getting settings from the camera
+        """
 
         cmd = {
             'bool':GetBool,
@@ -360,73 +378,128 @@ class Camera(object):
                     except:
                         raise TypeError("{0} is not an available setting for {1}".format(param, self.get("SerialNumber")))
 
-    def capture(self, mode, val, view=False, save=False, path=""):
+    def capture(self, mode='time', val=0):
 
         """
+
+        External Method for capturing frames. Defaults to an Infinite loop.
 
         mode : Whether to capture for # of Frames, or # of Seconds
         val : Value of either frames or seconds the camera will capture
         view : Display preview of Camera as it captures
         save : Save data to disk as it captures
         path : Where to save data captured.
+        name : the file name the arrays will be saved as
 
         """
 
-        if save and path == "":
-            raise ValueError("You must provide a path if you wish to save your data.")
-        elif mode not in ['frames', 'time']:
+        # Check function arguments
+        if mode not in ['frames', 'time']:
             raise ValueError("Capture mode must be set to either 'frames' or 'time'")
         elif mode == 'frames' and type(val).__name__ != 'int':
             raise ValueError("'val' must be an 'int' when 'mode' is set to frames")
         elif mode == 'time' and type(val).__name__ not in ['int', 'float']:
             raise ValueError("'val' must be an 'int' or 'float' when 'mode' is set to frames")
+        elif val == 0:
+            val = float('inf')
+
+        self.active = True
+
+        # Call appropriate internal method
+        if mode == "frames":
+            threading.Thread(target=self._capture_frames, args=(val,)).start()
         else:
-            nbytes = self.get("ImageSizeBytes")
-            h = self.get("AOIHeight")
-            w = self.get("AOIWidth")
-            self.set("CycleMode", "Continuous")
-            print("Grabbing {0}x{1} Frame(s) from {2}".format(h,w,self.serial_number))
+            threading.Thread(target=self._capture_time, args=(val,)).start()
 
-        if view:
-            #print("Creating 2D Frame Array...")
-            self.frame = np.zeros((h, w))
-            self.view = True
-            threading.Thread(target=self._show_frame).start()
-        else:
-            pass
+    def _capture_frames(self, num_frms):
 
-        #print("Creating and Queuing Buffers...")
-        buffers = queue.Queue()
-        for i in range(self.num_bufs):
-            buf = np.zeros((nbytes), 'uint8')
-            QueueBuffer(self._handle, buf.ctypes.data_as(POINTER(AT_U8)), buf.nbytes)
-            buffers.put(buf)
+        """
 
-        #print("Starting Acquisition...")
+        Internal Method for Capturing 'num_frms' frames
+
+        """
+
+        print("\nCapturing {0} Frames from {1}\n".format(num_frms, self.serial_number))
+
         Command(self._handle, "AcquisitionStart")
-        for i in range(val):
-            buf = buffers.get()
-            WaitBuffer(self._handle, 100)
-            QueueBuffer(self._handle, buf.ctypes.data_as(POINTER(AT_U8)), buf.nbytes)
-            buffers.put(buf)
+
+        for i in range(num_frms):
+            self._read_buffers()
+
+        self.active = False
 
         Command(self._handle, "AcquisitionStop")
         Flush(self._handle)
 
-    def _show_frame(self):
-        print("Starting preview of frame...")
-        while self.active:
-            if self.view:
-                cv2.imshow(self.serial_number, self.frame)
-                cv2.waitKey(1)
-            else:
-                pass
+    def _capture_time(self, duration):
+
+        """
+
+        Internal Method for Capturing frames for 'duration' seconds
+
+        """
+
+        if duration == float('inf'):
+            print("\nCapturing from {0}\n".format(self.serial_number))
+        else:
+            print("\nCapturing for {0} sec from {1}\n".format(duration, self.serial_number))
+
+        Command(self._handle, "AcquisitionStart")
+
+        t = time.time()
+
+        while (time.time()-t) < duration:
+            self._read_buffers()
+
+        self.active = False
+
+        Command(self._handle, "AcquisitionStop")
+        Flush(self._handle)
+
+    def _read_buffers(self):
+
+        """
+        Internal method for reading buffers. Sets self.frame
+        """
+        buf = self._buffers.get()
+        WaitBuffer(self._handle, 100)
+        self.frame = (buf[::2]*buf[1::2]).reshape(self.height, self.width)
+        QueueBuffer(self._handle, buf.ctypes.data_as(POINTER(AT_U8)), buf.nbytes)
+        self._buffers.put(buf)
+
+    def _create_buffers(self):
+
+        """
+        Internal Method to create camera buffers before an acquisition is started
+        """
+
+        # CLear Previous Values
+        self._buffers.queue.clear()
+        Flush(self._handle)
+
+        print("Creating frame buffers...")
+
+        for i in range(self.num_bufs):
+            buf = np.zeros((self.get("ImageSizeBytes")), 'uint8')
+            QueueBuffer(self._handle, buf.ctypes.data_as(POINTER(AT_U8)), buf.nbytes)
+            self._buffers.put(buf)
+
+        self.height = self.get("AOIHeight")
+        self.width = self.get("AOIWidth")
+        self.frame = np.zeros((self.height, self.width), 'uint8')
+
+    def _save_frames(self, frames, saves):
+        file_name = "{0}{1}_{2}.h5".format(self.path, self.name, saves)
+        with h5py.File(file_name, 'w') as h5:
+            h5.create_dataset("{0}_{1}".format(self.name, saves), data=frames, compression='gzip', compression_opts=self.comp)
+        h5.close()
 
     def shutdown(self):
-        print("Shutting down {0}...".format(self.get("SerialNumber")))
+        print("\nShutting down {0}...".format(self.serial_number))
         self.active = False
         Close(self._handle)
         FinaliseLibrary()
 
+print("Initializing AndorSDK3 Library")
 InitialiseUtilityLibrary()
 InitialiseLibrary()
