@@ -3,7 +3,6 @@ import cv2, PySpin
 class FlirError(Exception):
     pass
 
-
 class Flir():
     """docstring for Flir."""
 

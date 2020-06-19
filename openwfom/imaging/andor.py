@@ -283,8 +283,10 @@ class Camera(object):
         *AFTER* the properties have been defined'''
         print("Initialising Camera at Port {0}".format(camNum))
         self.camNum = camNum
-        self.settings = {}
         self._handle = Open(self.camNum)
+        self.serial_number = self.get("SerialNumber")
+        if self.serial_number[:3] == "SFT":
+            raise ConnectionError("No Andor Cameras were found")
         self.active = True
         self.num_bufs = 100
         print("\nSuccessfully Opened Camera {0}\nSN: {1}\nFirmware Version: {2}\n".format(camNum, self.get("SerialNumber"), self.get("FirmwareVersion")))

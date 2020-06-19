@@ -21,4 +21,4 @@ def test_andor():
     zyla.shutdown()
 
 def test_flir():
-    
+    blackflys = flir.Flir()

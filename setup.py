@@ -14,21 +14,14 @@ setup(
     include_package_data=True,
     packages=find_packages(),
     install_requires=[
-        "pywinauto",
         "path",
-        "pyfiglet",
         "pyserial",
-        "psutil",
-        "pyfiglet",
-        "colorama",
-        "termcolor",
         "numpy",
         "h5py"
     ],
     entry_points={
         'console_scripts':[
-            'wfom-test = openwfom.command_line:test',
-            'wfom-run = openwfom.command_line:run'
+            'wfom = openwfom.command_line:run'
         ] },
     long_description=long_description,
     long_description_content_type='text/markdown',
