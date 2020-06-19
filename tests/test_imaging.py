@@ -1,6 +1,6 @@
-from imaging import flir, andor
+from openwfom.imaging import andor, flir
 
-if __name__ == '__main__':
+def test_andor():
     zyla = andor.Camera(0)
     settings = {
         "PixelEncoding":"Mono16",
@@ -18,7 +18,7 @@ if __name__ == '__main__':
             }
             zyla.set(settings)
             print("{0}x{0}, {1} exp -> {2} fps".format(dim, exp, zyla.get("FrameRate")))
-
-    #flirs = flir.Flir()
-
     zyla.shutdown()
+
+def test_flir():
+    
