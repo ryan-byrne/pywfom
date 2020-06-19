@@ -11,8 +11,9 @@ if plat.startswith('Windows'):
         _stdcall_libraries['ATCORE'] = ctypes.WinDLL('atcore.dll')
         _stdcall_libraries['ATUTIL'] = ctypes.WinDLL('atutility.dll')
     except OSError:
-        print('\natcore and atutlity DLL not found\n')
-        print("Add {0} to your PATH\n".format("C:\\Program Files\\Andor SDK3"))
+        print('\natcore and atutlity DLL not found')
+        print("\nMake sure Andor SDK3 is installed and")
+        print("{0} is in your PATH\n".format("C:\\Program Files\\Andor SDK3"))
         raise
 else:
     _stdcall_libraries['ATCORE'] = ctypes.CDLL('atcore.so')
