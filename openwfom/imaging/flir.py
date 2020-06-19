@@ -1,4 +1,11 @@
-import cv2, PySpin
+import cv2
+try:
+    import PySpin
+except ModuleNotFoundError:
+    print("\nPySpin is not installed")
+    print("\nFollow the directions here to install it:")
+    print("\nhttps://github.com/ryan-byrne/openwfom/wiki/Camera-Setup/_edit#installing-the-spinnaker-sdk\n")
+    raise
 
 class FlirError(Exception):
     pass

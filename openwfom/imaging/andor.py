@@ -13,7 +13,9 @@ if plat.startswith('Windows'):
     except OSError:
         print('\natcore and atutlity DLL not found')
         print("\nMake sure Andor SDK3 is installed and")
-        print("{0} is in your PATH\n".format("C:\\Program Files\\Andor SDK3"))
+        print("\n{0}\nis in your PATH\n".format("C:\\Program Files\\Andor SDK3"))
+        print("Follow the instructions at:\n")
+        print("https://github.com/ryan-byrne/openwfom/wiki/Camera-Setup/_edit#installing-the-andor-sdk")
         raise
 else:
     _stdcall_libraries['ATCORE'] = ctypes.CDLL('atcore.so')
