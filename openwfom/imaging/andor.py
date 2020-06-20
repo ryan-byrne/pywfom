@@ -11,11 +11,8 @@ if plat.startswith('Windows'):
         _stdcall_libraries['ATCORE'] = ctypes.WinDLL('atcore.dll')
         _stdcall_libraries['ATUTIL'] = ctypes.WinDLL('atutility.dll')
     except OSError:
-        print('\natcore and atutlity DLL not found')
-        print("\nMake sure Andor SDK3 is installed and")
-        print("\n{0}\nis in your PATH\n".format("C:\\Program Files\\Andor SDK3"))
-        print("Follow the instructions at:\n")
-        print("https://github.com/ryan-byrne/openwfom/wiki/Camera-Setup/_edit#installing-the-andor-sdk")
+        print('\natcore and atutlity DLL not found\n')
+        print("Add {0} to your PATH\n".format("C:\\Program Files\\Andor SDK3"))
         raise
 else:
     _stdcall_libraries['ATCORE'] = ctypes.CDLL('atcore.so')
@@ -281,20 +278,52 @@ dllFunc('AT_ConvertBuffer', [POINTER(AT_U8), POINTER(AT_U8), AT_64, AT_64, AT_64
 dllFunc('AT_ConvertBufferUsingMetadata', [POINTER(AT_U8), POINTER(AT_U8), AT_64, STRING], lib='ATUTIL')
 
 class Camera(object):
-    def __init__(self, camNum):
+    def __init__(self, camNum, test=False):
         '''camera initialisation - note that this should be called  from derived classes
         *AFTER* the properties have been defined'''
         print("Initialising Camera at Port {0}".format(camNum))
         self.camNum = camNum
+        self.test = test
         self._handle = Open(self.camNum)
         self.serial_number = self.get("SerialNumber")
-        if self.serial_number[:3] == "SFT":
-            raise ConnectionError("No Andor Cameras were found")
-        self.active = True
-        self.num_bufs = 100
-        print("\nSuccessfully Opened Camera {0}\nSN: {1}\nFirmware Version: {2}\n".format(camNum, self.get("SerialNumber"), self.get("FirmwareVersion")))
 
-    def set(self, val, param=""):
+        if self.serial_number[:3] == "SFT":
+            # If SimCam Andor Object
+            if not self.test:
+                raise TypeError("You've connected to a SimCam, but are not in test mode.")
+            firmware = "SimCam"
+        else:
+            # If physical Andor Camera
+            self.num_bufs = 100
+            self._buffers = queue.Queue()
+            self._create_buffers()
+            firmware = self.get("FirmwareVersion")
+
+        self.set("PixelEncoding", "Mono16")
+
+        print("\nSuccessfully Opened Camera {0}\nSN: {1}\nFirmware Version: {2}\n".format(camNum, self.get("SerialNumber"), firmware))
+
+    def _create_buffers(self):
+
+        """
+
+        Internal Method to create Queue of 1D Numpy buffers which the Camera
+        will then populate.
+
+        """
+
+        # Clear buffers from camera
+        Flush(self._handle)
+        # Clear buffers from the Camera Object
+        self._buffers.clear()
+
+        # Populate the buffer with empty numpy arrays
+        for i in range(self.num_bufs):
+            buf = np.zeros((self.image_size_bytes), 'uint8')
+            QueueBuffer(self._handle, buf.ctypes.data_as(POINTER(AT_U8)), buf.nbytes)
+            self._buffers.put(buf)
+
+    def set(self, param, val=""):
 
         """
 
@@ -315,17 +344,29 @@ class Camera(object):
 
         """
 
-        if type(val).__name__ == 'dict':
-            for setting in val.keys():
-                self._set(setting, val[setting])
+        if type(param).__name__ == 'dict':
+            for setting in param.keys():
+                self._set(setting, param[setting])
         else:
             self._set(param, val)
+
+        # Get New Image Size
+        self.image_size_bytes = self.get("ImageSizeBytes")
+        # Get New height
+        self.height = self.get("AOIHeight")
+        # Get new width
+        self.width = self.get("AOIWidth")
+        # Create empty frame with new dimensions
+        self.frame = np.zeros((self.height, self.width), 'uint16')
+        # Reset the buffers in both the camera and Python
+        if not self.test:
+            self._create_buffers()
 
     def _set(self, setting, value):
 
         cmd = {
             'bool':SetBool,
-            'str':SetEnumString,
+            'str':SetString,
             'int':SetInt,
             'float':SetFloat
         }
@@ -335,7 +376,7 @@ class Camera(object):
         try:
             cmd[type(value).__name__](self._handle, setting, value)
         except CameraError as e:
-            if e.errNo == 2:
+            if e.errNo in [2, 5]:
                 TypeError("'{0}' cannot be '{1}'".format(setting, type(value).__name__))
             elif e.errNo == 6:
                 ValueError("'{0}' is out of range for '{1}'".format(setting, type(value).__name__))
@@ -365,7 +406,7 @@ class Camera(object):
                     except:
                         raise TypeError("{0} is not an available setting for {1}".format(param, self.get("SerialNumber")))
 
-    def capture(self, mode, val, view=False, save=False, path=""):
+    def capture(self, mode='time', val=0):
 
         """
 
@@ -377,55 +418,79 @@ class Camera(object):
 
         """
 
-        if save and path == "":
-            raise ValueError("You must provide a path if you wish to save your data.")
-        elif mode not in ['frames', 'time']:
+        if mode not in ['frames', 'time']:
             raise ValueError("Capture mode must be set to either 'frames' or 'time'")
         elif mode == 'frames' and type(val).__name__ != 'int':
             raise ValueError("'val' must be an 'int' when 'mode' is set to frames")
         elif mode == 'time' and type(val).__name__ not in ['int', 'float']:
             raise ValueError("'val' must be an 'int' or 'float' when 'mode' is set to frames")
+
+        self.active = True
+
+        if mode == 'frames':
+            threading.Thread(target=self._capture_frames, args=(val,)).start()
+        elif self.test:
+            threading.Thread(target=self._capture_sim, args=(val,)).start()
         else:
-            nbytes = self.get("ImageSizeBytes")
-            h = self.get("AOIHeight")
-            w = self.get("AOIWidth")
-            self.set("CycleMode", "Continuous")
-            print("Grabbing {0}x{1} Frame(s) from {2}".format(h,w,self.serial_number))
+            threading.Thread(target=self._capture_time, args=(val,)).start()
 
-        if view:
-            #print("Creating 2D Frame Array...")
-            self.frame = np.zeros((h, w))
-            self.view = True
-            threading.Thread(target=self._show_frame).start()
-        else:
-            pass
+    def _capture_frames(self, num_frms):
 
-        #print("Creating and Queuing Buffers...")
-        buffers = queue.Queue()
-        for i in range(self.num_bufs):
-            buf = np.zeros((nbytes), 'uint8')
-            QueueBuffer(self._handle, buf.ctypes.data_as(POINTER(AT_U8)), buf.nbytes)
-            buffers.put(buf)
-
-        #print("Starting Acquisition...")
         Command(self._handle, "AcquisitionStart")
-        for i in range(val):
-            buf = buffers.get()
+
+        for i in range(num_frms):
+            buf = self._buffers.get()
             WaitBuffer(self._handle, 100)
+            self.frame = (buf[::2]*buf[1::2]).reshape((self.height, self.width), 'uint16')
             QueueBuffer(self._handle, buf.ctypes.data_as(POINTER(AT_U8)), buf.nbytes)
-            buffers.put(buf)
+            self._buffers.put(buf)
 
         Command(self._handle, "AcquisitionStop")
         Flush(self._handle)
+        self.active = False
 
-    def _show_frame(self):
-        print("Starting preview of frame...")
-        while self.active:
-            if self.view:
-                cv2.imshow(self.serial_number, self.frame)
-                cv2.waitKey(1)
-            else:
-                pass
+    def _capture_time(self, duration):
+
+        """
+        Internal command
+        """
+
+        if duration == 0:
+            duration = float('inf')
+
+        Command(self._handle, "AcquisitionStart")
+
+        t0 = time.time()
+
+        while (time.time()-t0) < duration:
+            buf = self._buffers.get()
+            WaitBuffer(self._handle, 100)
+            self.frame = (buf[::2]*buf[1::2]).reshape((self.height, self.width), 'uint16')
+            QueueBuffer(self._handle, buf.ctypes.data_as(POINTER(AT_U8)), buf.nbytes)
+            self._buffers.put(buf)
+
+        Command(self._handle, "AcquisitionStop")
+        Flush(self._handle)
+        self.active = False
+
+    def _capture_sim(self, duration):
+
+        # Get Simulated framerate for pausing during loop
+        fr = self.get("FrameRate")
+
+        if duration == 0:
+            duration = float('inf')
+
+        Command(self._handle, "AcquisitionStart")
+
+        t0 = time.time()
+
+        while (time.time()-t0) < duration:
+            self.frame = np.random.randint(0, 65025, size=(self.height, self.width))
+            time.sleep(1/fr)
+
+        Command(self._handle, "AcquisitionStop")
+        self.active = False
 
     def shutdown(self):
         print("Shutting down {0}...".format(self.get("SerialNumber")))
