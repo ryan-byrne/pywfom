@@ -418,6 +418,7 @@ class Camera(object):
 
         """
 
+        # Check the function arguments
         if mode not in ['frames', 'time']:
             raise ValueError("Capture mode must be set to either 'frames' or 'time'")
         elif mode == 'frames' and type(val).__name__ != 'int':
@@ -425,12 +426,16 @@ class Camera(object):
         elif mode == 'time' and type(val).__name__ not in ['int', 'float']:
             raise ValueError("'val' must be an 'int' or 'float' when 'mode' is set to frames")
 
+        # Set the camera to active
         self.active = True
 
-        if mode == 'frames':
+        # Start the corresponding thread
+        if self.test and mode == 'frames':
+            threading.Thread(target=self._capture_sim_frames, args=(val,)).start()
+        elif self.test and mode == 'time':
+            threading.Thread(target=self._capture_sim_time, args=(val,)).start()
+        elif not self.test and mode == 'frames':
             threading.Thread(target=self._capture_frames, args=(val,)).start()
-        elif self.test:
-            threading.Thread(target=self._capture_sim, args=(val,)).start()
         else:
             threading.Thread(target=self._capture_time, args=(val,)).start()
 
@@ -473,7 +478,7 @@ class Camera(object):
         Flush(self._handle)
         self.active = False
 
-    def _capture_sim(self, duration):
+    def _capture_sim_time(self, duration):
 
         # Get Simulated framerate for pausing during loop
         fr = self.get("FrameRate")
@@ -487,9 +492,23 @@ class Camera(object):
 
         while (time.time()-t0) < duration:
             self.frame = np.random.randint(0, 65025, size=(self.height, self.width))
+
+        Command(self._handle, "AcquisitionStop")
+        self.active = False
+
+    def _capture_sim_frames(self, num_frms):
+
+        # Get Simulated framerate for pausing during loop
+        fr = self.get("FrameRate")
+
+        Command(self._handle, "AcquisitionStart")
+
+        for i in range(num_frms):
+            self.frame = np.random.randint(0, 65024, (self.height, self.width), 'uint16')
             time.sleep(1/fr)
 
         Command(self._handle, "AcquisitionStop")
+
         self.active = False
 
     def shutdown(self):

@@ -1,0 +1,57 @@
+Successfully Opened Camera 0
+SN: SFT-1000
+Firmware Version: SimCam
+
+0 compression
+10frames
+Captured in 0.6427948474884033 sec
+Saved in 0.6457943916320801 sec
+Size: 0.110782832 GB
+
+1 compression
+10frames
+Captured in 2.2522799968719482 sec
+Saved in 2.255280017852783 sec
+Size: 0.066484752 GB
+
+4 compression
+10frames
+Captured in 2.4193367958068848 sec
+Saved in 2.422337293624878 sec
+Size: 0.066484752 GB
+
+9 compression
+10frames
+Captured in 2.4655020236968994 sec
+Saved in 2.467501640319824 sec
+Size: 0.066484752 GB
+
+0 compression
+100frames
+Captured in 5.143358469009399 sec
+Saved in 5.157353639602661 sec
+Size: 1.074575424 GB
+
+1 compression
+100frames
+Captured in 19.924686908721924 sec
+Saved in 19.93465828895569 sec
+Size: 0.631598544 GB
+
+4 compression
+100frames
+Captured in 20.57099676132202 sec
+Saved in 20.578993797302246 sec
+Size: 0.620518272 GB
+
+9 compression
+100frames
+Captured in 21.020867586135864 sec
+Saved in 21.028841257095337 sec
+Size: 0.620518272 GB
+
+0 compression
+1000frames
+Captured in 53.90525507926941 sec
+Saved in 53.96026539802551 sec
+Size: 11.0116262 GB
