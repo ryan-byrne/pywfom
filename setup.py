@@ -21,7 +21,7 @@ setup(
     ],
     entry_points={
         'console_scripts':[
-            'wfom = openwfom.command_line:run'
+            'wfom = wfom:run'
         ] },
     long_description=long_description,
     long_description_content_type='text/markdown',
