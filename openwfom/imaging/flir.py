@@ -1,4 +1,5 @@
-import cv2
+import cv2, threading, time, queue
+
 try:
     import PySpin
 except ModuleNotFoundError:
@@ -13,43 +14,52 @@ class FlirError(Exception):
 class Flir():
     """docstring for Flir."""
 
-    def __init__(self):
+    def __init__(self, cam_num, verbose=False):
 
         print("Initializing FLIR Cameras...")
 
         self.system = PySpin.System.GetInstance()
-        self.cam_list = self.system.GetCameras()
+        self.cameras = self.system.GetCameras()
 
-        if 0 in [self.cam_list.GetSize()]:
-            self.cam_list.Clear()
-            self.system.ReleaseInstance()
+        if 0 in [self.cameras.GetSize()]:
+            self.close()
             raise FlirError("There are no FLIR Cameras attached")
         else:
-            print("There are {0} FLIR Camera(s) attached".format(self.cam_list.GetSize()))
+            self.cam = self.cameras[cam_num]
+
+    def init(self, idx):
+
+        print("Initializing Camera {0}".format(idx))
+
+        self.cameras[idx].Init()
 
     def close(self):
-
-        self.cam_list.Clear()
+        self.cameras.Clear()
         self.system.ReleaseInstance()
 
-    def capture(self, id):
+    def capture(self, id, mode='time', val=0):
 
-        print("Previewing FLIR Camera {0}".format(id))
+        if mode == 'frames':
+            threading.Thread(target=self._capture_frames, args=(val,)).start()
+        else:
+            threading.Thread(target=self._capture_time, args=(val,)).start()
 
-        cam = self.cam_list[id]
 
-        cam.Init()
+    def _capture_time(self, duration):
+
+        self._start_acquisition()
+
+        t0 = time.time()
+        while (time.time()-t0) < duration:
+            self.image = cam.GetNextImage(1000)
+
+        self._end_acquisition()
+
+    def _start_acquisition(self, cam):
         cam.BeginAcquisition()
 
-        while True:
-            image = cam.GetNextImage(1000)
-
-            cv2.imshow("%i" % id, image.GetNDArray())
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
-
-        image.Release()
-        cv2.destroyAllWindows()
-
+    def _end_acquisition(self, cam):
+        self.image.Release()
         cam.EndAcquisition()
         cam.DeInit()
+        pass

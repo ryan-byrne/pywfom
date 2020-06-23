@@ -278,16 +278,18 @@ dllFunc('AT_ConvertBuffer', [POINTER(AT_U8), POINTER(AT_U8), AT_64, AT_64, AT_64
 dllFunc('AT_ConvertBufferUsingMetadata', [POINTER(AT_U8), POINTER(AT_U8), AT_64, STRING], lib='ATUTIL')
 
 class Camera(object):
-    def __init__(self, camNum, test=False, num_bfrs=10):
+
+    def __init__(self, camNum, test=False, num_bfrs=10, verbose=False):
         '''camera initialisation - note that this should be called  from derived classes
         *AFTER* the properties have been defined'''
         print("\nInitialising Andor Camera at Port {0}".format(camNum))
         self.camNum = camNum
+        self.settings = {}
         self.test = test
         self._handle = Open(self.camNum)
         self.num_bfrs = num_bfrs
+        self.verbose = verbose
         self.serial_number = self.get("SerialNumber")
-        self.timer = time.time()
         if self.serial_number[:3] == "SFT":
             # If SimCam Andor Object
             if not self.test:
@@ -296,6 +298,10 @@ class Camera(object):
         else:
             # If physical Andor Camera
             firmware = self.get("FirmwareVersion")
+            self.set({
+                "PixelEncoding":"Mono16",
+                "SensorCooling":True
+            })
 
         print("\nSuccessfully Opened Camera {0}\nSN: {1}\nFirmware Version: {2}".format(camNum, self.get("SerialNumber"), firmware))
 
@@ -316,6 +322,9 @@ class Camera(object):
         # Get new width
         self.width = self.get("AOIWidth")
 
+        # Create Queue for Frames
+        self.frames = queue.Queue()
+
         # Skip creating the buffers if in test mode
         if self.test:
             return
@@ -324,21 +333,25 @@ class Camera(object):
         Flush(self._handle)
         # Create queue for buffers
         self._buffers = queue.Queue()
-        # Create Queue for Frames
-        self.frames = queue.Queue()
 
-        print("\nCreating {3} buffers of {0} bytes, for a {1}x{2} Image".format(
-            self.image_size_bytes,
-            self.height,
-            self.width,
-            self.num_bfrs
-        ))
+        if self.verbose:
+            print("\nCreating {3} buffers of {0} bytes, for a {1}x{2} Image".format(
+                self.image_size_bytes,
+                self.height,
+                self.width,
+                self.num_bfrs
+            ))
+        else:
+            pass
 
         # Populate the queue and buffer with empty numpy arrays
         for i in range(self.num_bfrs):
             buf = np.zeros((self.image_size_bytes), 'uint8')
             QueueBuffer(self._handle, buf.ctypes.data_as(POINTER(AT_U8)), buf.nbytes)
             self._buffers.put(buf)
+
+    def get_next_image(self, timeout=None):
+        return self.frames.get(timeout=timeout)
 
     def _update_buffers(self):
 
@@ -353,7 +366,7 @@ class Camera(object):
         self._buffers.put(buf)
 
     def _update_sim(self):
-        self.frame = np.random.randint(0, 65025, size=int(self.image_size_bytes/2), dtype=np.uint16)
+        self.frames.put(np.random.randint(0, 65535, size=(self.height, self.width), dtype='uint16'))
 
     def set(self, param, val=""):
 
@@ -394,7 +407,10 @@ class Camera(object):
             'float':SetFloat
         }
 
-        #print("Setting {0} -> {1}".format(setting, value))
+        if self.verbose:
+            print("Setting {0} -> {1}".format(setting, value))
+
+        self.settings[setting] = value
 
         try:
             cmd[type(value).__name__](self._handle, setting, value)
@@ -408,32 +424,45 @@ class Camera(object):
 
     def get(self, param):
 
-        #print("Getting {0}".format(param))
+        if self.verbose:
+            print("Getting {0}".format(param))
 
         try:
-            return GetString(self._handle, param, 255).value
+            val = GetString(self._handle, param, 255).value
         except:
             try:
-                return GetInt(self._handle, param).value
+                i = GetEnumIndex(self._handle, param).value
+                val = GetEnumStringByIndex(self._handle, param, i, 255).value
             except:
                 try:
-                    return GetFloat(self._handle, param).value
+                    val = GetInt(self._handle, param).value
                 except:
-                    return GetBool(self._handle, param).value
+                    try:
+                        val = GetFloat(self._handle, param).value
+                    except:
+                        val = GetBool(self._handle, param).value
+        if self.verbose:
+            print(val)
+        return val
 
     def _start_acquisition(self):
 
-        print("Starting acquisition on {0}".format(self.serial_number))
+        if self.verbose:
+            print("Starting acquisition on {0}".format(self.serial_number))
 
         Command(self._handle, "AcquisitionStart")
         self.active = True
 
     def _stop_acquisition(self):
 
-        print("Stopping acquisition on {0}".format(self.serial_number))
-
         self.active = False
-        Command(self._handle, "AcquisitionStop")
+        try:
+            if self.verbose:
+                print("Stopping acquisition on {0}".format(self.serial_number))
+            Command(self._handle, "AcquisitionStop")
+        except:
+            # Acquisition already stopped
+            pass
 
     def capture(self, mode='time', val=0):
 
@@ -468,7 +497,8 @@ class Camera(object):
             threading.Thread(target=self._capture_time, args=(val,)).start()
 
         # Allow enough time for frames queue to fill
-        time.sleep(1)
+        if not self.test:
+            time.sleep(1)
 
     def _capture_frames(self, num_frms):
 
@@ -478,13 +508,14 @@ class Camera(object):
 
         self._start_acquisition()
 
-        print("\nCapturing {0} Frames from {1}\n".format(num_frms, self.serial_number))
+        if self.verbose:
+            print("\nCapturing {0} Frames from {1}\n".format(num_frms, self.serial_number))
 
         for i in range(num_frms):
-            try:
+            if not self.active:
+                break
+            else:
                 self._update_buffers()
-            except:
-                return
 
         self._stop_acquisition()
 
@@ -499,14 +530,12 @@ class Camera(object):
 
         self._start_acquisition()
 
-        print("\nCapturing for {0} sec from {1}\n".format(duration, self.serial_number))
+        if self.verbose:
+            print("\nCapturing for {0} sec from {1}\n".format(duration, self.serial_number))
 
         t0 = time.time()
-        while (time.time()-t0) < duration:
-            try:
-                self._update_buffers()
-            except:
-                return
+        while ((time.time()-t0) < duration) and self.active:
+            self._update_buffers()
 
         self._stop_acquisition()
 
@@ -515,10 +544,13 @@ class Camera(object):
         if duration == 0:
             duration = float('inf')
 
+        if self.verbose:
+            print("\nCapturing for {0} sec from {1}\n".format(duration, self.serial_number))
+
         self._start_acquisition()
 
         t0 = time.time()
-        while (time.time()-t0) < duration:
+        while ((time.time()-t0) < duration) and self.active:
             self._update_sim()
 
         self._stop_acquisition()
@@ -527,13 +559,19 @@ class Camera(object):
 
         self._start_acquisition()
 
+        if self.verbose:
+            print("\nCapturing {0} Frames from {1}\n".format(num_frms, self.serial_number))
+
         for i in range(num_frms):
-            self._update_sim()
+            if not self.active:
+                break
+            else:
+                self._update_buffers()
 
         self._stop_acquisition()
 
     def shutdown(self):
-        print("\nShutting down {0}...".format(self.get("SerialNumber")))
+        print("\nShutting down {0}...".format(self.serial_number))
         Close(self._handle)
         FinaliseLibrary()
 
