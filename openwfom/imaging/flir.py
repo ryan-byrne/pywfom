@@ -1,11 +1,12 @@
-import cv2, threading, time, queue
+import numpy as np
+import queue, threading
 
 try:
     import PySpin
 except ModuleNotFoundError:
     print("\nPySpin is not installed")
     print("\nFollow the directions here to install it:")
-    print("\nhttps://github.com/ryan-byrne/openwfom/wiki/Camera-Setup/_edit#installing-the-spinnaker-sdk\n")
+    print("\nhttps://github.com/ryan-byrne/openwfom/wiki/Camera-Setup/#installing-the-spinnaker-sdk\n")
     raise
 
 class FlirError(Exception):
@@ -14,52 +15,76 @@ class FlirError(Exception):
 class Flir():
     """docstring for Flir."""
 
-    def __init__(self, cam_num, verbose=False):
+    def __init__(self, verbose=False):
 
-        print("Initializing FLIR Cameras...")
+        print("\nInitializing FLIR Cameras...")
+
+        self._verbose = verbose
 
         self.system = PySpin.System.GetInstance()
         self.cameras = self.system.GetCameras()
+        self.active = False
 
         if 0 in [self.cameras.GetSize()]:
             self.close()
             raise FlirError("There are no FLIR Cameras attached")
         else:
-            self.cam = self.cameras[cam_num]
+            print("There are {0} FLIR Camera(s) attached\n".format(self.cameras.GetSize()))
 
-    def init(self, idx):
+    def read(self, timeout=1000):
 
-        print("Initializing Camera {0}".format(idx))
+        imgs = []
 
-        self.cameras[idx].Init()
+        for i, cam in enumerate(self.cameras):
+
+            t0 = time.time()
+            image_result = cam.GetNextImage(timeout)
+            print(time.time()-t0)
+
+            if image_result.IsIncomplete():
+                print('Image incomplete with image status %d ...' % image_result.GetImageStatus())
+                img = None
+            else:
+                w = image_result.GetWidth()
+                h = image_result.GetHeight()
+                data = image_result.GetData()
+                img = np.reshape(data, (h,w))
+
+            image_result.Release()
+
+            imgs.append(img)
+
+        return imgs
+
+    def _update_frames(self, id):
+
+        print("Reading frames from Flir {0}".format(id))
+
+    def start(self):
+
+        if self._verbose:
+            print("Starting to Acquire Frames from FLIR Cameras...")
+
+        for i, cam in enumerate(self.cameras):
+            self.frames.append(queue.Queue(maxsize=100))
+
+        self.active = True
+
+        for i, cam in enumerate(self.cameras):
+            cam.Init()
+            cam.BeginAcquisition()
+            threading.Thread(target=self._update_frames, args=(i,)).start()
 
     def close(self):
+
+        if self._verbose:
+            print("Closing FLIR Cameras...")
+
+        self.active = False
+
+        for cam in self.cameras:
+            cam.EndAcquisition()
+            cam.DeInit()
+
         self.cameras.Clear()
         self.system.ReleaseInstance()
-
-    def capture(self, id, mode='time', val=0):
-
-        if mode == 'frames':
-            threading.Thread(target=self._capture_frames, args=(val,)).start()
-        else:
-            threading.Thread(target=self._capture_time, args=(val,)).start()
-
-
-    def _capture_time(self, duration):
-
-        self._start_acquisition()
-
-        t0 = time.time()
-        while (time.time()-t0) < duration:
-            self.image = cam.GetNextImage(1000)
-
-        self._end_acquisition()
-
-    def _start_acquisition(self, cam):
-        cam.BeginAcquisition()
-
-    def _end_acquisition(self, cam):
-        self.image.Release()
-        cam.EndAcquisition()
-        cam.DeInit()
-        pass

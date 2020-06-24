@@ -1,6 +1,6 @@
-from openwfom.imaging import andor, flir
-import cv2, time, argparse, sys
-import numpy as np
+from openwfom.imaging import andor, flir, gui
+from openwfom import arduino
+import time, argparse, sys, cv2
 
 def _get_args():
 
@@ -32,6 +32,8 @@ def _get_args():
 
     return vars(args)
 
+args = _get_args()
+
 def get_settings():
     settings = {
         "CycleMode":"Continuous",
@@ -41,7 +43,9 @@ def get_settings():
     }
     return settings
 
-def init_andor(args):
+def init_andor():
+
+    global args
 
     cam = andor.Camera(args['cam_num'], args['test'], args['num_bfrs'], args['verbose'])
 
@@ -58,44 +62,22 @@ def init_andor(args):
     return cam
 
 def init_flirs():
-    flirs = flir.Flir()
 
-    for i, cam in enumerate(flirs.cameras):
-        flirs.init(i)
+    global args
 
-    print(flirs.cameras)
+    flirs = flir.Flir(args['verbose'])
 
-def draw_aoi(event, x, y, flags, param):
+    flirs.start()
 
-    global drawing, ix, iy
+    return flirs
 
-    if event == cv2.EVENT_LBUTTONDOWN:
-        drawing = True
-        ix, iy = x,y
-    elif event == cv2.EVENT_MOUSEMOVE:
-        if drawing:
-            cv2.rectangle(frame, )
-    elif event == cv2.EVENT_LBUTTONUP:
-        drawing = False
-        w = x - ix
-        h = y - iy
-        print("{0}x{1} Rectangle, with origin at {2},{3}".format(h, w, ix, iy))
+winname = "OpenWFOM"
 
-# python -c "from wfom import run;run()"
-drawing = False
-ix, iy = -1, -1
+zyla = andor.Camera(0, args['test'], args['num_bfrs'], args['verbose'])
 
-args = _get_args()
-
-#flirs = init_flirs()
-
-zyla = init_andor(args)
-
-while zyla.active:
-    zyla_img = zyla.get_next_image()
-    cv2.imshow(zyla.serial_number, zyla_img)
+while True:
+    cv2.imshow(zyla.serial_number, zyla.frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
-        zyla.active = False
         break
-cv2.destroyAllWindows()
+
 zyla.shutdown()

@@ -282,14 +282,17 @@ class Camera(object):
     def __init__(self, camNum, test=False, num_bfrs=10, verbose=False):
         '''camera initialisation - note that this should be called  from derived classes
         *AFTER* the properties have been defined'''
-        print("\nInitialising Andor Camera at Port {0}".format(camNum))
-        self.camNum = camNum
         self.settings = {}
         self.test = test
-        self._handle = Open(self.camNum)
-        self.num_bfrs = num_bfrs
-        self.verbose = verbose
+        self._num_bfrs = num_bfrs
+        self._verbose = verbose
+
+        if self._verbose:
+            print("\nInitialising Andor Camera at Port {0}".format(camNum))
+
+        self._handle = Open(camNum)
         self.serial_number = self.get("SerialNumber")
+
         if self.serial_number[:3] == "SFT":
             # If SimCam Andor Object
             if not self.test:
@@ -303,7 +306,23 @@ class Camera(object):
                 "SensorCooling":True
             })
 
-        print("\nSuccessfully Opened Camera {0}\nSN: {1}\nFirmware Version: {2}".format(camNum, self.get("SerialNumber"), firmware))
+        if self._verbose:
+            print("\nSuccessfully Opened Camera\nSN: {1}\nFirmware Version: {2}\n".format(camNum, self.serial_number, firmware))
+
+        # Create initial buffers
+        self._create_buffers()
+
+
+        self.active = True
+        self._paused = False
+
+        if self.test:
+            threading.Thread(target=self._update_sim).start()
+        else:
+            threading.Thread(target=self._update_buffers).start()
+
+        # Allow enough time for frame to calculate
+        time.sleep(1)
 
     def _create_buffers(self):
 
@@ -322,51 +341,82 @@ class Camera(object):
         # Get new width
         self.width = self.get("AOIWidth")
 
-        # Create Queue for Frames
-        self.frames = queue.Queue()
-
         # Skip creating the buffers if in test mode
         if self.test:
             return
 
         # Flushing camera buffers
         Flush(self._handle)
-        # Create queue for buffers
+        # Create empty queue for buffers
         self._buffers = queue.Queue()
 
-        if self.verbose:
+        if self._verbose:
             print("\nCreating {3} buffers of {0} bytes, for a {1}x{2} Image".format(
                 self.image_size_bytes,
                 self.height,
                 self.width,
-                self.num_bfrs
+                self._num_bfrs
             ))
         else:
             pass
 
         # Populate the queue and buffer with empty numpy arrays
-        for i in range(self.num_bfrs):
+        for i in range(self._num_bfrs):
             buf = np.zeros((self.image_size_bytes), 'uint8')
             QueueBuffer(self._handle, buf.ctypes.data_as(POINTER(AT_U8)), buf.nbytes)
             self._buffers.put(buf)
 
-    def get_next_image(self, timeout=None):
-        return self.frames.get(timeout=timeout)
-
     def _update_buffers(self):
 
-        buf = self._buffers.get()
+        if self._verbose:
+            print("Reading camera buffer and sending to self.frame...")
 
-        WaitBuffer(self._handle, 100)
+        # Update frame while camera is active
+        while self.active:
+            if not self._paused:
+                buf = self._buffers.get()
+                WaitBuffer(self._handle, 100)
 
-        frame = np.array(buf).view(np.uint16).reshape((self.height, self.width))
-        self.frames.put(frame)
+                self.frame = np.array(buf).view(np.uint16).reshape((self.height, self.width))
+                #self.frames.put(frame)
 
-        QueueBuffer(self._handle, buf.ctypes.data_as(POINTER(AT_U8)), buf.nbytes)
-        self._buffers.put(buf)
+                QueueBuffer(self._handle, buf.ctypes.data_as(POINTER(AT_U8)), buf.nbytes)
+                self._buffers.put(buf)
 
     def _update_sim(self):
-        self.frames.put(np.random.randint(0, 65535, size=(self.height, self.width), dtype='uint16'))
+        # Update frame while camera is active
+
+        if self._verbose:
+            print("Generating random nparrays for self.frame...")
+
+        while self.active:
+            if not self._paused:
+                self.frame = np.random.randint(0, 65535, size=(self.height, self.width), dtype='uint16')
+                #print(self.frame)
+
+    def _set(self, setting, value):
+
+        cmd = {
+            'bool':SetBool,
+            'str':SetEnumString,
+            'int':SetInt,
+            'float':SetFloat
+        }
+
+        if self._verbose:
+            print("Setting {0} -> {1}".format(setting, value))
+
+        self.settings[setting] = value
+
+        try:
+            cmd[type(value).__name__](self._handle, setting, value)
+        except CameraError as e:
+            if e.errNo in [2, 5]:
+                TypeError("'{0}' cannot be '{1}'".format(setting, type(value).__name__))
+            elif e.errNo == 6:
+                ValueError("'{0}' is out of range for '{1}'".format(setting, type(value).__name__))
+            else:
+                raise
 
     def set(self, param, val=""):
 
@@ -389,6 +439,9 @@ class Camera(object):
 
         """
 
+        # Pausing acquisition
+        self._paused = True
+
         if type(param).__name__ == 'dict':
             for setting in param.keys():
                 self._set(setting, param[setting])
@@ -397,34 +450,12 @@ class Camera(object):
 
         # Reset the buffers
         self._create_buffers()
-
-    def _set(self, setting, value):
-
-        cmd = {
-            'bool':SetBool,
-            'str':SetEnumString,
-            'int':SetInt,
-            'float':SetFloat
-        }
-
-        if self.verbose:
-            print("Setting {0} -> {1}".format(setting, value))
-
-        self.settings[setting] = value
-
-        try:
-            cmd[type(value).__name__](self._handle, setting, value)
-        except CameraError as e:
-            if e.errNo in [2, 5]:
-                TypeError("'{0}' cannot be '{1}'".format(setting, type(value).__name__))
-            elif e.errNo == 6:
-                ValueError("'{0}' is out of range for '{1}'".format(setting, type(value).__name__))
-            else:
-                raise
+        # Continue acquiring with new settings
+        self._paused = False
 
     def get(self, param):
 
-        if self.verbose:
+        if self._verbose:
             print("Getting {0}".format(param))
 
         try:
@@ -441,137 +472,18 @@ class Camera(object):
                         val = GetFloat(self._handle, param).value
                     except:
                         val = GetBool(self._handle, param).value
-        if self.verbose:
+        if self._verbose:
             print(val)
         return val
 
-    def _start_acquisition(self):
-
-        if self.verbose:
-            print("Starting acquisition on {0}".format(self.serial_number))
-
-        Command(self._handle, "AcquisitionStart")
-        self.active = True
-
-    def _stop_acquisition(self):
-
-        self.active = False
-        try:
-            if self.verbose:
-                print("Stopping acquisition on {0}".format(self.serial_number))
-            Command(self._handle, "AcquisitionStop")
-        except:
-            # Acquisition already stopped
-            pass
-
-    def capture(self, mode='time', val=0):
-
-        """
-
-        mode : Whether to capture for # of Frames, or # of Seconds
-        val : Value of either frames or seconds the camera will capture
-        view : Display preview of Camera as it captures
-        save : Save data to disk as it captures
-        path : Where to save data captured.
-
-        """
-
-        # Check the function arguments
-        if mode not in ['frames', 'time']:
-            raise ValueError("Capture mode must be set to either 'frames' or 'time'")
-        elif mode == 'frames' and type(val).__name__ != 'int':
-            raise ValueError("'val' must be an 'int' when 'mode' is set to frames")
-        elif mode == 'time' and type(val).__name__ not in ['int', 'float']:
-            raise ValueError("'val' must be an 'int' or 'float' when 'mode' is set to frames")
-
-        self.active = True
-
-        # Start the corresponding thread
-        if self.test and mode == 'frames':
-            threading.Thread(target=self._capture_sim_frames, args=(val,)).start()
-        elif self.test and mode == 'time':
-            threading.Thread(target=self._capture_sim_time, args=(val,)).start()
-        elif not self.test and mode == 'frames':
-            threading.Thread(target=self._capture_frames, args=(val,)).start()
-        else:
-            threading.Thread(target=self._capture_time, args=(val,)).start()
-
-        # Allow enough time for frames queue to fill
-        if not self.test:
-            time.sleep(1)
-
-    def _capture_frames(self, num_frms):
-
-        """
-        Internal Method for capturing buffers for specified number of frames
-        """
-
-        self._start_acquisition()
-
-        if self.verbose:
-            print("\nCapturing {0} Frames from {1}\n".format(num_frms, self.serial_number))
-
-        for i in range(num_frms):
-            if not self.active:
-                break
-            else:
-                self._update_buffers()
-
-        self._stop_acquisition()
-
-    def _capture_time(self, duration):
-
-        """
-        Internal Method for capturing buffers for specified time
-        """
-
-        if duration == 0:
-            duration = float('inf')
-
-        self._start_acquisition()
-
-        if self.verbose:
-            print("\nCapturing for {0} sec from {1}\n".format(duration, self.serial_number))
-
-        t0 = time.time()
-        while ((time.time()-t0) < duration) and self.active:
-            self._update_buffers()
-
-        self._stop_acquisition()
-
-    def _capture_sim_time(self, duration):
-
-        if duration == 0:
-            duration = float('inf')
-
-        if self.verbose:
-            print("\nCapturing for {0} sec from {1}\n".format(duration, self.serial_number))
-
-        self._start_acquisition()
-
-        t0 = time.time()
-        while ((time.time()-t0) < duration) and self.active:
-            self._update_sim()
-
-        self._stop_acquisition()
-
-    def _capture_sim_frames(self, num_frms):
-
-        self._start_acquisition()
-
-        if self.verbose:
-            print("\nCapturing {0} Frames from {1}\n".format(num_frms, self.serial_number))
-
-        for i in range(num_frms):
-            if not self.active:
-                break
-            else:
-                self._update_buffers()
-
-        self._stop_acquisition()
+    def read(self):
+        # Read back frame and camera status
+        return self.active, self.frame
 
     def shutdown(self):
-        print("\nShutting down {0}...".format(self.serial_number))
+        self.active = False
+        if self._verbose:
+            print("\nShutting down {0}...".format(self.serial_number))
         Close(self._handle)
         FinaliseLibrary()
 

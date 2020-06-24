@@ -1,4 +1,4 @@
-import serial, os,
+import serial, os
 
 class Arduino():
     """ Methods pertaining to Communication with the Arduino """
