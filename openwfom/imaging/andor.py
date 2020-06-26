@@ -303,26 +303,19 @@ class Camera(object):
             firmware = self.get("FirmwareVersion")
             self.set({
                 "PixelEncoding":"Mono16",
-                "SensorCooling":True
+                "SensorCooling":True,
+                "CycleMode":"Continuous"
             })
 
         if self._verbose:
-            print("\nSuccessfully Opened Camera\nSN: {1}\nFirmware Version: {2}\n".format(camNum, self.serial_number, firmware))
+            print("\nSuccessfully Opened Camera\nSN: {1}\nFirmware Version: {2}".format(camNum, self.serial_number, firmware))
 
-        # Create initial buffers
-        self._create_buffers()
-
-
-        self.active = True
         self._paused = False
 
         if self.test:
             threading.Thread(target=self._update_sim).start()
         else:
             threading.Thread(target=self._update_buffers).start()
-
-        # Allow enough time for frame to calculate
-        time.sleep(1)
 
     def _create_buffers(self):
 
@@ -333,17 +326,14 @@ class Camera(object):
 
         """
 
-
         # Get size of buffers
         self.image_size_bytes = self.get("ImageSizeBytes")
         # Get New height
         self.height = self.get("AOIHeight")
         # Get new width
         self.width = self.get("AOIWidth")
-
-        # Skip creating the buffers if in test mode
-        if self.test:
-            return
+        # Create empty frame
+        self.frame = np.zeros((self.height, self.width), dtype='uint16')
 
         # Flushing camera buffers
         Flush(self._handle)
@@ -368,31 +358,51 @@ class Camera(object):
 
     def _update_buffers(self):
 
+        # Create initial buffers
+        self._create_buffers()
+
+        Command(self._handle, "AcquisitionStart")
+
         if self._verbose:
-            print("Reading camera buffer and sending to self.frame...")
+            print("\nReading camera buffer and sending to self.frame...")
+
+        self.active = True
 
         # Update frame while camera is active
         while self.active:
             if not self._paused:
-                buf = self._buffers.get()
-                WaitBuffer(self._handle, 100)
+                try:
+                    buf = self._buffers.get()
+                    WaitBuffer(self._handle, 100)
+                except:
+                    self.active = False
+                    break
 
                 self.frame = np.array(buf).view(np.uint16).reshape((self.height, self.width))
-                #self.frames.put(frame)
 
                 QueueBuffer(self._handle, buf.ctypes.data_as(POINTER(AT_U8)), buf.nbytes)
                 self._buffers.put(buf)
+            else:
+                pass
+            time.sleep(0.01)
 
     def _update_sim(self):
         # Update frame while camera is active
 
         if self._verbose:
-            print("Generating random nparrays for self.frame...")
+            print("\nGenerating random nparrays for self.frame...")
 
+        self.height = self.get("AOIHeight")
+        # Get new width
+        self.width = self.get("AOIWidth")
+        # Create empty frame
+        self.frame = np.zeros((self.height, self.width), dtype='uint16')
+
+        self.active = True
         while self.active:
             if not self._paused:
                 self.frame = np.random.randint(0, 65535, size=(self.height, self.width), dtype='uint16')
-                #print(self.frame)
+            time.sleep(0.01)
 
     def _set(self, setting, value):
 
@@ -404,7 +414,7 @@ class Camera(object):
         }
 
         if self._verbose:
-            print("Setting {0} -> {1}".format(setting, value))
+            print("\nSetting {0} -> {1}".format(setting, value))
 
         self.settings[setting] = value
 
@@ -456,7 +466,7 @@ class Camera(object):
     def get(self, param):
 
         if self._verbose:
-            print("Getting {0}".format(param))
+            print("\nGetting {0}".format(param))
 
         try:
             val = GetString(self._handle, param, 255).value
@@ -476,14 +486,11 @@ class Camera(object):
             print(val)
         return val
 
-    def read(self):
-        # Read back frame and camera status
-        return self.active, self.frame
-
     def shutdown(self):
-        self.active = False
         if self._verbose:
             print("\nShutting down {0}...".format(self.serial_number))
+        Command(self._handle, "AcquisitionStop")
+        self.active = False
         Close(self._handle)
         FinaliseLibrary()
 

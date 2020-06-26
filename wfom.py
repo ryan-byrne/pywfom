@@ -1,6 +1,6 @@
 from openwfom.imaging import andor, flir, gui
 from openwfom import arduino
-import time, argparse, sys, cv2
+import time, argparse, sys
 
 def _get_args():
 
@@ -34,50 +34,24 @@ def _get_args():
 
 args = _get_args()
 
-def get_settings():
-    settings = {
-        "CycleMode":"Continuous",
-        "AOIBinning":"8x8",
-        "AOIHeight":2000,
-        "AOIWidth":2000
-    }
-    return settings
-
-def init_andor():
-
-    global args
-
-    cam = andor.Camera(args['cam_num'], args['test'], args['num_bfrs'], args['verbose'])
-
-    settings = get_settings()
-
-    cam.set(settings)
-
-    if args['frames']:
-        mode = 'frames'
-    else:
-        mode = 'time'
-
-    cam.capture(mode, args['val'])
-    return cam
-
-def init_flirs():
-
-    global args
-
-    flirs = flir.Flir(args['verbose'])
-
-    flirs.start()
-
-    return flirs
-
 winname = "OpenWFOM"
 
-zyla = andor.Camera(0, args['test'], args['num_bfrs'], args['verbose'])
+t = args['test']
+b = args['num_bfrs']
+v = args['verbose']
+val = float('inf') if args['val'] == 0 else args['val']
 
-while True:
-    cv2.imshow(zyla.serial_number, zyla.frame)
-    if cv2.waitKey(1) & 0xFF == ord('q'):
+zyla = andor.Camera(0, t, b, v)
+flirs = flir.Camera(v)
+gui = gui.Frame("OpenWFOM")
+
+t0 = time.time()
+
+while (time.time() - t0) < val:
+
+    if not gui.view(zyla.frame, flirs.frames):
         break
 
+gui.close()
+flirs.close()
 zyla.shutdown()
