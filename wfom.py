@@ -42,14 +42,20 @@ v = args['verbose']
 val = float('inf') if args['val'] == 0 else args['val']
 
 zyla = andor.Camera(0, t, b, v)
-flirs = flir.Camera(v)
+flirs = flir.Camera(v, t)
 gui = gui.Frame("OpenWFOM")
 
 t0 = time.time()
 
 while (time.time() - t0) < val:
 
-    if not gui.view(zyla.frame, flirs.frames):
+    imgs = {
+        "Zyla":zyla.frame,
+        "Flir1":flirs.frames[0],
+        "Flir2":flirs.frames[1],
+    }
+
+    if not gui.view(imgs):
         break
 
 gui.close()

@@ -1,7 +1,7 @@
 import cv2, time
 import numpy as np
 
-def _format_frame(frame, to_shape=(800,800), padding=50):
+def _format_frame(frame, label="", to_shape=(800,800), padding=50):
 
     # Reformat to unsigned 8bit int if not
     if frame.dtype == 'uint16':
@@ -17,8 +17,13 @@ def _format_frame(frame, to_shape=(800,800), padding=50):
     pad_y = int(max(0, (to_shape[0] - frame.shape[0]))/2)
     pad_x = int(max(0, (to_shape[1] - frame.shape[1]))/2)
 
-    # Add padding adn return
-    return np.pad(frame, ((pad_y, pad_y), (pad_x, pad_x)), 'constant')
+    # Add padding
+    gray = np.pad(frame, ((pad_y, pad_y), (pad_x, pad_x)), 'constant')
+    # COnvert to RGB
+    rgb = cv2.cvtColor(gray, cv2.COLOR_BGR2RGB)
+    # Add label
+    cv2.putText(rgb, label, (pad_x, pad_y), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 2)
+    return rgb
 
 class Frame(object):
     """docstring for Frame."""
@@ -26,36 +31,50 @@ class Frame(object):
     def __init__(self, win_name):
         # cv2 drawing variables
         self.drawing = False
-        self.ix, self.iy = -1, -1
+        self.dragging = False
+        self.ix, self.iy, self.x, self.y = -1, -1, -1, -1
         self.win_name = win_name
+        self.selected_idx = 0
+        self.num_sfs = 0
         cv2.namedWindow(self.win_name)
-        cv2.setMouseCallback(self.win_name, self._draw_aoi)
+        cv2.setMouseCallback(self.win_name, self._mouse_callback)
 
-    def _draw_aoi(self, event, x, y, flags, param):
+    def _mouse_callback(self, event, x, y, flags, param):
 
         if event == cv2.EVENT_LBUTTONDOWN:
-            self.drawing = True
-            self.ix, self.iy = x,y
+            if x < 800:
+                # Mouse selected main frame
+                self.drawing = True
+                self.ix, self.iy = x,y
+            else:
+                # Mouse selected sub frame
+                self.selected_idx = int(y/800*(self.num_sfs))
+
         elif event == cv2.EVENT_MOUSEMOVE:
             if self.drawing:
-                cv2.rectangle(self.frame,(self.ix,self.iy),(x,y),(0,255,0),-1)
+                self.x, self.y = x, y
         elif event == cv2.EVENT_LBUTTONUP:
             self.drawing = False
-            cv2.rectangle(self.frame,(self.ix,self.iy),(x,y),(0,255,0),-1)
+        elif event == cv2.EVENT_RBUTTONDOWN:
+            self.ix, self.iy, self.x, self.y = -1, -1, -1, -1
 
-    def view(self, main_frame, sub_frames=None):
-
-        mf = _format_frame(main_frame)
+    def view(self, img_dict):
+        # Calculate number of frames
+        self.num_sfs = len(img_dict.keys())
+        # Get name of chosen main frame
+        mf_name = list(img_dict.keys())[self.selected_idx]
+        # Establish the main frame
+        mf = _format_frame(img_dict[mf_name], mf_name)
 
         # Skip calculation of there are no sub frames
-        if not sub_frames:
+        if len(img_dict.keys()) == 1:
             self.frame = mf
         else:
             sf = []
-            for sub_frame in sub_frames:
+            for img_key in img_dict.keys():
                 # Calculate the size of each sub frame -> MF_Height / # of Sub Frames
-                sf_dim = int(mf.shape[0]/len(sub_frames))
-                sf.append(_format_frame(sub_frame, (sf_dim, sf_dim)))
+                sf_dim = int(mf.shape[0]/len(img_dict.keys()))
+                sf.append(_format_frame(img_dict[img_key], img_key, (sf_dim, sf_dim)))
 
             # Combine the subframes vertically
             sf = cv2.vconcat(sf)
@@ -63,6 +82,7 @@ class Frame(object):
             self.frame = cv2.hconcat([mf[:sf.shape[0]], sf])
 
         # Show the resulting frame using OpenCV
+        cv2.rectangle(self.frame,(self.ix,self.iy),(self.x,self.y),(0,255,0))
         cv2.imshow(self.win_name, self.frame)
 
         # Quit the program if the Q button is pressed

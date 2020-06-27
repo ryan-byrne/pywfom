@@ -15,29 +15,34 @@ class FlirError(Exception):
 class Camera(object):
     """docstring for Flir."""
 
-    def __init__(self, verbose=False):
+    def __init__(self, verbose=False, test=False):
 
-        print("\nInitializing FLIR Cameras...")
+        if verbose:
+            print("\nInitializing FLIR Cameras...")
 
         self._verbose = verbose
-
-        self.system = PySpin.System.GetInstance()
-        self.cameras = self.system.GetCameras()
+        self._test = test
         self.active = False
-        self.t0 = time.time()
-
-        if self.cameras.GetSize() == 0:
-            self.close()
-            raise ConnectionError("There are no FLIR Cameras attached")
-
-        if self._verbose:
-            print("There are {0} FLIR Camera(s) attached".format(self.cameras.GetSize()))
-            for cam in self.cameras:
-                print("SN: {0}".format(self.get_serial_number(cam)))
 
         self.frames = [np.zeros((500,500), 'uint8'), np.zeros((500,500), 'uint8')]
 
-        threading.Thread(target=self._update_frames).start()
+        if self._test:
+            threading.Thread(target=self._update_frames_sim).start()
+        else:
+            self.system = PySpin.System.GetInstance()
+            self.cameras = self.system.GetCameras()
+
+            if self.cameras.GetSize() == 0:
+                self.close()
+                msg = "There are no FLIR Cameras attached. Please run in 'test' mode."
+                raise ConnectionError(msg)
+
+            if self._verbose:
+                print("There are {0} FLIR Camera(s) attached".format(self.cameras.GetSize()))
+                for cam in self.cameras:
+                    print("SN: {0}".format(self.get_serial_number(cam)))
+
+            threading.Thread(target=self._update_frames).start()
 
     def get_serial_number(self, cam):
         return PySpin.CStringPtr(cam.GetTLDeviceNodeMap().GetNode('DeviceSerialNumber')).GetValue()
@@ -52,7 +57,6 @@ class Camera(object):
             return img
         except PySpin.SpinnakerException as e:
             print("{0}: {1}".format(self.get_serial_number(cam), e))
-            print("After {0} sec".format(time.time() - self.t0))
             input()
 
     def _update_frames(self):
@@ -71,6 +75,19 @@ class Camera(object):
 
         for cam in self.cameras:
             self._stop_camera(cam)
+
+    def _update_frames_sim(self):
+
+        if self._verbose:
+            print("Updating Random frames to simulate webcams...")
+
+        self.active = True
+
+        while self.active:
+            self.frames = [
+                np.random.randint(0, 255, size=(800, 1000), dtype='uint8'),
+                np.random.randint(0, 255, size=(800, 1000), dtype='uint8')
+            ]
 
     def _start_camera(self, cam):
 
@@ -115,6 +132,9 @@ class Camera(object):
 
         self.active = False
         time.sleep(1)
+
+        if self._test:
+            return
 
         if self._verbose:
             print("Clearing Camera list...")
