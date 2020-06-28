@@ -277,18 +277,16 @@ dllFunc('AT_FinaliseUtilityLibrary', lib='ATUTIL')
 dllFunc('AT_ConvertBuffer', [POINTER(AT_U8), POINTER(AT_U8), AT_64, AT_64, AT_64, STRING, STRING], lib='ATUTIL')
 dllFunc('AT_ConvertBufferUsingMetadata', [POINTER(AT_U8), POINTER(AT_U8), AT_64, STRING], lib='ATUTIL')
 
-class Camera(object):
+class Capture(object):
 
-    def __init__(self, camNum, test=False, num_bfrs=10, verbose=False):
+    def __init__(self, camNum, test=False, num_bfrs=10,):
         '''camera initialisation - note that this should be called  from derived classes
         *AFTER* the properties have been defined'''
         self.settings = {}
         self.test = test
         self._num_bfrs = num_bfrs
-        self._verbose = verbose
 
-        if self._verbose:
-            print("\nInitialising Andor Camera at Port {0}".format(camNum))
+        print("Initialising Andor Camera at Port {0}".format(camNum))
 
         self._handle = Open(camNum)
         self.serial_number = self.get("SerialNumber")
@@ -307,8 +305,7 @@ class Camera(object):
                 "CycleMode":"Continuous"
             })
 
-        if self._verbose:
-            print("\nSuccessfully Opened Camera\nSN: {1}\nFirmware Version: {2}".format(camNum, self.serial_number, firmware))
+        print("Successfully Opened Camera\nSN: {1}\nFirmware Version: {2}".format(camNum, self.serial_number, firmware))
 
         self._paused = False
 
@@ -340,15 +337,12 @@ class Camera(object):
         # Create empty queue for buffers
         self._buffers = queue.Queue()
 
-        if self._verbose:
-            print("\nCreating {3} buffers of {0} bytes, for a {1}x{2} Image".format(
+        print("\nCreating {3} buffers of {0} bytes, for a {1}x{2} Image".format(
                 self.image_size_bytes,
                 self.height,
                 self.width,
                 self._num_bfrs
-            ))
-        else:
-            pass
+        ))
 
         # Populate the queue and buffer with empty numpy arrays
         for i in range(self._num_bfrs):
@@ -363,8 +357,7 @@ class Camera(object):
 
         Command(self._handle, "AcquisitionStart")
 
-        if self._verbose:
-            print("\nReading camera buffer and sending to self.frame...")
+        print("Reading camera buffer and sending to self.frame...")
 
         self.active = True
 
@@ -389,8 +382,7 @@ class Camera(object):
     def _update_sim(self):
         # Update frame while camera is active
 
-        if self._verbose:
-            print("\nGenerating random nparrays for self.frame...")
+        print("Generating random nparrays for self.frame...")
 
         self.height = self.get("AOIHeight")
         # Get new width
@@ -413,8 +405,7 @@ class Camera(object):
             'float':SetFloat
         }
 
-        if self._verbose:
-            print("\nSetting {0} -> {1}".format(setting, value))
+        print("Setting {0} -> {1}".format(setting, value))
 
         self.settings[setting] = value
 
@@ -465,8 +456,20 @@ class Camera(object):
 
     def get(self, param):
 
-        if self._verbose:
-            print("\nGetting {0}".format(param))
+        if type(param).__name__ == 'list':
+            settings = {}
+            for setting in param:
+                settings[setting] = self._get(setting)
+            return settings
+        else:
+            return self._get(param)
+
+    def _get(self, param):
+
+        if param == "SerialNumber":
+            print("Getting Serial Number...")
+        else:
+            print("Getting {0} from {1}".format(param, self.serial_number))
 
         try:
             val = GetString(self._handle, param, 255).value
@@ -482,13 +485,10 @@ class Camera(object):
                         val = GetFloat(self._handle, param).value
                     except:
                         val = GetBool(self._handle, param).value
-        if self._verbose:
-            print(val)
         return val
 
     def shutdown(self):
-        if self._verbose:
-            print("\nShutting down {0}...".format(self.serial_number))
+        print("Shutting down {0}...".format(self.serial_number))
         Command(self._handle, "AcquisitionStop")
         self.active = False
         Close(self._handle)

@@ -3,7 +3,4 @@
 /build
 /dist
 /openwfom.egg*
-openwfom/JavaGUI/.settings
-openwfom/JavaGUI/.project
-openwfom/JavaGUI/.classpath
-openwfom/JavaGUI/*.json
+/data

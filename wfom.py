@@ -1,6 +1,6 @@
-from openwfom.imaging import andor, flir, gui
-from openwfom import arduino
-import time, argparse, sys
+from openwfom.imaging import andor, spinnaker, arduino, gui
+from openwfom import file
+import time, argparse, sys, os
 
 def _get_args():
 
@@ -30,20 +30,20 @@ def _get_args():
     parser.add_argument('-v', '--verbose', dest='verbose', action='store_true', default=False, help=msg)
     args = parser.parse_args()
 
-    return vars(args)
+    a = vars(args)
 
-args = _get_args()
+    val = float('inf') if a['val'] == 0 else a['val']
 
-winname = "OpenWFOM"
+    return a['test'], a['num_bfrs'], a['verbose'], val
 
-t = args['test']
-b = args['num_bfrs']
-v = args['verbose']
-val = float('inf') if args['val'] == 0 else args['val']
+t, b, v, val = _get_args()
 
-zyla = andor.Camera(0, t, b, v)
-flirs = flir.Camera(v, t)
-gui = gui.Frame("OpenWFOM")
+if not v:
+    sys.stdout = open(os.devnull, 'w')
+
+zyla = andor.Capture(0, t, b)
+flirs = spinnaker.Capture(t)
+frame = gui.Frame("OpenWFOM")
 
 t0 = time.time()
 
@@ -55,9 +55,15 @@ while (time.time() - t0) < val:
         "Flir2":flirs.frames[1],
     }
 
-    if not gui.view(imgs):
+    if not frame.view(imgs):
         break
 
-gui.close()
-flirs.close()
+    time.sleep(1/50)
+
+settings = zyla.get(["AOIHeight","AOIWidth","AOIStride","ImageSizeBytes"])
+
+print(settings)
+
+frame.close()
+flirs.shutdown()
 zyla.shutdown()

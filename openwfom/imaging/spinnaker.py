@@ -12,15 +12,13 @@ except ModuleNotFoundError:
 class FlirError(Exception):
     pass
 
-class Camera(object):
+class Capture(object):
     """docstring for Flir."""
 
-    def __init__(self, verbose=False, test=False):
+    def __init__(self, test=False):
 
-        if verbose:
-            print("\nInitializing FLIR Cameras...")
+        print("Initializing FLIR Cameras...")
 
-        self._verbose = verbose
         self._test = test
         self.active = False
 
@@ -37,10 +35,9 @@ class Camera(object):
                 msg = "There are no FLIR Cameras attached. Please run in 'test' mode."
                 raise ConnectionError(msg)
 
-            if self._verbose:
-                print("There are {0} FLIR Camera(s) attached".format(self.cameras.GetSize()))
-                for cam in self.cameras:
-                    print("SN: {0}".format(self.get_serial_number(cam)))
+            print("There are {0} FLIR Camera(s) attached".format(self.cameras.GetSize()))
+            for cam in self.cameras:
+                print("SN: {0}".format(self.get_serial_number(cam)))
 
             threading.Thread(target=self._update_frames).start()
 
@@ -64,8 +61,7 @@ class Camera(object):
         for i, cam in enumerate(self.cameras):
             self.active = self._start_camera(cam)
 
-        if self._verbose:
-            print("Updating Flir camera frames...")
+        print("Updating Flir camera frames...")
 
         while self.active:
             imgs = []
@@ -78,8 +74,7 @@ class Camera(object):
 
     def _update_frames_sim(self):
 
-        if self._verbose:
-            print("Updating Random frames to simulate webcams...")
+        print("Updating Random frames to simulate webcams...")
 
         self.active = True
 
@@ -91,8 +86,7 @@ class Camera(object):
 
     def _start_camera(self, cam):
 
-        if self._verbose:
-            print("Initialising FLIR Camera, SN: {0}...".format(self.get_serial_number(cam)))
+        print("Initialising FLIR Camera, SN: {0}...".format(self.get_serial_number(cam)))
 
         try:
             cam.Init()
@@ -101,8 +95,7 @@ class Camera(object):
             return True
         except:
             try:
-                if self._verbose:
-                    print("SN: {0} was already initialized. Restarting...".format(self.get_serial_number(cam)))
+                print("SN: {0} was already initialized. Restarting...".format(self.get_serial_number(cam)))
                 cam.DeInit()
                 cam.Init()
                 cam.BeginAcquisition()
@@ -113,8 +106,7 @@ class Camera(object):
 
     def _stop_camera(self, cam):
 
-        if self._verbose:
-            print("Stopping FLIR Camera, SN: {0}...".format(self.get_serial_number(cam)))
+        print("Stopping FLIR Camera, SN: {0}...".format(self.get_serial_number(cam)))
 
         try:
             cam.EndAcquisition()
@@ -125,10 +117,9 @@ class Camera(object):
 
         del cam
 
-    def close(self):
+    def shutdown(self):
 
-        if self._verbose:
-            print("Closing FLIR Cameras...")
+        print("Closing FLIR Cameras...")
 
         self.active = False
         time.sleep(1)
@@ -136,12 +127,10 @@ class Camera(object):
         if self._test:
             return
 
-        if self._verbose:
-            print("Clearing Camera list...")
+        print("Clearing Camera list...")
         self.cameras.Clear()
 
-        if self._verbose:
-            print("Releasing Spinnaker SDK...")
+        print("Releasing Spinnaker SDK...")
         self.system.ReleaseInstance()
 
 if __name__ == '__main__':
