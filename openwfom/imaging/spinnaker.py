@@ -15,31 +15,27 @@ class FlirError(Exception):
 class Capture(object):
     """docstring for Flir."""
 
-    def __init__(self, test=False):
+    def __init__(self):
 
         print("Initializing FLIR Cameras...")
 
-        self._test = test
         self.active = False
 
-        self.frames = [np.zeros((500,500), 'uint8'), np.zeros((500,500), 'uint8')]
+        self.frames = [np.zeros((500,500), 'uint8')]
 
-        if self._test:
-            threading.Thread(target=self._update_frames_sim).start()
-        else:
-            self.system = PySpin.System.GetInstance()
-            self.cameras = self.system.GetCameras()
+        self.system = PySpin.System.GetInstance()
+        self.cameras = self.system.GetCameras()
 
-            if self.cameras.GetSize() == 0:
-                self.close()
-                msg = "There are no FLIR Cameras attached. Please run in 'test' mode."
-                raise ConnectionError(msg)
+        if self.cameras.GetSize() == 0:
+            self.close()
+            msg = "There are no FLIR Cameras attached."
+            raise ConnectionError(msg)
 
-            print("There are {0} FLIR Camera(s) attached".format(self.cameras.GetSize()))
-            for cam in self.cameras:
-                print("SN: {0}".format(self.get_serial_number(cam)))
+        print("There are {0} FLIR Camera(s) attached".format(self.cameras.GetSize()))
+        for cam in self.cameras:
+            print("SN: {0}".format(self.get_serial_number(cam)))
 
-            threading.Thread(target=self._update_frames).start()
+        threading.Thread(target=self._update_frames).start()
 
     def get_serial_number(self, cam):
         return PySpin.CStringPtr(cam.GetTLDeviceNodeMap().GetNode('DeviceSerialNumber')).GetValue()
@@ -71,18 +67,6 @@ class Capture(object):
 
         for cam in self.cameras:
             self._stop_camera(cam)
-
-    def _update_frames_sim(self):
-
-        print("Updating Random frames to simulate webcams...")
-
-        self.active = True
-
-        while self.active:
-            self.frames = [
-                np.random.randint(0, 255, size=(800, 1000), dtype='uint8'),
-                np.random.randint(0, 255, size=(800, 1000), dtype='uint8')
-            ]
 
     def _start_camera(self, cam):
 

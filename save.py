@@ -18,4 +18,4 @@ while True:
     if not frame.view(imgs):
         break
 
-    time.sleep(1/50)
+    time.sleep(1/100)

@@ -279,11 +279,10 @@ dllFunc('AT_ConvertBufferUsingMetadata', [POINTER(AT_U8), POINTER(AT_U8), AT_64,
 
 class Capture(object):
 
-    def __init__(self, camNum, test=False, num_bfrs=10,):
+    def __init__(self, camNum, num_bfrs=10):
         '''camera initialisation - note that this should be called  from derived classes
         *AFTER* the properties have been defined'''
         self.settings = {}
-        self.test = test
         self._num_bfrs = num_bfrs
 
         print("Initialising Andor Camera at Port {0}".format(camNum))
@@ -293,9 +292,7 @@ class Capture(object):
 
         if self.serial_number[:3] == "SFT":
             # If SimCam Andor Object
-            if not self.test:
-                raise TypeError("You've connected to a SimCam, but did not initiate the camera in test mode.")
-            firmware = "SimCam"
+            raise TypeError("You've connected to a SimCam. OpenWFOM can only be run on a physical Andor Camera.")
         else:
             # If physical Andor Camera
             firmware = self.get("FirmwareVersion")
@@ -309,10 +306,7 @@ class Capture(object):
 
         self._paused = False
 
-        if self.test:
-            threading.Thread(target=self._update_sim).start()
-        else:
-            threading.Thread(target=self._update_buffers).start()
+        threading.Thread(target=self._update_buffers).start()
 
     def _create_buffers(self):
 
@@ -377,24 +371,6 @@ class Capture(object):
                 self._buffers.put(buf)
             else:
                 pass
-            time.sleep(0.01)
-
-    def _update_sim(self):
-        # Update frame while camera is active
-
-        print("Generating random nparrays for self.frame...")
-
-        self.height = self.get("AOIHeight")
-        # Get new width
-        self.width = self.get("AOIWidth")
-        # Create empty frame
-        self.frame = np.zeros((self.height, self.width), dtype='uint16')
-
-        self.active = True
-        while self.active:
-            if not self._paused:
-                self.frame = np.random.randint(0, 65535, size=(self.height, self.width), dtype='uint16')
-            time.sleep(0.01)
 
     def _set(self, setting, value):
 

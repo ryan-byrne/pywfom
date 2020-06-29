@@ -59,6 +59,21 @@ class Frame(object):
             self.ix, self.iy, self.x, self.y = -1, -1, -1, -1
 
     def view(self, img_dict):
+
+        # Combine the images into one frame at self.frame
+        self._combine_frames(img_dict)
+
+        # Show the resulting frame using OpenCV
+        cv2.rectangle(self.frame,(self.ix,self.iy),(self.x,self.y),(0,255,0))
+        cv2.imshow(self.win_name, self.frame)
+
+        # Quit the program if the Q button is pressed
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            return False
+        else:
+            return True
+
+    def _combine_frames(self, img_dict):
         # Calculate number of frames
         self.num_sfs = len(img_dict.keys())
         # Get name of chosen main frame
@@ -80,16 +95,6 @@ class Frame(object):
             sf = cv2.vconcat(sf)
             # Combine subframes and main frame horizontally
             self.frame = cv2.hconcat([mf[:sf.shape[0]], sf])
-
-        # Show the resulting frame using OpenCV
-        cv2.rectangle(self.frame,(self.ix,self.iy),(self.x,self.y),(0,255,0))
-        cv2.imshow(self.win_name, self.frame)
-
-        # Quit the program if the Q button is pressed
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            return False
-        else:
-            return True
 
     def close(self):
         cv2.destroyAllWindows()

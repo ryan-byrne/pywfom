@@ -41,8 +41,8 @@ t, b, v, val = _get_args()
 if not v:
     sys.stdout = open(os.devnull, 'w')
 
-zyla = andor.Capture(0, t, b)
-flirs = spinnaker.Capture(t)
+zyla = andor.Capture(0, b)
+flirs = spinnaker.Capture()
 frame = gui.Frame("OpenWFOM")
 
 t0 = time.time()
@@ -58,7 +58,7 @@ while (time.time() - t0) < val:
     if not frame.view(imgs):
         break
 
-    time.sleep(1/50)
+    time.sleep(1/30)
 
 settings = zyla.get(["AOIHeight","AOIWidth","AOIStride","ImageSizeBytes"])
 
