@@ -1,4 +1,4 @@
-import cv2, time
+import cv2, time, threading
 import numpy as np
 
 def _format_frame(frame, label="", to_shape=(800,800), padding=50):
@@ -32,12 +32,12 @@ class Frame(object):
         # cv2 drawing variables
         self.drawing = False
         self.dragging = False
-        self.ix, self.iy, self.x, self.y = -1, -1, -1, -1
+        self.ix, self.iy, self.x, self.y, self.cx, self.cy = -1,-1,-1,-1,-1,-1
         self.win_name = win_name
         self.selected_idx = 0
         self.num_sfs = 0
-        cv2.namedWindow(self.win_name)
-        cv2.setMouseCallback(self.win_name, self._mouse_callback)
+        self.active = True
+        threading.Thread(target=self._view_frame).start()
 
     def _mouse_callback(self, event, x, y, flags, param):
 
@@ -45,12 +45,13 @@ class Frame(object):
             if x < 800:
                 # Mouse selected main frame
                 self.drawing = True
-                self.ix, self.iy = x,y
+                self.ix, self.iy, self.x, self.y = x,y,x,y
             else:
                 # Mouse selected sub frame
                 self.selected_idx = int(y/800*(self.num_sfs))
 
         elif event == cv2.EVENT_MOUSEMOVE:
+            self.cx, self.cy = x, y
             if self.drawing:
                 self.x, self.y = x, y
         elif event == cv2.EVENT_LBUTTONUP:
@@ -59,21 +60,31 @@ class Frame(object):
             self.ix, self.iy, self.x, self.y = -1, -1, -1, -1
 
     def view(self, img_dict):
+        # Update the objects 'frame' variable
+        threading.Thread(target=self._update_frame, args=(img_dict,)).start()
+        return self.active
 
-        # Combine the images into one frame at self.frame
-        self._combine_frames(img_dict)
+    def _view_frame(self):
+        # Open a new cv2 window
+        cv2.namedWindow(self.win_name)
+        cv2.setMouseCallback(self.win_name, self._mouse_callback)
+        # Create an empty frame
+        self.frame = _format_frame(np.zeros((1000,1000), 'uint8'), 'Waiting for Images...')
+        # Run a loop while the frame is active
+        while self.active:
+            # Draw a circle to make mouse position more visible
+            cv2.circle(self.frame, (self.cx, self.cy), 10, (255,0,0), 5, 1, 0)
+            # Draw a rectangle on main frame for AOI
+            cv2.rectangle(self.frame,(self.ix,self.iy),(self.x,self.y),(0,255,0))
+            # Show the resulting frame using OpenCV
+            cv2.imshow(self.win_name, self.frame)
 
-        # Show the resulting frame using OpenCV
-        cv2.rectangle(self.frame,(self.ix,self.iy),(self.x,self.y),(0,255,0))
-        cv2.imshow(self.win_name, self.frame)
+            # Quit the program if the Q button is pressed
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                self.active = False
+                break
 
-        # Quit the program if the Q button is pressed
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            return False
-        else:
-            return True
-
-    def _combine_frames(self, img_dict):
+    def _update_frame(self, img_dict):
         # Calculate number of frames
         self.num_sfs = len(img_dict.keys())
         # Get name of chosen main frame
@@ -97,4 +108,5 @@ class Frame(object):
             self.frame = cv2.hconcat([mf[:sf.shape[0]], sf])
 
     def close(self):
+        self.active = False
         cv2.destroyAllWindows()
