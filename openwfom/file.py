@@ -4,7 +4,7 @@ import numpy as np
 class Spool(object):
     """docstring for File."""
 
-    def __init__(self, mouse_name, base_dir="C:\\wfom_data", spool_len=100):
+    def __init__(self, mouse_name, base_dir="C:\\openwfom\\data", spool_len=100):
         self.spool_len = spool_len
         self._make_directories(mouse_name, base_dir)
         self._spools_to_save = queue.Queue()

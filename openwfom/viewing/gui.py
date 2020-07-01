@@ -1,5 +1,6 @@
-import cv2, time, threading
+import cv2, time, threading, subprocess
 import numpy as np
+import openwfom
 
 def _format_frame(frame, label="", to_shape=(800,800), padding=50):
 
@@ -110,3 +111,43 @@ class Frame(object):
     def close(self):
         self.active = False
         cv2.destroyAllWindows()
+
+class Settings(object):
+    """docstring for Settings."""
+
+    def __init__(self, path_to_settings=""):
+        self._check_java()
+        self.JAR_PATH = "{0}\\viewing\\java\\JARS\\".format(openwfom.__path__[0])
+
+    def set(self, setting):
+
+        print("Setting {0} from the GUI...".format(setting))
+
+        path = "{0}{1}.jar".format(self.JAR_PATH, setting)
+        subprocess.call(["java", "-jar", path])
+
+    def _check_java(self):
+
+        print("Checking Version of Java Runtime Environment")
+
+        try:
+            out = subprocess.check_output(['java', '-version'], stderr=subprocess.STDOUT).decode("utf-8")
+            version = ""
+            if out[0] == "'":
+                raise EnvironmentError("Java is not installed on your machine.")
+            for l in out:
+                if len(version) > 0 and l == '"':
+                    break
+                elif l in [".", "_"] or l.isdigit():
+                    version += l
+                else:
+                    continue
+            if float(version[:3]) < 1.7:
+                raise EnvironmentError("Your version of Java Runtime Environment\
+                is {0}. 1.7 or up is required.")
+
+            print("JRE {0} is installed".format(version))
+
+        except Exception as e:
+            msg = "Could not find the correct version of the Java Runtime Environment"
+            raise EnvironmentError(msg)

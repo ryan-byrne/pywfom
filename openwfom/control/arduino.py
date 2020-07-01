@@ -1,14 +1,19 @@
 import serial, os
 
+class ArduinoError(Exception):
+    pass
+
 class Arduino():
     """ Methods pertaining to Communication with the Arduino """
 
     def __init__(self):
         self.port = os.environ.get("WFOM_ARDUINO")
         if not self.port:
-            raise EnvironmentError("WFOM_ARDUINO variable is not set in the PATH.\n\
-            Follow the tutorial below to add it:\n\
-            ")
+            print("There was an error connecting to the Arduino")
+            print("Be sure you've followed the tutorial below:")
+            link = "https://github.com/ryan-byrne/openwfom/wiki/Arduino-Setup/"
+            print("\n{0}\n".format(link))
+            raise ArduinoError()
         print("Attempting to Connect to Arduino at Serial Port: "+self.port)
         try:
             self.ser = serial.Serial(

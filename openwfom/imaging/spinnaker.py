@@ -27,7 +27,7 @@ class Capture(object):
         self.cameras = self.system.GetCameras()
 
         if self.cameras.GetSize() == 0:
-            self.close()
+            self.shutdown()
             msg = "There are no FLIR Cameras attached."
             raise ConnectionError(msg)
 
@@ -50,7 +50,6 @@ class Capture(object):
             return img
         except PySpin.SpinnakerException as e:
             print("{0}: {1}".format(self.get_serial_number(cam), e))
-            input()
 
     def _update_frames(self):
 
@@ -107,9 +106,6 @@ class Capture(object):
 
         self.active = False
         time.sleep(1)
-
-        if self._test:
-            return
 
         print("Clearing Camera list...")
         self.cameras.Clear()

@@ -5,3 +5,7 @@
 /openwfom.egg*
 /data
 /.pytest_cache
+openwfom/.classpath
+openwfom/.project
+archive.json
+DiskCal.log

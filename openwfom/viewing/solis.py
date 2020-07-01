@@ -1,6 +1,7 @@
 import shutil, sysconfig, psutil, json, time, os, subprocess
 import sys, serial, argparse
 from serial import Serial
+import openwfom
 from pywinauto.application import Application, AppStartError
 from pywinauto.controls.menuwrapper import MenuItemInfo
 
@@ -15,12 +16,7 @@ class Solis(object):
     """
 
     def __init__(self):
-
-        self.PATH_TO_FILES = ""
-
         self.JSON_SETTINGS = {}
-
-        self.TEST_RESULTS = []
 
         self._check_java()
 
@@ -48,17 +44,17 @@ class Solis(object):
 
         """
 
-        For information on the 'Info' GUI go here https://github.com/ryan-byrne/wfom/wiki/Usage#1-info-gui
+        For information on the 'Info' GUI go here:
+        https://github.com/ryan-byrne/wfom/wiki/Usage#1-info-gui
 
         """
 
         print("Waiting for Run Info from GUI...")
 
-        os.chdir("JavaGUI")
         if os.path.isfile("settings.json"):
             os.remove("settings.json")
-        subprocess.call(["java", "-jar", "JARs\\info.jar"])
-        os.chdir("..")
+        path = "{0}info.jar".format(self.JAR_PATH)
+        subprocess.call(["java", "-jar", path])
 
         self._read_json_settings()
 
@@ -195,13 +191,13 @@ class Solis(object):
 
         """
 
-        _prompt("Previewing settings. Select 'Begin Acquisition' start.", "sitting")
+        print("Previewing settings. Select 'Begin Acquisition' start.")
 
         os.chdir("JavaGUI")
         subprocess.call(["java", "-jar","JARs/preview.jar"])
         os.chdir("..")
 
-    def _set_parameters(self):
+    def set_parameters(self):
 
         """
 
@@ -253,38 +249,12 @@ class Solis(object):
             f.truncate()
         f.close()
 
-    def _check_java(self):
-
-        print("Checking Version of Java Runtime Environment")
-
-        try:
-            out = subprocess.check_output(['java', '-version'], stderr=subprocess.STDOUT).decode("utf-8")
-            version = ""
-            if out[0] == "'":
-                raise EnvironmentError("Java is not installed on your machine.")
-            for l in out:
-                if len(version) > 0 and l == '"':
-                    break
-                elif l in [".", "_"] or l.isdigit():
-                    version += l
-                else:
-                    continue
-            if float(version[:3]) < 1.7:
-                raise EnvironmentError("Your version of Java Runtime Environment\
-                is {0}. 1.7 or up is required.")
-
-            print("JRE {0} is installed".format(version))
-
-        except Exception as e:
-            msg = "Could not find the correct version of the Java Runtime Environment"
-            raise EnvironmentError(msg)
-
-    def _view(self):
+    def view(self):
 
         print("Attempting to Initiate Camera Preview in SOLIS")
         self.soliswin.menu_select("Acquisition->Take Video")
 
-    def _abort(self):
+    def abort(self):
 
         print("Attempting to Abort Camera Preview in SOLIS")
         self.soliswin.menu_select("Acquisition->Abort Acquisition")
@@ -330,7 +300,7 @@ class Solis(object):
             msg = "Unable to find the 'settings.json' file. It may have been deleted."
             raise e
 
-    def _acquire(self):
+    def acquire(self):
 
         """
 
