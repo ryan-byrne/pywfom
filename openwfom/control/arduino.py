@@ -5,6 +5,10 @@ class Arduino():
 
     def __init__(self):
         self.port = os.environ.get("WFOM_ARDUINO")
+        if not self.port:
+            raise EnvironmentError("WFOM_ARDUINO variable is not set in the PATH.\n\
+            Follow the tutorial below to add it:\n\
+            ")
         print("Attempting to Connect to Arduino at Serial Port: "+self.port)
         try:
             self.ser = serial.Serial(

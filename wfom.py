@@ -1,5 +1,5 @@
-from openwfom.imaging import andor, spinnaker, arduino, gui
-from openwfom import file, solis
+from openwfom.control.arduino import Arduino
+from openwfom import test
 import time, argparse, sys, os
 
 def _get_args():
@@ -32,9 +32,12 @@ def _get_args():
 
     return args
 
-def wfom_solis():
+def run_solis():
+
+    from openwfom.viewing import solis
 
     andor = solis.Solis()
+    arduino = Arduino()
 
     COMMANDS = {
         "info":andor._info,
@@ -64,12 +67,31 @@ def wfom_solis():
     arduino._turn_off_strobing()
     print("Files were saved to:\n"+andor.PATH_TO_FILES)
 
-def wfom_headless():
-    pass
+def run_headless():
+
+    from openwfom.imaging import andor, spinnaker
+    from openwfom.viewing import gui
+    from openwfom.file import Spool
+
+    #zyla = andor.Capture(0)
+    arduino = Arduino()
+    flirs = spinnaker.Capture()
+
+def run():
+    # Get command line options
+    args = _get_args()
+    # If test mode is run
+    if args['test']:
+        test.run()
+    # Block prints if not verbose
+    if not args['verbose']:
+        sys.stdout = open(os.devnull, 'w')
+    # Run with Solis UI if selected
+    if args['solis']:
+        run_solis()
+    else:
+        run_headless()
+
 
 if __name__ == '__main__':
-    args = _get_args()
-    if args['solis']:
-        wfom_solis()
-    else:
-        wfom_headless()
+    run()

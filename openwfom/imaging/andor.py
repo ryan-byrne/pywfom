@@ -292,7 +292,7 @@ class Capture(object):
 
         if self.serial_number[:3] == "SFT":
             # If SimCam Andor Object
-            raise TypeError("You've connected to a SimCam. OpenWFOM can only be run on a physical Andor Camera.")
+            firmware = "SimCam"
         else:
             # If physical Andor Camera
             firmware = self.get("FirmwareVersion")
