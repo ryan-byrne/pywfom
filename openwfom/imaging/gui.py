@@ -22,7 +22,7 @@ def _format_frame(frame, label="", to_shape=(800,800), padding=50):
     # COnvert to RGB
     rgb = cv2.cvtColor(gray, cv2.COLOR_BGR2RGB)
     # Add label
-    cv2.putText(rgb, label, (pad_x, pad_y), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 2)
+    cv2.putText(rgb, label, (pad_x, pad_y+10), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 2)
     return rgb
 
 class Frame(object):
