@@ -1,5 +1,5 @@
 from openwfom.imaging import andor, spinnaker, arduino, gui
-from openwfom import file
+from openwfom import file, solis
 import time, argparse, sys, os
 
 def _get_args():
@@ -18,52 +18,58 @@ def _get_args():
 
     msg = "The index of the camera you would like to connect to."
     parser.add_argument('cam_num', type=int, nargs='?',default=0, help=msg)
-    msg = "Duration (in sec), or # of frames of capture."
-    parser.add_argument('val', nargs='?', type=int, default=0, help=msg)
-    msg = "# of Camera Buffers to be used. (Default=10)"
-    parser.add_argument('num_bfrs', type=int, nargs='?',default=10, help=msg)
-    msg = "Sets capture to 'frames' mode."
-    parser.add_argument('-f', '--frames', dest='frames', action='store_true', default=False, help=msg)
-    msg = "Required if running with AndorSDK3's 'SimCam'"
+
+    msg = "Run a diagnostic test of your OpenWFOM installation."
     parser.add_argument('-t', '--test', dest='test', action='store_true', default=False, help=msg)
+
     msg = "Print additional text while running OpenWFOM."
     parser.add_argument('-v', '--verbose', dest='verbose', action='store_true', default=False, help=msg)
-    args = parser.parse_args()
 
-    a = vars(args)
+    msg = "Option to run OpenWFOM with Solis' built-in User Interface."
+    parser.add_argument('-s', '--solis', dest='solis', action='store_true', default=False, help=msg)
 
-    val = float('inf') if a['val'] == 0 else a['val']
+    args = vars(parser.parse_args())
 
-    return a['test'], a['num_bfrs'], a['verbose'], val
+    return args
 
-t, b, v, val = _get_args()
+def wfom_solis():
 
-if not v:
-    sys.stdout = open(os.devnull, 'w')
+    andor = solis.Solis()
 
-zyla = andor.Capture(0, b)
-flirs = spinnaker.Capture()
-frame = gui.Frame("OpenWFOM")
-
-t0 = time.time()
-
-while (time.time() - t0) < val:
-
-    imgs = {
-        "Zyla":zyla.frame,
-        "Flir1":flirs.frames[0],
-        "Flir2":flirs.frames[1],
+    COMMANDS = {
+        "info":andor._info,
+        "camera":andor._camera,
+        "strobe_order":arduino._strobe,
+        "stim":arduino._stim,
+        "run":arduino._stim,
+        "preview":andor._preview
     }
+    # Loop until you've completed the settings.json file
+    while True:
+        # See which settings are missing from settings.json
+        st = set(andor.JSON_SETTINGS.keys())
+        TO_BE_COMPLETED = [ele for ele in COMMANDS.keys() if ele not in st]
+        # See if there are any missing settings
+        if len(TO_BE_COMPLETED) == 0:
+            # Exit loop if no
+            break
+        else:
+            # Run command if yes
+            COMMANDS[TO_BE_COMPLETED[0]]()
+            andor._read_json_settings()
 
-    if not frame.view(imgs):
-        break
+    arduino._turn_on_strobing(andor.JSON_SETTINGS["strobe_order"])
+    # Begin Acquisition
+    andor._acquire()
+    arduino._turn_off_strobing()
+    print("Files were saved to:\n"+andor.PATH_TO_FILES)
 
-    time.sleep(1/30)
+def wfom_headless():
+    pass
 
-settings = zyla.get(["AOIHeight","AOIWidth","AOIStride","ImageSizeBytes"])
-
-print(settings)
-
-frame.close()
-flirs.shutdown()
-zyla.shutdown()
+if __name__ == '__main__':
+    args = _get_args()
+    if args['solis']:
+        wfom_solis()
+    else:
+        wfom_headless()

@@ -4,3 +4,4 @@
 /dist
 /openwfom.egg*
 /data
+/.pytest_cache

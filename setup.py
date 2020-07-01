@@ -17,7 +17,9 @@ setup(
         "opencv-python",
         "pyserial",
         "numpy",
-        "h5py"
+        "h5py",
+        'spinnaker-python',
+        'pywinauto'
     ],
     entry_points={
         'console_scripts':[
