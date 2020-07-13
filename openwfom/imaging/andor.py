@@ -293,20 +293,23 @@ class Capture(object):
         if self.serial_number[:3] == "SFT":
             # If SimCam Andor Object
             firmware = "SimCam"
+            self.test = True
+            self.frame = np.zeros((800, 800), dtype='uint16')
         else:
             # If physical Andor Camera
             firmware = self.get("FirmwareVersion")
+            self.test = False
             self.set({
-                "PixelEncoding":"Mono16",
+                "CycleMode":"Continuous",
                 "SensorCooling":True,
-                "CycleMode":"Continuous"
+                "PixelEncoding":"Mono16"
             })
 
         print("Successfully Opened Camera\nSN: {1}\nFirmware Version: {2}".format(camNum, self.serial_number, firmware))
 
-        self._paused = False
+        test = True if firmware == "SimCam" else False
 
-        threading.Thread(target=self._update_buffers).start()
+        threading.Thread(target=self._update_buffers, args=(test,)).start()
 
     def _create_buffers(self):
 
@@ -326,6 +329,10 @@ class Capture(object):
         # Create empty frame
         self.frame = np.zeros((self.height, self.width), dtype='uint16')
 
+        # Return if in test mode
+        if self.test:
+            return
+
         # Flushing camera buffers
         Flush(self._handle)
         # Create empty queue for buffers
@@ -344,7 +351,7 @@ class Capture(object):
             QueueBuffer(self._handle, buf.ctypes.data_as(POINTER(AT_U8)), buf.nbytes)
             self._buffers.put(buf)
 
-    def _update_buffers(self):
+    def _update_buffers(self, test):
 
         # Create initial buffers
         self._create_buffers()
@@ -354,23 +361,30 @@ class Capture(object):
         print("Reading camera buffer and sending to self.frame...")
 
         self.active = True
+        self._paused = False
 
         # Update frame while camera is active
         while self.active:
-            if not self._paused:
-                try:
-                    buf = self._buffers.get()
-                    WaitBuffer(self._handle, 100)
-                except:
-                    self.active = False
-                    break
-
-                self.frame = np.array(buf).view(np.uint16).reshape((self.height, self.width))
-
-                QueueBuffer(self._handle, buf.ctypes.data_as(POINTER(AT_U8)), buf.nbytes)
-                self._buffers.put(buf)
-            else:
-                pass
+            # Continue if acquisition is paused
+            if self._paused:
+                continue
+            # Generate a random frame if testing
+            if self.test:
+                self.frame = np.random.randint(0, 61500, (self.height, self.width))
+                continue
+            # If not paused or testing, get next buffer from camera
+            try:
+                buf = self._buffers.get()
+                WaitBuffer(self._handle, 100)
+            except:
+                self.active = False
+                break
+            # Reformat buffer to a frame
+            self.frame = np.array(buf).view(np.uint16).reshape((self.height, self.width))
+            # Queue up next buffer
+            QueueBuffer(self._handle, buf.ctypes.data_as(POINTER(AT_U8)), buf.nbytes)
+            self._buffers.put(buf)
+        print("Zyla done")
 
     def _set(self, setting, value):
 

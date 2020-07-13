@@ -37,6 +37,7 @@ def run_solis():
     from openwfom.viewing import gui
 
     settings = gui.Settings()
+    solis = gui.Solis()
 
     settings.set("stim")
 
@@ -44,11 +45,27 @@ def run_headless():
 
     from openwfom.imaging import andor, spinnaker
     from openwfom.viewing import gui
-    from openwfom.file import Spool
 
-    #zyla = andor.Capture(0)
+    # Initialise each OpenWFOM component
+    zyla = andor.Capture(0)
     #arduino = Arduino()
-    flirs = spinnaker.Capture()
+    #flirs = spinnaker.Capture(1)
+
+    # Open a preview frame
+    frame = gui.Frame("OpenWFOM")
+
+    # Loop while each component is active
+    while True:
+        images = {
+            "Zyla":zyla.frame
+        }
+
+        if not frame.view(images):
+            break
+
+    zyla.shutdown()
+    #flirs.shutdown()
+
 
 def run():
     # Get command line options

@@ -15,7 +15,7 @@ class FlirError(Exception):
 class Capture(object):
     """docstring for Flir."""
 
-    def __init__(self):
+    def __init__(self, num_cams):
 
         print("Initializing FLIR Cameras...")
 
@@ -26,9 +26,9 @@ class Capture(object):
         self.system = PySpin.System.GetInstance()
         self.cameras = self.system.GetCameras()
 
-        if self.cameras.GetSize() == 0:
+        if self.cameras.GetSize() < num_cams:
             self.shutdown()
-            msg = "There are no FLIR Cameras attached."
+            msg = "There are not enough FLIR Cameras attached."
             raise ConnectionError(msg)
 
         print("There are {0} FLIR Camera(s) attached".format(self.cameras.GetSize()))
@@ -63,6 +63,8 @@ class Capture(object):
             for cam in self.cameras:
                 imgs.append(self._read_image(cam))
             self.frames = imgs
+
+        print("Stopping camera")
 
         for cam in self.cameras:
             self._stop_camera(cam)

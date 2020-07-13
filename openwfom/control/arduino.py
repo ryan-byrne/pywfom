@@ -1,4 +1,4 @@
-import serial, os
+import serial, os, time
 
 class ArduinoError(Exception):
     pass
@@ -25,6 +25,7 @@ class Arduino():
                     timeout=0)
             time.sleep(1)
             print("Successfully connected to Arduino at {0}".format(self.port))
+            self.active = True
         except serial.SerialException as e:
             msg = "Unable to connect to the Arduino at {0}. Ensure that it is plugged in.".format(self.port)
             raise ConnectionError(msg)
@@ -82,3 +83,8 @@ class Arduino():
             except (OSError, serial.SerialException):
                 pass
         return result
+
+    def shutdown(self):
+        self._turn_off_strobing()
+        self._clear()
+        self._disable()
