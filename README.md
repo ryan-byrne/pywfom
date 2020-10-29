@@ -23,26 +23,6 @@ The ```openwfom``` Python Package **should be installed and run within a virtual
 
 For more information on virtual machines, particularly Python's built-in **```venv```** follow [this link](https://docs.python.org/3/library/venv.html).
 
-To start a new virtual machine, open a command prompt, navigate to where you would like to create the new directory, and enter:
-
-``` cmd
-python -m venv wfom
-```
-
-I have named my virtual environment ```wfom```, but it can be any name you choose. Next, activate the virtual environment by entering:
-
-``` cmd
-\wfom\Scripts\activate
-```
-
-Your virtual environment's name will appear to the left of your current directory as shown below:
-
-```
-(wfom) C:\Users\ryanb>
-```
-
-All Python scripts will now be run within our new virtual environment ```wfom```
-
 #### 2) Installing the ```openwfom``` Python Package with PIP
 
 Make sure you have [PIP](https://packaging.python.org/tutorials/installing-packages/#ensure-you-can-run-pip-from-the-command-line) installed on your machine. Enter:
