@@ -117,7 +117,7 @@ if __name__ == '__main__':
     if not args['verbose']:
         sys.stdout = open(os.devnull, 'w')
 
-    # Load
+    # Load Configuration
     if args["config"] != "":
         with open(args['config']) as f:
             config = json.load(f)
