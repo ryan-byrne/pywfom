@@ -1,12 +1,12 @@
 import numpy as np
 import time, threading, cv2, json
 import tkinter as tk
-from tkinter import ttk, simpledialog, filedialog
+from tkinter import ttk, simpledialog, filedialog, messagebox
 from PIL import Image, ImageTk, ImageDraw
 
 class Frame(tk.Frame):
 
-    def __init__(self, parent, win_name, config={}):
+    def __init__(self, parent, win_name, config):
 
         self.config = config
 
@@ -75,15 +75,18 @@ class Frame(tk.Frame):
         else:
             h, w, fr = "AOIHeight", "AOIWidth", "FrameRate"
 
-        self.main_label.config(
-            text="{0} ({1}): {2}x{3}, {4} fps".format(
-                s['name'],
-                s['type'].title(),
-                s[h],
-                s[w],
-                round(s[fr],1)
+        if self.config['cameras'][self.selected_frame].error_msg == "":
+            self.main_label.config(
+                text="{0} ({1}): {2}x{3}, {4} fps".format(
+                    s['name'],
+                    s['type'].title(),
+                    s[h],
+                    s[w],
+                    round(s[fr],1)
+                )
             )
-        )
+        else:
+            self.main_label.config(text="ERROR")
 
         self.canvas.config(height=img.height(), width=img.width())
         self.canvas.create_image(0,0,image=img,anchor="nw")
@@ -218,9 +221,9 @@ class SettingsWindow(tk.Toplevel):
         arduino_settings = self.config['arduino'].settings
         for i, category in enumerate(arduino_settings.keys()):
             parent = self.tree.insert(arduino, i, text=category.title())
-            settings = arduino_settings[category] if category == "strobing" else arduino_settings[category].keys()
+            settings = arduino_settings[category] if category in ["strobing", "port"] else arduino_settings[category].keys()
             for j, setting in enumerate(settings):
-                values = ("", setting.title()) if category == "strobing" else (setting.replace("_", " ").title(), arduino_settings[category][setting])
+                values = ("", setting.upper()) if category in ["strobing", "port"] else (setting.replace("_", " ").title(), arduino_settings[category][setting])
                 self.tree.insert(parent, j, values=values)
 
     def create_buttons(self):
@@ -268,6 +271,8 @@ class SettingsWindow(tk.Toplevel):
             if category == 'strobing':
                 arduino.set("strobing", self.settings['arduino']['strobing'])
                 self.config["arduino"].settings['strobing'] = self.settings["arduino"]['strobing']
+            elif category == "port":
+                arduino.set("port", self.settings['arduino']['port'])
             else:
                 for setting in self.settings['arduino'][category].keys():
                     arduino.set(setting, self.settings['arduino'][category][setting])
@@ -303,6 +308,8 @@ class SettingsWindow(tk.Toplevel):
         parent = self.tree.item(parent_iid)['text']
         category = self.tree.item(self.tree.parent(parent_iid))['text']
         param = simpledialog.askstring(parent=self, title="Adding Setting:", prompt="Setting")
+        if param not in self.config[category].types.keys():
+            messagebox.showerror("Adding Setting", "{0} is not a valid setting for: {1}".format(param, parent))
         if parent == "strobing":
             self.tree.insert(parent_iid, len(self.tree.get_children(parent_iid)), values=("", param))
             strobe_order = []
@@ -339,7 +346,7 @@ class SettingsWindow(tk.Toplevel):
                 self.tree.delete(item_iid)
                 self.tree.insert(parent_iid, i, values=(v[0], new_value))
                 cat = self.tree.item(self.tree.parent(parent_iid))['text'].lower()
-                if parent.lower() == "strobing":
+                if parent.lower() in ["strobing", "port"]:
                     self.settings['arduino'][parent.lower()][i] = new_value
                     return
                 if cat == "arduino":

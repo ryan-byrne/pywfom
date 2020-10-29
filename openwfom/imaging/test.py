@@ -19,6 +19,7 @@ class TestCamera(object):
         self.settings["name"] = name
         self.settings["type"] = "test"
         self.name = name
+        self.error_msg = ""
         self.settings['dtype'] = dtype
         self.settings["AcquisitionFrameRate"] = 100
         print("Initializing Test Camera: {0}".format(name))

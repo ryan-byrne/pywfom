@@ -6,29 +6,45 @@ class ArduinoError(Exception):
 class Arduino():
     """ Methods pertaining to Communication with the Arduino """
 
-    def __init__(self, settings={}):
-        self.settings = settings
-        self.port = os.environ.get("WFOM_ARDUINO")
-        if not self.port:
+    def __init__(self, settings=None):
+
+        if not settings:
+            self.settings = {
+                "port":[os.environ.get("WFOM_ARDUINO")],
+                "strobing":[],
+                "stim":{},
+                "run":{
+                    "number_of_runs":1,
+                    "run_length":5.00
+                }
+            }
+        else:
+            self.settings = settings
+
+        self.types = {
+            "number_of_runs":int,
+            "run_length":float,
+            "pre_stim":float,
+            "stim":float,
+            "post_stim":float,
+            "port":list,
+            "strobing":list
+        }
+
+        self.error_msg = ""
+
+
+        if not self.settings["port"][0]:
             print("There was an error connecting to the Arduino")
             print("Be sure you've followed the tutorial below:")
             link = "https://github.com/ryan-byrne/openwfom/wiki/Arduino-Setup/"
             print("\n{0}\n".format(link))
             raise ArduinoError()
-        print("Attempting to Connect to Arduino at Serial Port: "+self.port)
+        print("Attempting to Connect to Arduino at Serial Port: "+self.settings["port"][0])
         try:
-            self.ser = serial.Serial(
-                port=self.port,\
-                baudrate=115200,\
-                parity=serial.PARITY_NONE,\
-                stopbits=serial.STOPBITS_ONE,\
-                bytesize=serial.EIGHTBITS,\
-                    timeout=0)
-            time.sleep(1)
-            print("Successfully connected to Arduino at {0}".format(self.port))
-            self.active = True
+            self.connect_to_arduino()
         except serial.SerialException as e:
-            msg = "ERROR: Unable to connect to the Arduino at {0}. Ensure that it is plugged in.".format(self.port)
+            self.error_msg = "ERROR: Unable to connect to the Arduino at {0}".format(self.settings["port"][0])
             self.active = False
             raise ArduinoError(msg)
 
@@ -42,13 +58,18 @@ class Arduino():
         time.sleep(1)
 
     def set(self, param, value):
+
+        self.settings[param] = value
+
         if param == 'strobing':
             order = ""
-            self.settings[param] = value
             for led in value:
                 order += led[0]
             print("Setting the Strobe order on the Arduino to: "+order)
             self.ser.write(order.encode())
+        elif param == "port":
+            self.ser.close()
+            self.connect_to_arduino()
 
     def _clear(self):
         self.ser.write("0000".encode())
@@ -88,6 +109,20 @@ class Arduino():
             except (OSError, serial.SerialException):
                 pass
         return result
+
+    def connect_to_arduino(self):
+
+        self.ser = serial.Serial(
+            port=self.settings["port"][0],\
+            baudrate=115200,\
+            parity=serial.PARITY_NONE,\
+            stopbits=serial.STOPBITS_ONE,\
+            bytesize=serial.EIGHTBITS,\
+                timeout=0)
+        time.sleep(1)
+        self.error_msg = ""
+        print("Successfully connected to Arduino at {0}".format(self.settings["port"][0]))
+        self.active = True
 
     def shutdown(self):
         self._turn_off_strobing()

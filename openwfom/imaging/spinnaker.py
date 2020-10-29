@@ -121,7 +121,6 @@ class Camera(object):
 
         node.SetValue(value)
 
-
     def get(self, param=None):
 
         self._stop_camera()
@@ -181,6 +180,7 @@ class Camera(object):
                                 )
                 image_result.Release()
                 self.frame = img
+                
             except PySpin.SpinnakerException as e:
                 self.error_msg = "Timed out waiting for image"
                 self._error_frame()

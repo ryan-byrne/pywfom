@@ -299,9 +299,9 @@ class Camera(object):
             "AuxiliaryOutSource":str,
             "CycleMode":str,
             "FrameRate":float,
-            "TriggerMode":str
+            "TriggerMode":str,
+            "PixelEncoding":str
         }
-
         self._num_bfrs = num_bfrs
 
         self.error_msg = ""
