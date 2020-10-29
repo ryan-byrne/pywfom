@@ -11,8 +11,7 @@ These instructions will help you get the necessary software installed.
 ### Software Requirements
 
 * [Python](https://packaging.python.org/tutorials/installing-packages/#ensure-you-can-run-python-from-the-command-line) - 3.5 and Up
-* [Java Runtime](https://www.java.com/en/download/help/download_options.xml#windows) - 1.7 and Up
-* [Andor SOLIS (4.30 and up)](http://my.andor.com/login.aspx) - Registration Required
+* [Andor SDK3]()
 * [Spinnaker SDK](https://www.flir.com/products/spinnaker-sdk/) - FLIR Webcam Drivers
 * [Arduino IDE](https://www.arduino.cc/en/main/software) - Arduino Drivers
 
@@ -22,7 +21,7 @@ These instructions will help you get the necessary software installed.
 
 #### Setting up the Virtual Environment
 
-Firstly, ***```openwfom``` must be run within a virtual machine to avoid compability issues***. For more information on virtual machines, particularly Python's built-in '''venv''' follow [this link](https://docs.python.org/3/library/venv.html).
+Firstly, ***```openwfom``` should be installed and run within a virtual machine to avoid compability issues***. For more information on virtual machines, particularly Python's built-in '''venv''' follow [this link](https://docs.python.org/3/library/venv.html).
 
 To start a new virtual machine, open a command prompt, navigate to where you would like to create the new directory, and enter:
 
