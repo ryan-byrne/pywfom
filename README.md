@@ -25,13 +25,13 @@ For more information on virtual machines, particularly Python's built-in **```ve
 
 #### 2) Installing the ```openwfom``` Python Package with PIP
 
-Make sure you have [PIP](https://packaging.python.org/tutorials/installing-packages/#ensure-you-can-run-pip-from-the-command-line) installed on your machine. Enter:
+Make sure you have [PIP](https://packaging.python.org/tutorials/installing-packages/#ensure-you-can-run-pip-from-the-command-line) installed on your machine then enter:
 
-``` cmd
-pip install openwfom
+``` posh
+> pip install openwfom
 ```
 
-The ```openwfom``` Python Package is now installed in your Python ```site-packages```.
+The ```openwfom``` Python Package is now installed in your Python Virtual Machine's ```site-packages```.
 
 ## Usage
 
