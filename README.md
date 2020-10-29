@@ -11,17 +11,17 @@ These instructions will help you get the necessary software installed.
 ### Software Requirements
 
 * [Python](https://packaging.python.org/tutorials/installing-packages/#ensure-you-can-run-python-from-the-command-line) - 3.5 and Up
-* [Andor SDK3]()
+* [Andor SDK3](https://andor.oxinst.com/products/software-development-kit/) - Andor Camera Drivers
 * [Spinnaker SDK](https://www.flir.com/products/spinnaker-sdk/) - FLIR Webcam Drivers
 * [Arduino IDE](https://www.arduino.cc/en/main/software) - Arduino Drivers
 
-
-
 ### Installation
 
-#### Setting up the Virtual Environment
+#### 1) Setting up the Virtual Environment
 
-Firstly, ***```openwfom``` should be installed and run within a virtual machine to avoid compability issues***. For more information on virtual machines, particularly Python's built-in '''venv''' follow [this link](https://docs.python.org/3/library/venv.html).
+The ```openwfom``` Python Package **should be installed and run within a virtual machine** to avoid compability issues.
+
+For more information on virtual machines, particularly Python's built-in **```venv```** follow [this link](https://docs.python.org/3/library/venv.html).
 
 To start a new virtual machine, open a command prompt, navigate to where you would like to create the new directory, and enter:
 
@@ -43,7 +43,7 @@ Your virtual environment's name will appear to the left of your current director
 
 All Python scripts will now be run within our new virtual environment ```wfom```
 
-#### Installing the ```openwfom``` Python Package with PIP
+#### 2) Installing the ```openwfom``` Python Package with PIP
 
 Make sure you have [PIP](https://packaging.python.org/tutorials/installing-packages/#ensure-you-can-run-pip-from-the-command-line) installed on your machine. Enter:
 
@@ -51,81 +51,36 @@ Make sure you have [PIP](https://packaging.python.org/tutorials/installing-packa
 pip install openwfom
 ```
 
-The ```openwfom``` Python Package is now installed in your Python ```site-packages```. ```wfom-test``` and ```wfom-run``` have also been added to your PATH to be used as **command line tools**. More on that later. 
-
-### Test the Installation
-
-We will now test to see if ```openwfom``` and it's required files were installed correctly. Start by opening a new instance of CMD and type:
-
-``` cmd
-wfom-test -v -y
-```
-
-The test script will run, automatically bypassing any errors it recieves, and print each message recieved to the command prompt. It will also generate a log file, whose path will be printed at the end of the script at:
-
-```
-/path/to/site-packages/openwfom/resources/logs
-```
-
-**Note:** *If any errors occur, post a screenshot of the command line and the output of ```pip freeze``` to this repository's [Issues Page](https://github.com/ryan-byrne/openwfom/issues).*
+The ```openwfom``` Python Package is now installed in your Python ```site-packages```.
 
 ## Usage
 
-This section provides information on how to use the ```openwfom``` package, as well as the command line arguments that were installed to the path.
+This section provides information on how to use the ```openwfom``` package.
 
-### (Option 1) Using the Python Package
+### (Option 1) Using OpenWFOM in Python
 
-Using the ```openwfom``` Python Package simply requires importing it's ```wfom``` module. ```wfom```'s functions can now be used in your custom script.
-
+Using the ```openwfom``` Package in Python simply requires importing one of ```openwfom```'s modules.
 ``` python
-from openwfom import wfom
-
-wfom.run()
+from openwfom.imaging import spinnaker
 ```
+We can then create an object using ```spinnaker```'s ```Camera()``` class.
+``` python
+flir = spinnaker.Camera(0, "Flir1")
+```
+And print the current frame until ```CTRL+C``` is pressed.
+```python
+while True:
+    try:
+        print(flir.frame)
+    except KeyboardInterrupt:
+        break
+flir.close()
+```
+For a full list of available modules and their corrresponding methods consult the [OpenWFOM Documentation]().
 
 #### Available Classes
 
-The OpenWFOM package is comprised of three classes: **Andor, Arduino, and Webcam**, which can be imported on their own.
-
-For example, if I simply wanted to import the Arduino class from ```wfom``` I would write:
-
-``` python
-from openwfom import wfom
-
-# Initiate the Arduino Class
-a = wfom.Arduino("COM4")
-# Call the strobe function to open the Strobe GUI
-a.strobe()
-```
-
-### (Option 2) Running from the Command Line
-
-During the ```pip``` installation of our ```openwfom``` package, there were two executable scripts that were installed to our PATH: ```wfom-test``` and ```wfom-run```. To run either, simply enter them into CMD.
-
-```
-wfom-test
-```
-
-or
-
-```
-wfom-run
-```
-#### Command Line Arguments
-
-To run the **command line script** with more (or less) funtionality, optional command line arguments were built in:
-
-* ```-q``` or ```--quiet``` runs the script in "Quiet Mode", without command line prints
-*  ```-v``` or ```--verbose``` runs the script in "Verbose Mode", which prints each message on a successive line, and exports the log to a file.
-*  ```-y``` or ```--auto_yes``` automatically continues whenever an error occurs
-
-**Note:** *"Quiet" and "Verbose" modes cannot be run concurrently.*
-
-For example, the following command would run an acquisition without command line prints, and automatically continue whenever an error occurs:
-
-```
-wfom-run -q -y
-```
+The OpenWFOM package contains  
 
 ## Versioning
 
