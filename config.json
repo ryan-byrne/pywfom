@@ -1,0 +1,42 @@
+{
+  "timestamp": "2020-07-20 10:09:41.202390",
+  "user": "rjb2202",
+  "mouse": "cm102",
+  "cameras": [
+    {
+      "name": "zyla",
+      "type": "andor",
+      "Index": 0,
+      "AOIHeight": 1000,
+      "AOIWidth": 1000,
+      "AOILeft": 0,
+      "AOIBottom": 0,
+      "AOIBinning": "1x1"
+    },
+    {
+      "name": "flir1",
+      "type": "spinnaker",
+      "index": 0,
+      "Height": 500,
+      "Width": 500,
+      "OffsetX": 0,
+      "OffsetY": 0
+    }
+  ],
+  "arduino": {
+    "run": {
+      "number_of_runs": 1,
+      "running_time": 21.00
+    },
+    "strobing": [
+      "red",
+      "green",
+      "blue"
+    ],
+    "stim": {
+      "pre_stim": 5.00,
+      "stim": 4.00,
+      "post_stim": 12.00
+    }
+  }
+}

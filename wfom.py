@@ -1,11 +1,12 @@
-from openwfom.control.arduino import Arduino
-from openwfom import test
-import time, argparse, sys, os
+import time, argparse, sys, os, cv2
+import numpy as np
+import tkinter as tk
 
 def _get_args():
 
     """
-    This function simply checks for arguments when the script is called
+    This function simply checks for arguments when the script is
+
     and stores them in their corresponding variable.
 
     Example:
@@ -35,52 +36,96 @@ def _get_args():
 def run_solis():
 
     from openwfom.viewing import gui
+    from openwfom.control.arduino import Arduino
 
-    settings = gui.Settings()
     solis = gui.Solis()
-
-    settings.set("stim")
+    arduino = Arduino()
+    flirs = spinnaker.Capture(1)
 
 def run_headless():
 
+    from openwfom.control.arduino import Arduino
     from openwfom.imaging import andor, spinnaker
     from openwfom.viewing import gui
-
-    # Initialise each OpenWFOM component
-    zyla = andor.Capture(0)
-    #arduino = Arduino()
-    #flirs = spinnaker.Capture(1)
+    from openwfom import file
 
     # Open a preview frame
     frame = gui.Frame("OpenWFOM")
 
+    # Initialise each OpenWFOM component
+    arduino = Arduino()
+    flirs = spinnaker.Capture(1)
+    zyla = andor.Capture(0)
+
     # Loop while each component is active
     while True:
+
         images = {
+            "Flir1":flirs.frames[0],
             "Zyla":zyla.frame
         }
 
-        if not frame.view(images):
+        print(images)
+
+        if not frame.view(images) or not arduino.active:
             break
 
+
+    arduino.shutdown()
     zyla.shutdown()
-    #flirs.shutdown()
+    flirs.shutdown()
+    frame.close()
 
+def test():
 
-def run():
+    from openwfom.imaging.test import TestCamera
+    from openwfom.viewing.test import Frame
+    from openwfom.control.arduino import Arduino
+    from openwfom.imaging import andor, spinnaker
+
+    config = {
+        "arduino":Arduino({
+            "strobing":[
+                "red",
+                "green",
+                "blue"
+            ],
+            "stim":{
+                "pre_stim":5,
+                "stim":15,
+                "post_stim":4,
+            },
+            "run":{
+                "number_of_runs":1,
+                "running_time":21.00
+            }
+        }),
+        "cameras":[
+            spinnaker.Camera(0, "Flir1"),
+            andor.Camera(0, "Zyla"),
+            TestCamera("Zyla",(240,240),'uint16')
+        ]
+
+    }
+
+    root = tk.Tk()
+    frame = Frame(root, "OpenWFOM", config)
+    frame.root.mainloop()
+
+    for cam in config["cameras"]:
+        cam.close()
+
+if __name__ == '__main__':
     # Get command line options
     args = _get_args()
-    # If test mode is run
-    if args['test']:
-        test.run()
     # Block prints if not verbose
     if not args['verbose']:
         sys.stdout = open(os.devnull, 'w')
+    # If test mode is run
+    if args['test']:
+        test()
     # Run with Solis UI if selected
-    if args['solis']:
+    elif args['solis']:
         run_solis()
     else:
         run_headless()
-
-if __name__ == '__main__':
-    run()

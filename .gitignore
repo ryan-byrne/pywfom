@@ -9,3 +9,4 @@ openwfom/.classpath
 openwfom/.project
 archive.json
 DiskCal.log
+.gitignore

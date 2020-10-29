@@ -6,7 +6,8 @@ class ArduinoError(Exception):
 class Arduino():
     """ Methods pertaining to Communication with the Arduino """
 
-    def __init__(self):
+    def __init__(self, settings={}):
+        self.settings = settings
         self.port = os.environ.get("WFOM_ARDUINO")
         if not self.port:
             print("There was an error connecting to the Arduino")
@@ -27,8 +28,9 @@ class Arduino():
             print("Successfully connected to Arduino at {0}".format(self.port))
             self.active = True
         except serial.SerialException as e:
-            msg = "Unable to connect to the Arduino at {0}. Ensure that it is plugged in.".format(self.port)
-            raise ConnectionError(msg)
+            msg = "ERROR: Unable to connect to the Arduino at {0}. Ensure that it is plugged in.".format(self.port)
+            self.active = False
+            raise ArduinoError(msg)
 
     def _disable(self):
         print("Disabling Python <-> Arduino Communication")
@@ -39,15 +41,18 @@ class Arduino():
         self.ser.open()
         time.sleep(1)
 
-    def _set_strobe_order(self):
-        order = ""
-        for led in self.strobe_order:
-            order += led[0]
-        print("Setting the Strobe order on the Arduino to: "+order)
-        self.ser.write(order.encode())
+    def set(self, param, value):
+        if param == 'strobing':
+            order = ""
+            self.settings[param] = value
+            for led in value:
+                order += led[0]
+            print("Setting the Strobe order on the Arduino to: "+order)
+            self.ser.write(order.encode())
 
     def _clear(self):
         self.ser.write("0000".encode())
+        self.strobe_order = []
 
     def _turn_on_strobing(self, strobe_order):
         print("Strobing the LEDs with the order: {0}".format(strobe_order))

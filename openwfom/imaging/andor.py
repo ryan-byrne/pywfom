@@ -277,39 +277,51 @@ dllFunc('AT_FinaliseUtilityLibrary', lib='ATUTIL')
 dllFunc('AT_ConvertBuffer', [POINTER(AT_U8), POINTER(AT_U8), AT_64, AT_64, AT_64, STRING, STRING], lib='ATUTIL')
 dllFunc('AT_ConvertBufferUsingMetadata', [POINTER(AT_U8), POINTER(AT_U8), AT_64, STRING], lib='ATUTIL')
 
-class Capture(object):
+class Camera(object):
 
-    def __init__(self, camNum, num_bfrs=10):
+    def __init__(self, camera_idx=0, name="", num_bfrs=10):
         '''camera initialisation - note that this should be called  from derived classes
         *AFTER* the properties have been defined'''
+
         self.settings = {}
+
+        self.settings["index"] = camera_idx
+        self.settings["name"] = name
+        self.settings["type"] = "andor"
+        self.types = {
+            "AOIHeight":int,
+            "AOIWidth":int,
+            "AOILeft":int,
+            "AOITop":int,
+            "index":int,
+            "name":str,
+            "AOIBinning":str,
+            "AuxiliaryOutSource":str,
+            "CycleMode":str,
+            "FrameRate":float,
+            "TriggerMode":str
+        }
+
         self._num_bfrs = num_bfrs
 
-        print("Initialising Andor Camera at Port {0}".format(camNum))
+        self.error_msg = ""
+        self.active = False
 
-        self._handle = Open(camNum)
+        print("{1} : Initialising Andor Camera at Port {0}".format(camera_idx, name))
+        self._handle = Open(camera_idx)
         self.serial_number = self.get("SerialNumber")
 
         if self.serial_number[:3] == "SFT":
             # If SimCam Andor Object
-            firmware = "SimCam"
-            self.test = True
-            self.frame = np.zeros((800, 800), dtype='uint16')
+            self.error_msg = "No Andor Camera found (idx={0})".format(camera_idx)
+            self._error_frame()
+            return
         else:
             # If physical Andor Camera
             firmware = self.get("FirmwareVersion")
-            self.test = False
-            self.set({
-                "CycleMode":"Continuous",
-                "SensorCooling":True,
-                "PixelEncoding":"Mono16"
-            })
+            self.set(self.settings)
 
-        print("Successfully Opened Camera\nSN: {1}\nFirmware Version: {2}".format(camNum, self.serial_number, firmware))
-
-        test = True if firmware == "SimCam" else False
-
-        threading.Thread(target=self._update_buffers, args=(test,)).start()
+        threading.Thread(target=self._update_buffers).start()
 
     def _create_buffers(self):
 
@@ -319,6 +331,9 @@ class Capture(object):
         will then populate.
 
         """
+
+        if not self.active:
+            return
 
         # Get size of buffers
         self.image_size_bytes = self.get("ImageSizeBytes")
@@ -351,7 +366,7 @@ class Capture(object):
             QueueBuffer(self._handle, buf.ctypes.data_as(POINTER(AT_U8)), buf.nbytes)
             self._buffers.put(buf)
 
-    def _update_buffers(self, test):
+    def _update_buffers(self):
 
         # Create initial buffers
         self._create_buffers()
@@ -368,15 +383,15 @@ class Capture(object):
             # Continue if acquisition is paused
             if self._paused:
                 continue
-            # Generate a random frame if testing
-            if self.test:
-                self.frame = np.random.randint(0, 61500, (self.height, self.width))
-                continue
             # If not paused or testing, get next buffer from camera
             try:
                 buf = self._buffers.get()
                 WaitBuffer(self._handle, 100)
             except:
+                msg = "Could not read buffer"
+                print(msg)
+                self.error_msg = msg
+                self._error_frame()
                 self.active = False
                 break
             # Reformat buffer to a frame
@@ -384,7 +399,6 @@ class Capture(object):
             # Queue up next buffer
             QueueBuffer(self._handle, buf.ctypes.data_as(POINTER(AT_U8)), buf.nbytes)
             self._buffers.put(buf)
-        print("Zyla done")
 
     def _set(self, setting, value):
 
@@ -394,12 +408,14 @@ class Capture(object):
             'int':SetInt,
             'float':SetFloat
         }
-
-        print("Setting {0} -> {1}".format(setting, value))
-
+        print("{0} : Setting {1} -> {2}".format(self.settings['name'], setting, value))
         self.settings[setting] = value
 
+        if setting in ['name', 'index'] or not self.active:
+            return
+
         try:
+            print("{2} : Setting {0} -> {1}".format(setting, value, self.settings["name"]))
             cmd[type(value).__name__](self._handle, setting, value)
         except CameraError as e:
             if e.errNo in [2, 5]:
@@ -456,10 +472,7 @@ class Capture(object):
 
     def _get(self, param):
 
-        if param == "SerialNumber":
-            print("Getting Serial Number...")
-        else:
-            print("Getting {0} from {1}".format(param, self.serial_number))
+        print("{1} : Getting {0}".format(param, self.settings["name"]))
 
         try:
             val = GetString(self._handle, param, 255).value
@@ -477,10 +490,33 @@ class Capture(object):
                         val = GetBool(self._handle, param).value
         return val
 
-    def shutdown(self):
-        print("Shutting down {0}...".format(self.serial_number))
-        Command(self._handle, "AcquisitionStop")
-        self.active = False
+    def _error_frame(self):
+
+        print("ERROR: "+self.error_msg)
+
+        img = np.zeros((512,512,3), np.uint8)
+        font                   = cv2.FONT_HERSHEY_SIMPLEX
+        bottomLeftCornerOfText = (10,500)
+        fontScale              = 0.75
+        fontColor              = (255,255,255)
+        lineType               = 2
+
+        cv2.putText(img,"ERROR: "+self.error_msg,
+            bottomLeftCornerOfText,
+            font,
+            fontScale,
+            fontColor,
+            lineType)
+
+        self.frame = img
+
+    def close(self):
+        try:
+            print("Shutting down {0}...".format(self.serial_number))
+            Command(self._handle, "AcquisitionStop")
+            self.active = False
+        except:
+            pass
         Close(self._handle)
         FinaliseLibrary()
 
