@@ -3,7 +3,7 @@
 /build
 /dist
 /openwfom.egg*
-/data/*
+/data
 /.pytest_cache
 openwfom/.classpath
 openwfom/.project
