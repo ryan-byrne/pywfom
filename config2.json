@@ -1,0 +1,41 @@
+{
+  "arduino": {
+    "port": "COM3",
+    "strobing": [
+      "RED",
+      "GREEN",
+      "BLUE"
+    ],
+    "stim": {
+      "pre_stim":4.0,
+      "stim":7.0,
+      "post_stim":8.0
+    },
+    "run": {
+      "number_of_runs": 1,
+      "run_length": 5.0
+    }
+  },
+  "cameras": [
+    {
+      "type":"test",
+      "name":"Test1",
+      "Height":700,
+      "Width":600,
+      "AcquisitionFrameRate":100,
+      "dtype":"uint8",
+      "OffsetX":0,
+      "OffsetY":0
+    },
+    {
+      "type":"test",
+      "name":"Test2",
+      "Height":700,
+      "Width":800,
+      "AcquisitionFrameRate":100,
+      "dtype":"uint16",
+      "OffsetX":0,
+      "OffsetY":0
+    }
+  ]
+}

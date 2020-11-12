@@ -153,16 +153,18 @@ class Frame(tk.Frame):
 
         cam = self.cameras[self.selected_frame]
 
-        if cam.type == "spinnaker":
-            x, y, he, wi = cam.OffsetX, cam.OffsetY, cam.Height, cam.Width
+        if cam.type in ["spinnaker", "test"]:
+            x, y, he, wi = "OffsetX", "OffsetY", "Height", "Width"
         elif cam.type == "andor":
-            x, y, he, wi = cam.AOILeft, cam.AOITop, cam.AOIHeight, cam.AOIWidth
+            x, y, he, wi = "AOILeft", "AOITop", "AOIHeight", "AOIWidth"
+
+        print(x,y,he,wi)
 
         cam.set({
             he:int(h/self.scale),
             wi:int(w/self.scale),
-            x:int(x+self.ix/self.scale),
-            y:int(y+self.iy/self.scale)
+            x:int(self.x+self.ix/self.scale),
+            y:int(self.y+self.iy/self.scale)
         })
 
         self.ix, self.iy, self.x, self.y = 0,0,0,0
