@@ -279,15 +279,13 @@ dllFunc('AT_ConvertBufferUsingMetadata', [POINTER(AT_U8), POINTER(AT_U8), AT_64,
 
 class Camera(object):
 
-    def __init__(self, camera_idx=0, name="", num_bfrs=10):
+    def __init__(self, camera_idx=0, name="", settings=None, num_bfrs=10):
         '''camera initialisation - note that this should be called  from derived classes
         *AFTER* the properties have been defined'''
 
-        self.settings = {}
+        print("{1} : Initialising Andor Camera at Port {0}".format(camera_idx, name))
+        self._handle = Open(camera_idx)
 
-        self.settings["index"] = camera_idx
-        self.settings["name"] = name
-        self.settings["type"] = "andor"
         self.types = {
             "AOIHeight":int,
             "AOIWidth":int,
@@ -300,18 +298,26 @@ class Camera(object):
             "CycleMode":str,
             "FrameRate":float,
             "TriggerMode":str,
-            "PixelEncoding":str
+            "PixelEncoding":str,
+            "SerialNumber":str
         }
-        self._num_bfrs = num_bfrs
 
+        if not settings:
+            self.settings = {}
+            self.settings["index"] = camera_idx
+            self.settings["name"] = name
+            self.settings["type"] = "andor"
+        else:
+            self.settings = settings
+
+
+        self._num_bfrs = num_bfrs
         self.error_msg = ""
         self.active = False
 
-        print("{1} : Initialising Andor Camera at Port {0}".format(camera_idx, name))
-        self._handle = Open(camera_idx)
-        self.serial_number = self.get("SerialNumber")
+        self.get("SerialNumber")
 
-        if self.serial_number[:3] == "SFT":
+        if self.settings["SerialNumber"][:3] == "SFT":
             # If SimCam Andor Object
             self.error_msg = "No Andor Camera found (idx={0})".format(camera_idx)
             self._error_frame()
@@ -387,6 +393,7 @@ class Camera(object):
             try:
                 buf = self._buffers.get()
                 WaitBuffer(self._handle, 100)
+                self.error_msg = ""
             except:
                 msg = "Could not read buffer"
                 print(msg)
@@ -463,16 +470,19 @@ class Camera(object):
     def get(self, param):
 
         if type(param).__name__ == 'list':
-            settings = {}
             for setting in param:
-                settings[setting] = self._get(setting)
-            return settings
+                self._get(setting)
         else:
-            return self._get(param)
+            self._get(param)
 
     def _get(self, param):
 
-        print("{1} : Getting {0}".format(param, self.settings["name"]))
+        if param in ["index", "name", "type"] or not self._handle:
+            return
+
+        print(self.settings)
+
+        print("{1} : Getting {0} -> ".format(param, self.settings["name"]), end="")
 
         try:
             val = GetString(self._handle, param, 255).value
@@ -488,7 +498,9 @@ class Camera(object):
                         val = GetFloat(self._handle, param).value
                     except:
                         val = GetBool(self._handle, param).value
-        return val
+
+        print(val)
+        self.settings[param] = val
 
     def _error_frame(self):
 

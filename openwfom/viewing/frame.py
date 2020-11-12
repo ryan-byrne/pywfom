@@ -6,15 +6,14 @@ from PIL import Image, ImageTk, ImageDraw
 
 class Frame(tk.Frame):
 
-    def __init__(self, parent, win_name, config):
+    def __init__(self, parent, win_name, cameras=[], arduino=None):
 
-        self.config = config
+        self.cameras = cameras
+        self.arduino = arduino
 
         self.root = parent
         self.root.bind("<Escape>", self.close)
         self.root.title(win_name)
-        self.sub_frames = []
-        self.sub_labels = []
         self.rect = None
         self.drawing = False
         self.selected_frame, self.ix, self.iy, self.x, self.y = 0,0,0,0,0
@@ -28,13 +27,26 @@ class Frame(tk.Frame):
         self.canvas.bind("<ButtonRelease-1>", self.set_aoi_end)
         self.canvas.bind("<B1-Motion>", self.draw_rectangle)
         self.canvas.bind("<Button-3>", self.reset_aoi)
-        self.canvas.grid(row=0,column=0, rowspan=len(self.config["cameras"]))
+        self.canvas.grid(row=0,column=0, rowspan=2*len(self.cameras)+3)
 
-        for i, img in enumerate(self.config["cameras"]):
+
+        # Create subframes for other cameras
+        self.sub_frames,self.sub_labels,self.sub_status,self.sub_status_color = [], [], [], []
+
+        for i, cam in enumerate(cameras):
             self.sub_frames.append(tk.Label(self.root))
-            self.sub_labels.append(tk.Label(self.root, text=self.config["cameras"][i].settings["name"]))
+            self.sub_labels.append(tk.Label(self.root, text=cam.name))
             self.sub_frames[i].grid(row=i, column=1, padx=5, pady=10, columnspan=3)
             self.sub_labels[i].grid(row=i, column=1, sticky=tk.NW)
+            self.sub_status.append(tk.Label(self.root))
+            self.sub_status[i].grid(row=i+len(self.cameras), column=2, columnspan=2, sticky=tk.NW)
+
+
+        # Create status labels
+        self.arduino_status = tk.Label(self.root, text="Arduino Status")
+        self.arduino_color = tk.Button(self.root, height=1, width=1)
+        self.arduino_status.grid(row=2*len(self.cameras)+1, column=1, columnspan=2, sticky="e")
+        self.arduino_color.grid(row=2*len(self.cameras)+1, column=3, sticky="w")
 
         # Create buttons
         self.settings_btn = tk.Button(      self.root,
@@ -48,7 +60,7 @@ class Frame(tk.Frame):
                                         command=self.acquire)
 
         for i, btn in enumerate([self.close_btn, self.settings_btn, self.acquire_btn]):
-            btn.grid(row=3,column=i+1, padx=5, pady=10)
+            btn.grid(row=2*len(self.cameras)+2,column=i+1, padx=5, pady=10)
 
         # Begin Updating the images
         self.update()
@@ -56,7 +68,7 @@ class Frame(tk.Frame):
     def update(self):
 
         # Create main viewing frame
-        image = self.convert_frame(self.config["cameras"][self.selected_frame].frame)
+        image = self.convert_frame(self.cameras[self.selected_frame].frame)
         max_dim = max(image.shape[0], image.shape[1])
         if max_dim < 750:
             self.scale = 750/max_dim
@@ -68,21 +80,20 @@ class Frame(tk.Frame):
         w, h = int(self.scale*image.shape[0]), int(self.scale*image.shape[1])
         img = ImageTk.PhotoImage(image = Image.fromarray(image).resize((h, w)))
 
-        s = self.config['cameras'][self.selected_frame].settings
+        cam = self.cameras[self.selected_frame]
 
-        if s['type'] in ["spinnaker", "test"]:
-            h, w, fr = "Height", "Width", "AcquisitionFrameRate"
+        if cam.type in ["spinnaker", "test"]:
+            h, w = cam.Height, cam.Width
         else:
-            h, w, fr = "AOIHeight", "AOIWidth", "FrameRate"
+            h, w = cam.AOIHeight, cam.AOIWidth
 
-        if self.config['cameras'][self.selected_frame].error_msg == "":
+        if self.cameras[self.selected_frame].error_msg == "":
             self.main_label.config(
-                text="{0} ({1}): {2}x{3}, {4} fps".format(
-                    s['name'],
-                    s['type'].title(),
-                    s[h],
-                    s[w],
-                    round(s[fr],1)
+                text="{0} ({1}): {2}x{3}".format(
+                    cam.name,
+                    cam.type.title(),
+                    h,
+                    w
                 )
             )
         else:
@@ -98,12 +109,16 @@ class Frame(tk.Frame):
         self.canvas.image = img
 
         # Create subframes
-        for i, cam in enumerate(self.config["cameras"]):
+        for i, cam in enumerate(self.cameras):
             image = self.convert_frame(cam.frame)
             img = ImageTk.PhotoImage(image = Image.fromarray(image).resize((250,250)))
             self.sub_frames[i].img = img
             self.sub_frames[i].config(image=img, borderwidth=10, relief="flat", bg="white")
             self.sub_frames[i].bind("<Button-1>",lambda event, idx=i: self.change_main_frame(event, idx))
+            (txt, color) = ("Ready", "Green") if cam.error_msg == "" else (cam.error_msg, "Red")
+
+        color = "green" if self.arduino.error_msg == "" else "red"
+        self.arduino_color.config(background=color)
 
         self.sub_frames[self.selected_frame].config(borderwidth=10,relief="ridge", bg="green")
 
@@ -136,18 +151,18 @@ class Frame(tk.Frame):
             self.iy = self.y
             h = abs(h)
 
-        cam = self.config["cameras"][self.selected_frame]
+        cam = self.cameras[self.selected_frame]
 
-        if cam.settings["type"] == "spinnaker":
-            x, y, he, wi = "OffsetX", "OffsetY", "Height", "Width"
-        elif cam.settings["type"] == "andor":
-            x, y, he, wi = "AOILeft", "AOITop", "AOIHeight", "AOIWidth"
+        if cam.type == "spinnaker":
+            x, y, he, wi = cam.OffsetX, cam.OffsetY, cam.Height, cam.Width
+        elif cam.type == "andor":
+            x, y, he, wi = cam.AOILeft, cam.AOITop, cam.AOIHeight, cam.AOIWidth
 
         cam.set({
             he:int(h/self.scale),
             wi:int(w/self.scale),
-            x:int(cam.settings[x]+self.ix/self.scale),
-            y:int(cam.settings[y]+self.iy/self.scale)
+            x:int(x+self.ix/self.scale),
+            y:int(y+self.iy/self.scale)
         })
 
         self.ix, self.iy, self.x, self.y = 0,0,0,0
@@ -156,7 +171,7 @@ class Frame(tk.Frame):
         self.x, self.y = event.x, event.y
 
     def reset_aoi(self, event):
-        cam = self.config["cameras"][self.selected_frame]
+        cam = self.cameras[self.selected_frame]
         cam.set({
             "Height":cam.get_max("Height"),
             "Width":cam.get_max("Width"),
@@ -181,12 +196,11 @@ class SettingsWindow(tk.Toplevel):
 
         # Get parent window, config settings, and types
         self.root = parent.root
-        self.config = parent.config
+        self.cameras = parent.cameras
+        self.arduino = parent.arduino
 
-        # Make objects to store settings
+        # Create object to store settings
         self.settings = {}
-        self.settings['arduino'] = self.config["arduino"].settings
-        self.settings['cameras'] = [cam.settings for cam in self.config['cameras']]
 
         # Create Treeview
         self.tree = ttk.Treeview(self, columns=["A", "B"])
@@ -209,21 +223,35 @@ class SettingsWindow(tk.Toplevel):
         # Clear previous settings from the tree
         self.tree.delete(*self.tree.get_children())
 
+        # Create Cameras tab
         cameras = self.tree.insert("", 0, text="Cameras")
-        for i, cam in enumerate(self.config["cameras"]):
+        # Create tabs for each camera
+        for i, cam in enumerate(self.cameras):
             cam_settings = {}
-            parent = self.tree.insert(cameras, i, text=cam.settings["name"].title())
-            for j, setting in enumerate(cam.settings.keys()):
-                cam_settings[setting] = cam.settings
-                self.tree.insert(parent, j, values=(setting, cam.settings[setting]))
+            parent = self.tree.insert(cameras, i, text=cam.name.title())
+            # Add setting for each attribute
+            for j, attr in enumerate(cam.__dict__.keys()):
+                if attr in ["pointers", "error_msg", "active", "paused", "system", "frame"]:
+                    continue
+                else:
+                    self.tree.insert(parent, j, values=(attr, getattr(cam, attr)))
 
+        # Create Arduino Tab
         arduino = self.tree.insert("", 1, text="Arduino")
-        arduino_settings = self.config['arduino'].settings
-        for i, category in enumerate(arduino_settings.keys()):
-            parent = self.tree.insert(arduino, i, text=category.title())
-            settings = arduino_settings[category] if category in ["strobing", "port"] else arduino_settings[category].keys()
+        # Go through each Arduino attribute
+        for i, attr in enumerate(self.arduino.__dict__.keys()):
+            if attr in ["error_msg", "types", "ser"]:
+                continue
+            parent = self.tree.insert(arduino, i, text=attr.title())
+            if attr == "port":
+                self.tree.insert(parent, i, values=("Port", self.arduino.port))
+                continue
+            settings = self.arduino.strobing if attr == "strobing" else getattr(self.arduino, attr).keys()
             for j, setting in enumerate(settings):
-                values = ("", setting.upper()) if category in ["strobing", "port"] else (setting.replace("_", " ").title(), arduino_settings[category][setting])
+                if attr == "strobing":
+                    values = ("", setting.upper())
+                else:
+                    values = (setting.replace("_", " ").title(), getattr(self.arduino, attr)[setting])
                 self.tree.insert(parent, j, values=values)
 
     def create_buttons(self):
@@ -261,10 +289,9 @@ class SettingsWindow(tk.Toplevel):
 
     def apply(self):
 
-        for i, camera in enumerate(self.settings['cameras']):
-            cam = self.config["cameras"][i]
+        for i, cam in enumerate(self.cameras):
             cam.set(self.settings['cameras'][i])
-            self.config["cameras"][i].settings = self.settings['cameras'][i]
+            self.cameras[i].settings = self.settings['cameras'][i]
 
         arduino = self.config["arduino"]
         for i, category in enumerate(self.settings["arduino"].keys()):
@@ -331,7 +358,8 @@ class SettingsWindow(tk.Toplevel):
         category = self.tree.item(self.tree.parent(parent_iid))['text']
         v = self.tree.item(item_iid)['values']
         new_value = simpledialog.askstring(parent=self, title="Setting {0}:".format(v[0]), prompt=v[0])
-
+        if not new_value:
+            return
         try:
             new_value = int(new_value)
         except ValueError:
@@ -346,13 +374,16 @@ class SettingsWindow(tk.Toplevel):
                 self.tree.delete(item_iid)
                 self.tree.insert(parent_iid, i, values=(v[0], new_value))
                 cat = self.tree.item(self.tree.parent(parent_iid))['text'].lower()
-                if parent.lower() in ["strobing", "port"]:
-                    self.settings['arduino'][parent.lower()][i] = new_value
+                if parent.lower() == "strobing":
+                    self.arduino.set("strobing", new_value)
+                    return
+                elif parent.lower() == "port":
+                    self.arduino.set("port", new_value)
                     return
                 if cat == "arduino":
-                    self.settings['arduino'][parent.lower()][v[0]] = new_value
+                    self.arduino.set(cat, new_value)
                 else:
-                    self.settings["cameras"][idx][v[0]] = new_value
+                    self.cameras[idx].set(cat, new_value)
 
     def delete_setting(self, item, parent):
         self.tree.delete(item)

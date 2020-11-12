@@ -12,7 +12,7 @@ class TestCamera(object):
 
     """
 
-    def __init__(self, name="", size=(500,500), dtype='uint8'):
+    def __init__(self, name="", size=(500,500), dtype='uint8', settings=None):
         self.settings = {}
         self.settings["Height"] = size[0]
         self.settings["Width"] = size[1]

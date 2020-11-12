@@ -87,22 +87,23 @@ def main(config=None):
     from openwfom.imaging.test import TestCamera
     from openwfom.viewing.frame import Frame
     from openwfom.control.arduino import Arduino
-    from openwfom.imaging import andor, spinnaker
+    from openwfom.imaging import andor, spinnaker, usb
 
-    if not config:
-        config={
-            "arduino":Arduino(),
-            "cameras":[
-                andor.Camera(),
-                spinnaker.Camera()
-            ]
-        }
+    CAMERA_TYPES = {
+        "test":TestCamera,
+        "andor":andor.Camera,
+        "spinnaker":spinnaker.Camera,
+        "usb":usb.Camera
+    }
+
+    cameras = [CAMERA_TYPES[cam['type']](cam) for cam in config["cameras"]]
+    arduino = Arduino(config["arduino"])
 
     root = tk.Tk()
-    frame = Frame(root, "OpenWFOM", config)
+    frame = Frame(root, "OpenWFOM", cameras, arduino)
     frame.root.mainloop()
 
-    for cam in config["cameras"]:
+    for cam in cameras:
         cam.close()
 
 def test():
@@ -118,10 +119,8 @@ if __name__ == '__main__':
         sys.stdout = open(os.devnull, 'w')
 
     # Load Configuration
-    if args["config"] != "":
-        with open(args['config']) as f:
-            config = json.load(f)
-        f.close()
-        main(config)
-    else:
-        main()
+    path = args['config'] if args['config'] else "config.json"
+    with open(path) as f:
+        config = json.load(f)
+    f.close()
+    main(config)

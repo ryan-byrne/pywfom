@@ -1,15 +1,31 @@
 {
-  "arduino":{
-
-  },
-  "cameras":[
-    {
-      "name":"Zyla",
-      "type":"andor"
+  "arduino": {
+    "port": "COM3",
+    "strobing": [
+      "RED",
+      "GREEN",
+      "BLUE"
+    ],
+    "stim": {
+      "pre_stim":4.0,
+      "stim":7.0,
+      "post_stim":8.0
     },
+    "run": {
+      "number_of_runs": 1,
+      "run_length": 5.0
+    }
+  },
+  "cameras": [
     {
-      "name":"Flir",
-      "type":"spinnaker"
+      "index": 1,
+      "name": "Flir1",
+      "type": "spinnaker",
+      "master":true,
+      "Height": 1080,
+      "Width": 1440,
+      "OffsetX": 0,
+      "OffsetY": 0
     }
   ]
 }

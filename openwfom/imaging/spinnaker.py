@@ -15,25 +15,11 @@ class FlirError(Exception):
 class Camera(object):
     """docstring for Flir."""
 
-    def __init__(self, index=0, name=""):
+    def __init__(self, config):
 
-        self.settings = {}
+        for k, v in config.items():
+            setattr(self, k, v)
 
-        self.settings['index'] = index
-        self.settings['name'] = name
-        self.settings["type"] = "spinnaker"
-        self.types = {
-            "AcquisitionFrameRate":float,
-            "index":int,
-            "name":str,
-            "Height":int,
-            "Width":int,
-            "OffsetX":int,
-            "OffsetY":int,
-            "TriggerSource":str,
-            "AcquisitionMode":str,
-            "TriggerMode":str
-        }
         self.pointers = {
             float:PySpin.CFloatPtr,
             int:PySpin.CIntegerPtr,
@@ -47,20 +33,20 @@ class Camera(object):
 
         # Check chosen index for a camera
         try:
-            print("{0} : Connecting to Camera (PySpin Index: {1})".format(self.settings["name"], self.settings["index"]))
-            self.camera = self.system.GetCameras()[self.settings['index']]
-            print("{0} : Initialising (FLIR SN: {1})".format(self.settings["name"], self.get_serial_number()))
+            print("{0} : Connecting to Camera (PySpin Index: {1})".format(self.name, self.index))
+            self.camera = self.system.GetCameras()[self.index]
+            print("{0} : Initialising (FLIR SN: {1})".format(self.name, self.get_serial_number()))
             # initialize camera and create node map
             try:
                 self.camera.DeInit()
                 self.camera.Init()
                 self.active = True
             except PySpin.SpinnakerException:
-                self.error_msg = "Camera is already started at idx={0}".format(self.settings["index"])
+                self.error_msg = "Camera is already started at idx={0}".format(self.index)
                 self._error_frame()
             self.nodemap = self.camera.GetNodeMap()
         except IndexError:
-            self.error_msg = "No FLIR Camera Found (idx={0})".format(self.settings["index"])
+            self.error_msg = "No FLIR Camera Found (idx={0})".format(self.index)
             print("ERROR: "+self.error_msg)
             self._error_frame()
             return
@@ -74,6 +60,10 @@ class Camera(object):
         threading.Thread(target=self._update_frames).start()
 
     def set(self, param, value=""):
+
+        if self.error_msg != "":
+            print("Unable change setting. Error in "+self.name)
+            return
 
         self._stop_camera()
 
@@ -89,7 +79,7 @@ class Camera(object):
     def _set(self, param, value):
 
         if not self.paused:
-            print("{0} : Unable to change settings. Camera is still acquiring.".format(self.settings["name"]))
+            print("{0} : Unable to change settings. Camera is still acquiring.".format(self.name))
             return
         elif param in ['name', 'index', 'type']:
             return
@@ -180,7 +170,8 @@ class Camera(object):
                                 )
                 image_result.Release()
                 self.frame = img
-                
+                self.error_msg = ""
+
             except PySpin.SpinnakerException as e:
                 self.error_msg = "Timed out waiting for image"
                 self._error_frame()
@@ -193,7 +184,7 @@ class Camera(object):
         try:
             self.paused = False
             self.camera.BeginAcquisition()
-            print("{0} : Acquiring frames".format(self.settings["name"]))
+            print("{0} : Acquiring frames".format(self.name))
         except:
             self._error_frame()
             return
@@ -202,7 +193,7 @@ class Camera(object):
         try:
             self.paused = True
             self.camera.EndAcquisition()
-            print("{0} : Stopping Acquisition".format(self.settings["name"]))
+            print("{0} : Stopping Acquisition".format(self.name))
         except:
             self._error_frame()
             return
