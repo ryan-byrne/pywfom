@@ -48,40 +48,6 @@ def run_solis():
     arduino = Arduino()
     flirs = spinnaker.Capture(1)
 
-def run_headless():
-
-    from pywfom.control.arduino import Arduino
-    from pywfom.imaging import andor, spinnaker
-    from pywfom.viewing import gui
-    from pywfom import file
-
-    # Open a preview frame
-    frame = gui.Frame("pywfom")
-
-    # Initialise each pywfom component
-    arduino = Arduino()
-    flirs = spinnaker.Capture(1)
-    zyla = andor.Capture(0)
-
-    # Loop while each component is active
-    while True:
-
-        images = {
-            "Flir1":flirs.frames[0],
-            "Zyla":zyla.frame
-        }
-
-        print(images)
-
-        if not frame.view(images) or not arduino.active:
-            break
-
-
-    arduino.shutdown()
-    zyla.shutdown()
-    flirs.shutdown()
-    frame.close()
-
 def main(config=None):
 
     from pywfom.imaging.test import TestCamera
@@ -126,6 +92,9 @@ def test(config=None):
 
     for cam in cameras:
         cam.close()
+
+def configure():
+    pass
 
 if __name__ == '__main__':
 
