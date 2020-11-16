@@ -4,10 +4,10 @@ import threading, time, traceback, cv2
 try:
     import PySpin
 except ModuleNotFoundError:
-    print("\nPySpin is not installed")
-    print("\nFollow the directions here to install it:")
-    print("\nhttps://github.com/ryan-byrne/openwfom/wiki/Camera-Setup/#installing-the-spinnaker-sdk\n")
-    raise
+    msg = "\nPySpin is not installed\nFollow the directions here to install it:\
+    \n\nhttps://github.com/ryan-byrne/pywfom/wiki/Cameras:-Spinnaker\n"
+    raise ModuleNotFoundError(msg
+    )
 
 class FlirError(Exception):
     pass

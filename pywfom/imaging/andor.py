@@ -6,6 +6,9 @@ _stdcall_libraries = {}
 
 arch, plat = platform.architecture()
 
+if platform.mac_ver() != "":
+    raise OSError("The Andor SDK3 is not currently compatible with MacOS")
+
 if plat.startswith('Windows'):
     try:
         _stdcall_libraries['ATCORE'] = ctypes.WinDLL('atcore.dll')
