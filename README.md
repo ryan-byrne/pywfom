@@ -4,7 +4,17 @@ The ```pywfom``` Python Package and command line tool are ways to declare camera
 
 ## Compatible Cameras
 
+* [Andor SDK3]() - Andor Cameras (Neo, Zyla)
+* [Spinnaker SDK]() - FLIR Cameras (Blackfly, Blackfly S)
+* [Other USB Webcams]() - Also compatible with most USB Webcams
 
+## Usage
+
+To install ```pywfom``` and test your installation run:
+
+```bash
+pip install pywfom; wfom --test
+```
 
 ## Versioning
 
