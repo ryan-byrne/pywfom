@@ -50,7 +50,7 @@ def main(config=None):
         "andor":andor.Camera,
         "test":TestCamera,
         "spinnaker":spinnaker.Camera,
-        "usb":usb.Camera
+        "webcam":webcam.Camera
     }
 
     cameras = [CAMERA_TYPES[cam['type']](cam) for cam in config["cameras"]]
@@ -71,7 +71,7 @@ def test(config=None):
 
     CAMERA_TYPES = {
         "test":TestCamera,
-        "usb":usb.Camera
+        "webcam":webcam.Camera
     }
 
     cameras = [CAMERA_TYPES[cam['type']](cam) for cam in config["cameras"]]

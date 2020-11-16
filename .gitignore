@@ -1,1 +1,4 @@
 *.pyc
+/pywfom.egg-info
+/dist
+/build

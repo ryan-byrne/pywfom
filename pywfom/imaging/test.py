@@ -1,7 +1,6 @@
 import numpy as np
 import time, threading
-import tkinter as tk
-from PIL import Image, ImageTk
+
 
 class TestCamera(object):
 
@@ -58,7 +57,6 @@ class TestCamera(object):
             self._set(param, value)
 
     def _set(self, param, value):
-        print(param, value)
         setattr(self, param, value)
 
     def close(self):
