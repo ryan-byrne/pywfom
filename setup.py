@@ -17,14 +17,12 @@ setup(
         "opencv-python",
         "pyserial",
         "numpy",
-        "h5py",
-        'spinnaker-python',
-        'pywinauto'
+        "h5py"
     ],
     entry_points={
         'console_scripts':[
-            'wfom = scripts:run',
-            'wfom-configure = scripts:configure'
+            'wfom = pywfom.scripts:run',
+            'wfom-configure = pywfom.scripts:configure'
         ] },
     long_description=long_description,
     long_description_content_type='text/markdown',

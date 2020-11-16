@@ -39,15 +39,6 @@ def _get_args():
 
     return args
 
-def run_solis():
-
-    from pywfom.viewing import gui
-    from pywfom.control.arduino import Arduino
-
-    solis = gui.Solis()
-    arduino = Arduino()
-    flirs = spinnaker.Capture(1)
-
 def main(config=None):
 
     from pywfom.imaging.test import TestCamera
@@ -96,7 +87,7 @@ def test(config=None):
 def configure():
     pass
 
-if __name__ == '__main__':
+def run():
 
     # Get command line options
     args = _get_args()
@@ -116,3 +107,6 @@ if __name__ == '__main__':
         test(config)
     else:
         main(config)
+
+if __name__ == '__main__':
+    run()
