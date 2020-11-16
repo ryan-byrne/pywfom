@@ -39,9 +39,13 @@ class TestCamera(object):
 
         while self.active:
             h, w = self.Height, self.Width
+            t = time.time()
             self.frame = np.random.randint(0,max,size=(h, w), dtype=self.dtype)
-            #Maximuz FPS to 100
-            time.sleep(1/self.AcquisitionFrameRate)
+            try:
+                self.AcquisitionFrameRate = 1/(time.time()-t)
+            except:
+                pass
+            self.tic = time.time()
 
     def get_max(self, dim):
         return 2000

@@ -83,17 +83,18 @@ class Frame(tk.Frame):
         cam = self.cameras[self.selected_frame]
 
         if cam.type in ["spinnaker", "test"]:
-            h, w = cam.Height, cam.Width
+            h, w, fr = cam.Height, cam.Width, cam.AcquisitionFrameRate
         else:
-            h, w = cam.AOIHeight, cam.AOIWidth
+            h, w, fr = cam.AOIHeight, cam.AOIWidth, cam.FrameRate
 
         if self.cameras[self.selected_frame].error_msg == "":
             self.main_label.config(
-                text="{0} ({1}): {2}x{3}".format(
+                text="{0} ({1}): {2}x{3}, {4} fps".format(
                     cam.name,
                     cam.type.title(),
                     h,
-                    w
+                    w,
+                    fr
                 )
             )
         else:
@@ -157,8 +158,6 @@ class Frame(tk.Frame):
             x, y, he, wi = "OffsetX", "OffsetY", "Height", "Width"
         elif cam.type == "andor":
             x, y, he, wi = "AOILeft", "AOITop", "AOIHeight", "AOIWidth"
-
-        print(x,y,he,wi)
 
         cam.set({
             he:int(h/self.scale),

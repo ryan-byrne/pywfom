@@ -18,14 +18,24 @@
   },
   "cameras": [
     {
-      "index": 1,
-      "name": "Flir1",
-      "type": "spinnaker",
-      "master":true,
-      "Height": 1080,
-      "Width": 1440,
-      "OffsetX": 0,
-      "OffsetY": 0
+      "type":"test",
+      "name":"Test1",
+      "Height":1200,
+      "Width":1200,
+      "AcquisitionFrameRate":100,
+      "dtype":"uint16",
+      "OffsetX":0,
+      "OffsetY":0
+    },
+    {
+      "type":"test",
+      "name":"Test2",
+      "Height":1200,
+      "Width":1200,
+      "AcquisitionFrameRate":100,
+      "dtype":"uint16",
+      "OffsetX":0,
+      "OffsetY":0
     }
   ]
 }
