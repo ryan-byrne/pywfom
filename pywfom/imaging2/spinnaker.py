@@ -68,8 +68,8 @@ class Camera(object):
         self._stop_camera()
 
         if type(param).__name__ == 'dict':
-            for p in param.keys():
-                self._set(p, param[p])
+            for k, v in param.items():
+                self._set(k, v)
         else:
             self._set(param, value)
 

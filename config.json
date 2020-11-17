@@ -18,21 +18,13 @@
   },
   "cameras": [
     {
-      "type":"test",
-      "name":"Test1",
-      "Height":1200,
-      "Width":1200,
-      "AcquisitionFrameRate":100,
-      "dtype":"uint16",
-      "OffsetX":0,
-      "OffsetY":0
-    },
-    {
-      "type":"test",
-      "name":"Test2",
-      "Height":1200,
-      "Width":1200,
-      "AcquisitionFrameRate":100,
+      "type":"webcam",
+      "name":"MacCam",
+      "index":0,
+      "Height":700,
+      "Width":700,
+      "AcquisitionFrameRate":50,
+      "master":true,
       "dtype":"uint16",
       "OffsetX":0,
       "OffsetY":0

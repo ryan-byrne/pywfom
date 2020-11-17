@@ -1,4 +1,4 @@
-import time, argparse, sys, os, json
+import time, argparse, sys, os, json, pkgutil
 import numpy as np
 import tkinter as tk
 
@@ -63,11 +63,11 @@ def main(config=None):
     for cam in cameras:
         cam.close()
 
-def test(config=None):
+def test2(config=None):
     from pywfom.imaging.test import TestCamera
     from pywfom.viewing.frame import Frame
-    from pywfom.control.arduino import Arduino
-    from pywfom.imaging import usb
+    from pywfom.control import Arduino
+    from pywfom.imaging import webcam
 
     CAMERA_TYPES = {
         "test":TestCamera,
@@ -83,6 +83,23 @@ def test(config=None):
 
     for cam in cameras:
         cam.close()
+
+def test(config=None):
+
+    from pywfom.imaging import Camera
+    from pywfom.viewing import Frame
+    from pywfom.control import Arduino
+
+    cameras = [Camera(config=cfg) for cfg in config["cameras"]]
+    arduino = Arduino(config["arduino"])
+
+    root = tk.Tk()
+    frame = Frame(root, "pywfom", cameras, arduino)
+    frame.root.mainloop()
+
+    for cam in cameras:
+        cam.close()
+
 
 def configure():
     pass

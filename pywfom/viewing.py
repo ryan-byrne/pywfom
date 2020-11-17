@@ -77,12 +77,14 @@ class Frame(tk.Frame):
         else:
             self.scale = 1
 
+        print(self.scale)
+
         w, h = int(self.scale*image.shape[0]), int(self.scale*image.shape[1])
         img = ImageTk.PhotoImage(image = Image.fromarray(image).resize((h, w)))
 
         cam = self.cameras[self.selected_frame]
 
-        if cam.type in ["spinnaker", "test"]:
+        if cam.type in ["spinnaker", "test", "webcam"]:
             h, w, fr = cam.Height, cam.Width, cam.AcquisitionFrameRate
         else:
             h, w, fr = cam.AOIHeight, cam.AOIWidth, cam.FrameRate
@@ -154,7 +156,7 @@ class Frame(tk.Frame):
 
         cam = self.cameras[self.selected_frame]
 
-        if cam.type in ["spinnaker", "test"]:
+        if cam.type in ["spinnaker", "test", "webcam"]:
             x, y, he, wi = "OffsetX", "OffsetY", "Height", "Width"
         elif cam.type == "andor":
             x, y, he, wi = "AOILeft", "AOITop", "AOIHeight", "AOIWidth"
