@@ -352,7 +352,7 @@ class Camera(object):
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         self.error_msg = ""
         x, y, w, h = self.OffsetX, self.OffsetY, self.Width, self.Height
-        return frame[x:w-x,y:h-y]
+        return frame[y:h+y, x:w+x]
 
     def _get_spinnaker_frame(self):
         try:
@@ -393,7 +393,11 @@ class Camera(object):
         pass
 
     def get_max(self, param):
-        pass
+        if self.type == "webcam":
+            if param == "Height":
+                return 700
+            elif param == "Width":
+                return 1200
 
     def close(self):
         self.active = False

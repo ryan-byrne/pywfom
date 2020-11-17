@@ -27,6 +27,7 @@ class Frame(tk.Frame):
         self.canvas.bind("<ButtonRelease-1>", self.set_aoi_end)
         self.canvas.bind("<B1-Motion>", self.draw_rectangle)
         self.canvas.bind("<Button-3>", self.reset_aoi)
+        self.canvas.bind("<Button-2>", self.reset_aoi)
         self.canvas.grid(row=0,column=0, rowspan=2*len(self.cameras)+3)
 
 
@@ -76,8 +77,6 @@ class Frame(tk.Frame):
             self.scale = 1000/max_dim
         else:
             self.scale = 1
-
-        print(self.scale)
 
         w, h = int(self.scale*image.shape[0]), int(self.scale*image.shape[1])
         img = ImageTk.PhotoImage(image = Image.fromarray(image).resize((h, w)))
@@ -137,6 +136,7 @@ class Frame(tk.Frame):
         self.root.destroy()
 
     def set_aoi_start(self, event):
+
         self.ix = event.x
         self.iy = event.y
 
@@ -144,8 +144,8 @@ class Frame(tk.Frame):
 
         self.x = event.x
         self.y = event.y
-        w = self.x-self.ix
-        h = self.y-self.iy
+        w = int((self.x-self.ix)/self.scale)
+        h = int((self.y-self.iy)/self.scale)
 
         if w < 0:
             self.ix = self.x
@@ -159,13 +159,14 @@ class Frame(tk.Frame):
         if cam.type in ["spinnaker", "test", "webcam"]:
             x, y, he, wi = "OffsetX", "OffsetY", "Height", "Width"
         elif cam.type == "andor":
+            # TODO: Account or Andor AOI being from the Top
             x, y, he, wi = "AOILeft", "AOITop", "AOIHeight", "AOIWidth"
 
         cam.set({
-            he:int(h/self.scale),
-            wi:int(w/self.scale),
-            x:int(self.x+self.ix/self.scale),
-            y:int(self.y+self.iy/self.scale)
+            he:h,
+            wi:w,
+            x:int(self.ix/self.scale),
+            y:int(self.iy/self.scale)
         })
 
         self.ix, self.iy, self.x, self.y = 0,0,0,0
