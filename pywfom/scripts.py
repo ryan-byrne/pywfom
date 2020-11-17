@@ -63,27 +63,6 @@ def main(config=None):
     for cam in cameras:
         cam.close()
 
-def test2(config=None):
-    from pywfom.imaging.test import TestCamera
-    from pywfom.viewing.frame import Frame
-    from pywfom.control import Arduino
-    from pywfom.imaging import webcam
-
-    CAMERA_TYPES = {
-        "test":TestCamera,
-        "webcam":webcam.Camera
-    }
-
-    cameras = [CAMERA_TYPES[cam['type']](cam) for cam in config["cameras"]]
-    arduino = Arduino(config["arduino"])
-
-    root = tk.Tk()
-    frame = Frame(root, "pywfom", cameras, arduino)
-    frame.root.mainloop()
-
-    for cam in cameras:
-        cam.close()
-
 def test(config=None):
 
     from pywfom.imaging import Camera

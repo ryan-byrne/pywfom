@@ -68,20 +68,10 @@ class Frame(tk.Frame):
 
     def update(self):
 
-        # Create main viewing frame
-        image = self.convert_frame(self.cameras[self.selected_frame].frame)
-        max_dim = max(image.shape[0], image.shape[1])
-        if max_dim < 750:
-            self.scale = 750/max_dim
-        elif max_dim > 1000:
-            self.scale = 1000/max_dim
-        else:
-            self.scale = 1
-
-        w, h = int(self.scale*image.shape[0]), int(self.scale*image.shape[1])
-        img = ImageTk.PhotoImage(image = Image.fromarray(image).resize((h, w)))
-
         cam = self.cameras[self.selected_frame]
+
+        # Create main viewing frame
+        image = self.convert_frame(cam.frame, (750,1000))
 
         if cam.type in ["spinnaker", "test", "webcam"]:
             h, w, fr = cam.Height, cam.Width, cam.AcquisitionFrameRate
@@ -101,19 +91,18 @@ class Frame(tk.Frame):
         else:
             self.main_label.config(text="ERROR")
 
-        self.canvas.config(height=img.height(), width=img.width())
-        self.canvas.create_image(0,0,image=img,anchor="nw")
+        self.canvas.config(height=image.height(), width=image.width())
+        self.canvas.create_image(0,0,image=image,anchor="nw")
         self.canvas.delete(self.rect)
         if 0 in [self.ix, self.iy, self.x, self.y]:
             pass
         else:
             self.rect = self.canvas.create_rectangle(self.ix, self.iy, self.x, self.y, fill="", outline="green")
-        self.canvas.image = img
+        self.canvas.image = image
 
         # Create subframes
         for i, cam in enumerate(self.cameras):
-            image = self.convert_frame(cam.frame)
-            img = ImageTk.PhotoImage(image = Image.fromarray(image).resize((250,250)))
+            img = self.convert_frame(cam.frame, (250,250))
             self.sub_frames[i].img = img
             self.sub_frames[i].config(image=img, borderwidth=10, relief="flat", bg="white")
             self.sub_frames[i].bind("<Button-1>",lambda event, idx=i: self.change_main_frame(event, idx))
@@ -186,11 +175,28 @@ class Frame(tk.Frame):
     def change_main_frame(self, event, idx):
         self.selected_frame = idx
 
-    def convert_frame(self, img):
-        if img.dtype == "uint16":
-            return np.sqrt(img).astype(np.uint8)
+    def convert_frame(self, image, max_size):
+        if image.dtype == "uint16":
+            image = np.sqrt(image).astype(np.uint8)
         else:
-            return img
+            pass
+
+        # Create main viewing frame
+        max_dim = max(image.shape[0], image.shape[1])
+        if max_dim < max_size[0]:
+            scale = max_size[0]/max_dim
+        elif max_dim > max_size[1]:
+            scale = max_size[1]/max_dim
+        else:
+            scale = 1
+
+        w, h = int(scale*image.shape[0]), int(scale*image.shape[1])
+
+        if max_size != (250,250):
+            self.scale = scale
+
+        return ImageTk.PhotoImage(image = Image.fromarray(image).resize((h, w)))
+
 
 class SettingsWindow(tk.Toplevel):
 
