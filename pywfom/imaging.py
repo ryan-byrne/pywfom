@@ -309,15 +309,22 @@ class Camera(object):
 
 
     def _start(self):
+
         if self.type == "webcam":
-            self.camera = cv2.VideoCapture(self.index)
+            self._camera = cv2.VideoCapture(self.index)
+            self.error_msg = ""
 
     def _stop(self):
-        pass
+        if self.type == "webcam":
+            pass
 
     def _update_frame(self):
 
         while self.active:
+
+            if self.error_msg != "":
+                self._error_frame()
+                continue
 
             # Generates a numpy array for the self.frame variable
             if self.type == "webcam":
@@ -334,7 +341,7 @@ class Camera(object):
 
     def _error_frame(self):
 
-        print("ERROR: "+self.error_msg)
+        #print("ERROR: "+self.error_msg)
 
         img = np.zeros((512,512,3), np.uint8)
         font                   = cv2.FONT_HERSHEY_SIMPLEX
@@ -365,24 +372,22 @@ class Camera(object):
             self._buffers.put(buf)
             return frame
         except:
-            msg = "Could not read buffer"
-            self.error_msg = msg
-            self._error_frame()
             return None
 
     def _get_webcam_frame(self):
         try:
-            frame = self.camera.read()[1]
+            frame = self._camera.read()[1]
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             self.error_msg = ""
             x, y, w, h = self.OffsetX, self.OffsetY, self.Width, self.Height
             return frame[y:h+y, x:w+x]
         except:
-            self.error_msg = "{0} Can't read Webcam Frame".format(self.name)
+            self.error_msg = "{0}:{1} at index:{2}".format(self.type,self.name,self.index)
+            return None
 
     def _get_spinnaker_frame(self):
         try:
-            image_result = self.camera.GetNextImage(1000)
+            image_result = self._camera.GetNextImage(1000)
             img = np.reshape(   image_result.GetData(),
                                 (image_result.GetHeight(),image_result.GetWidth())
                             )
@@ -403,11 +408,15 @@ class Camera(object):
 
     def set(self, param, value=None):
 
+        self._stop()
+
         if type(param).__name__ == 'dict':
             for k, v in param.items():
                 self._set(k, v)
         else:
             self._set(param, value)
+
+        self._start()
 
     def _set(self, param, value):
 
