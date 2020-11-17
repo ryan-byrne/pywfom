@@ -34,7 +34,14 @@ class Arduino():
         self.ser.open()
         time.sleep(1)
 
-    def set(self, param, value):
+    def set(self, param, value=None):
+        if type(param).__name__ == "dict":
+            for k, v in param.items():
+                self._set(k,v)
+        else:
+            self._set(param,value)
+
+    def _set(self, param, value):
 
         setattr(self, param, value)
 

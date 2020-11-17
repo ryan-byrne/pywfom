@@ -299,8 +299,7 @@ class Camera(object):
         if not self.type and type not in ["spinnaker", "andor", "webcam", "test"]:
             raise Exception("You must indicate a Camera Type.")
 
-        if self.type == "webcam":
-            self.cap = cv2.VideoCapture(self.index)
+        self._start()
 
         self.frame = np.zeros((500,500), dtype="uint8")
         self.active = True
@@ -309,7 +308,11 @@ class Camera(object):
         threading.Thread(target=self._update_frame).start()
 
 
-    def _start_camera(self):
+    def _start(self):
+        if self.type == "webcam":
+            self.camera = cv2.VideoCapture(self.index)
+
+    def _stop(self):
         pass
 
     def _update_frame(self):
@@ -328,6 +331,26 @@ class Camera(object):
 
             else:
                 self.frame = self._get_test_frame()
+
+    def _error_frame(self):
+
+        print("ERROR: "+self.error_msg)
+
+        img = np.zeros((512,512,3), np.uint8)
+        font                   = cv2.FONT_HERSHEY_SIMPLEX
+        bottomLeftCornerOfText = (10,500)
+        fontScale              = 0.75
+        fontColor              = (255,255,255)
+        lineType               = 2
+
+        cv2.putText(img,"ERROR: "+self.error_msg,
+            bottomLeftCornerOfText,
+            font,
+            fontScale,
+            fontColor,
+            lineType)
+
+        self.frame = img
 
     def _get_andor_frame(self):
         # If not paused or testing, get next buffer from camera
@@ -348,11 +371,14 @@ class Camera(object):
             return None
 
     def _get_webcam_frame(self):
-        frame = self.cap.read()[1]
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        self.error_msg = ""
-        x, y, w, h = self.OffsetX, self.OffsetY, self.Width, self.Height
-        return frame[y:h+y, x:w+x]
+        try:
+            frame = self.camera.read()[1]
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            self.error_msg = ""
+            x, y, w, h = self.OffsetX, self.OffsetY, self.Width, self.Height
+            return frame[y:h+y, x:w+x]
+        except:
+            self.error_msg = "{0} Can't read Webcam Frame".format(self.name)
 
     def _get_spinnaker_frame(self):
         try:
@@ -384,6 +410,10 @@ class Camera(object):
             self._set(param, value)
 
     def _set(self, param, value):
+
+        if param in ["camera"]:
+            return
+
         setattr(self, param, value)
 
     def get(self, param):
@@ -401,7 +431,6 @@ class Camera(object):
 
     def close(self):
         self.active = False
-        self.cap.release()
 
 
 class Andor(object):
@@ -901,20 +930,21 @@ class Webcam(object):
                 self.OffsetY:self.Height-self.OffsetY,
                 self.OffsetX:self.Width-self.OffsetX
             ]
-            print(frame.shape)
             self.frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
     def set(self, param, value=None):
-
+        print(param)
         if type(param).__name__ == 'dict':
             for k, v in param.items():
                 self._set(k, v)
         else:
             self._set(param, value)
 
-    def _set(self, param,value):
-        print("Setting {0} to {1}".format(param, value))
-        setattr(self, param, value)
+    def _set(self, param, value):
+        if param in ["cap"]:
+            return
+        else:
+            setattr(self, param, value)
 
     def close(self):
         self.active = False

@@ -209,8 +209,9 @@ class SettingsWindow(tk.Toplevel):
         self.cameras = parent.cameras
         self.arduino = parent.arduino
 
-        # Create object to store settings
-        self.settings = {}
+        # Store initial settings in case of reset
+        self.init_cameras = [cam.__dict__.copy() for cam in self.cameras]
+        self.init_arduino = self.arduino.__dict__.copy()
 
         # Create Treeview
         self.tree = ttk.Treeview(self, columns=["A", "B"])
@@ -265,12 +266,12 @@ class SettingsWindow(tk.Toplevel):
                 self.tree.insert(parent, j, values=values)
 
     def create_buttons(self):
-        cancel = tk.Button(self, text="Cancel", command=self.close)
+        reset = tk.Button(self, text="Reset", command=self.reset)
         save = tk.Button(self, text="Save", command=self.save)
         load = tk.Button(self, text="Load", command=self.load)
-        apply = tk.Button(self, text="Apply", command=self.apply)
+        cancel = tk.Button(self, text="Done", command=self.close)
 
-        for i, btn in enumerate([apply, save, load, cancel]):
+        for i, btn in enumerate([cancel, reset, save, load]):
             btn.pack(side='right',pady=10, padx=10)
 
     def close(self):
@@ -297,23 +298,10 @@ class SettingsWindow(tk.Toplevel):
         self.settings = settings
         self.populate_tree()
 
-    def apply(self):
-
-        for i, cam in enumerate(self.cameras):
-            cam.set(self.settings['cameras'][i])
-            self.cameras[i].settings = self.settings['cameras'][i]
-
-        arduino = self.config["arduino"]
-        for i, category in enumerate(self.settings["arduino"].keys()):
-            if category == 'strobing':
-                arduino.set("strobing", self.settings['arduino']['strobing'])
-                self.config["arduino"].settings['strobing'] = self.settings["arduino"]['strobing']
-            elif category == "port":
-                arduino.set("port", self.settings['arduino']['port'])
-            else:
-                for setting in self.settings['arduino'][category].keys():
-                    arduino.set(setting, self.settings['arduino'][category][setting])
-                    self.config["arduino"].settings[category] = self.settings["arduino"][category]
+    def reset(self):
+        [self.cameras[i].set(settings) for i, settings in enumerate(self.init_cameras)]
+        self.arduino.set(self.init_arduino)
+        self.populate_tree()
 
     def on_double_click(self, event):
 
@@ -393,7 +381,7 @@ class SettingsWindow(tk.Toplevel):
                 if cat == "arduino":
                     self.arduino.set(cat, new_value)
                 else:
-                    self.cameras[idx].set(cat, new_value)
+                    self.cameras[idx].set(v[0], new_value)
 
     def delete_setting(self, item, parent):
         self.tree.delete(item)
