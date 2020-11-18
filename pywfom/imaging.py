@@ -432,7 +432,7 @@ class Camera(object):
         pass
 
     def get_max(self, param):
-        if self.type == "webcam":
+        if self.type in ["webcam", "test"]:
             if param == "Height":
                 return 700
             elif param == "Width":
