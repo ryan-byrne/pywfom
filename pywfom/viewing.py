@@ -6,10 +6,11 @@ from PIL import Image, ImageTk, ImageDraw
 
 class Frame(tk.Frame):
 
-    def __init__(self, parent, win_name, cameras=[], arduino=None):
+    def __init__(self, parent, win_name, cameras=[], arduino={}, file={}):
 
         self.cameras = cameras
         self.arduino = arduino
+        self.file = file
 
         self.root = parent
         self.root.bind("<Escape>", self.close)
@@ -207,6 +208,7 @@ class SettingsWindow(tk.Toplevel):
         self.root = parent.root
         self.cameras = parent.cameras
         self.arduino = parent.arduino
+        self.file = parent.file
 
         # Store initial settings in case of reset
         self.init_cameras = [cam.__dict__.copy() for cam in self.cameras]
@@ -233,8 +235,10 @@ class SettingsWindow(tk.Toplevel):
         # Clear previous settings from the tree
         self.tree.delete(*self.tree.get_children())
 
+        file = self.tree.insert("", 0, text="File")
+
         # Create Cameras tab
-        cameras = self.tree.insert("", 0, text="Cameras")
+        cameras = self.tree.insert("", 1, text="Cameras")
         # Create tabs for each camera
         for i, cam in enumerate(self.cameras):
             cam_settings = {}
@@ -247,7 +251,7 @@ class SettingsWindow(tk.Toplevel):
                     self.tree.insert(parent, j, values=(attr, getattr(cam, attr)))
 
         # Create Arduino Tab
-        arduino = self.tree.insert("", 1, text="Arduino")
+        arduino = self.tree.insert("", 2, text="Arduino")
         # Go through each Arduino attribute
         for i, attr in enumerate(self.arduino.__dict__.keys()):
             if attr in ["error_msg", "types", "ser"]:

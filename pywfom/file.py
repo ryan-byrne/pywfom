@@ -1,7 +1,7 @@
 import os, h5py, queue, threading, time
 import numpy as np
 
-class Writer(object):
+class Writer2(object):
     """docstring for File."""
 
     def __init__(self, mouse_name, img_names, base_dir="C:\\openwfom\\data", spool_len=10):
@@ -69,6 +69,13 @@ class Writer(object):
 
     def close(self):
         self._done = True
+
+class Writer(object):
+    """docstring for Writer."""
+
+    def __init__(self, config):
+        pass
+
 
 class Reader(object):
     """docstring for Reader."""

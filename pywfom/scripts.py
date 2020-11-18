@@ -68,12 +68,14 @@ def test(config=None):
     from pywfom.imaging import Camera
     from pywfom.viewing import Frame
     from pywfom.control import Arduino
+    from pywfom.file import Writer
 
     cameras = [Camera(config=cfg) for cfg in config["cameras"]]
     arduino = Arduino(config["arduino"])
+    file = Writer(config["file"])
 
     root = tk.Tk()
-    frame = Frame(root, "pywfom", cameras, arduino)
+    frame = Frame(root, "pywfom", cameras, arduino, file)
     frame.root.mainloop()
 
     for cam in cameras:
