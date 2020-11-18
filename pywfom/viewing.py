@@ -41,11 +41,19 @@ class Frame(tk.Frame):
             self.thumbnails[i].grid(row=i, column=1, padx=5, pady=10, columnspan=3)
             self.thumbnail_labels[i].grid(row=i, column=1, sticky=tk.NW)
 
-        # Create status labels
+        # Create Arduino Status
         self.arduino_status = tk.Label(self.root, text="Arduino Status")
         self.arduino_color = tk.Button(self.root, height=1, width=1)
-        self.arduino_status.grid(row=len(self.cameras)+1, column=1, columnspan=2, sticky="e")
-        self.arduino_color.grid(row=len(self.cameras)+1, column=3, sticky="w")
+        self.arduino_status.grid(row=len(self.cameras), column=1, columnspan=2, sticky="e")
+        self.arduino_color.grid(row=len(self.cameras), column=3, sticky="w")
+
+        # Create File Directory
+        self.dir_label = tk.Label(self.root, text="Save to:")
+        self.dir_name = tk.Label(self.root)
+        self.dir_button = tk.Button(self.root, text="Browse", command=self.set_dir)
+        self.dir_label.grid(row=len(self.cameras)+1, column=1)
+        self.dir_name.grid(row=len(self.cameras)+1, column=2)
+        self.dir_button.grid(row=len(self.cameras)+1, column=3)
 
         # Create buttons
         self.settings_btn = tk.Button(      self.root,
@@ -57,9 +65,8 @@ class Frame(tk.Frame):
         self.acquire_btn = tk.Button(  self.root,
                                         text="Acquire",
                                         command=self.acquire)
-
         for i, btn in enumerate([self.close_btn, self.settings_btn, self.acquire_btn]):
-            btn.grid(row=len(self.cameras),column=i+1, padx=5, pady=10)
+            btn.grid(row=len(self.cameras)+2,column=i+1, padx=5, pady=10)
 
         # Begin Updating the images
         self.update()
@@ -110,10 +117,14 @@ class Frame(tk.Frame):
 
         color = "green" if self.arduino.error_msg == "" else "red"
         self.arduino_color.config(background=color)
+        self.dir_name.config(text=self.file.directory)
 
         self.thumbnails[self.selected_frame].config(borderwidth=10,relief="ridge", bg="green")
 
         self.root.after(1, self.update)
+
+    def set_dir(self):
+        self.file.directory = tk.filedialog.askdirectory()
 
     def view_settings(self):
         SettingsWindow(self, self.root)
@@ -235,7 +246,10 @@ class SettingsWindow(tk.Toplevel):
         # Clear previous settings from the tree
         self.tree.delete(*self.tree.get_children())
 
+        # Create tree branch for file info
         file = self.tree.insert("", 0, text="File")
+        for i, values in enumerate(self.file.__dict__.items()):
+            self.tree.insert(file,i, values=values)
 
         # Create Cameras tab
         cameras = self.tree.insert("", 1, text="Cameras")

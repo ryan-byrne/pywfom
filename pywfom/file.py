@@ -71,10 +71,20 @@ class Writer2(object):
         self._done = True
 
 class Writer(object):
-    """docstring for Writer."""
 
     def __init__(self, config):
-        pass
+        for k, v in config.items():
+            self._set(k,v)
+
+    def set(self, param, value=None):
+        if type(param).__name__ == "dict":
+            for k,v in param.items():
+                self._set(k,v)
+        else:
+            self._set(param,value)
+
+    def _set(self, param, val):
+        setattr(self, param, val)
 
 
 class Reader(object):

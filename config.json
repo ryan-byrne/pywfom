@@ -2,7 +2,7 @@
   "file":{
     "user":"rjb2202",
     "mouse":"cm103",
-    "dir":""
+    "directory":"C:/"
   },
   "arduino": {
     "port": "COM3",
