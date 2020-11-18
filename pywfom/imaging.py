@@ -404,7 +404,7 @@ class Camera(object):
         else:
             max = 65024
 
-        self.frame = np.random.randint(0,max,size=(h, w), dtype=self.dtype)
+        return np.random.randint(0,max,size=(self.Height, self.Width), dtype=self.dtype)
 
     def set(self, param, value=None):
 
