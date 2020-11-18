@@ -2,14 +2,14 @@ import numpy as np
 import threading, time, traceback, cv2, os, ctypes, platform, queue, threading
 import sys
 from ctypes import POINTER, c_int, c_uint, c_double
-"""
+
 try:
     import PySpin
 except ModuleNotFoundError:
     msg = "PySpin is not installed\n\nFollow the directions here to install it:\
     \n\nhttps://github.com/ryan-byrne/pywfom/wiki/Cameras:-Spinnaker\n"
     raise ImportError(msg)
-"""
+
 try:
     from pywfom import andor
 except:
