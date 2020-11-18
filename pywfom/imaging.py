@@ -344,13 +344,27 @@ class Camera(object):
         #print("ERROR: "+self.error_msg)
 
         img = np.zeros((512,512,3), np.uint8)
+
         font                   = cv2.FONT_HERSHEY_SIMPLEX
-        bottomLeftCornerOfText = (10,500)
+        bottomLeftCornerOfText = (30,250)
+        fontScale              = 1.5
+        fontColor              = (255,0,0)
+        lineType               = 2
+
+        cv2.putText(img,"ERROR: ",
+            bottomLeftCornerOfText,
+            font,
+            fontScale,
+            fontColor,
+            lineType)
+
+        font                   = cv2.FONT_HERSHEY_SIMPLEX
+        bottomLeftCornerOfText = (30,300)
         fontScale              = 0.75
         fontColor              = (255,255,255)
         lineType               = 2
 
-        cv2.putText(img,"ERROR: "+self.error_msg,
+        cv2.putText(img,self.error_msg,
             bottomLeftCornerOfText,
             font,
             fontScale,
@@ -372,7 +386,7 @@ class Camera(object):
             self._buffers.put(buf)
             return frame
         except:
-            self.error_msg = "{0}:{1} at index:{2}".format(self.type,self.name,self.index)
+            self.error_msg = "Unable to read {1} ( {0}:{2} )".format(self.type,self.name,self.index)
 
     def _get_webcam_frame(self):
         try:

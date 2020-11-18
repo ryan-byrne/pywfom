@@ -23,7 +23,7 @@
   },
   "cameras": [
     {
-      "type":"webcam",
+      "type":"andor",
       "name":"MacCam",
       "index":0,
       "Height":700,
