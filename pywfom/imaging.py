@@ -307,7 +307,6 @@ class Camera(object):
 
         threading.Thread(target=self._update_frame).start()
 
-
     def _start(self):
 
         if self.type == "webcam":
@@ -338,6 +337,7 @@ class Camera(object):
 
             else:
                 self.frame = self._get_test_frame()
+
 
     def _error_frame(self):
 
@@ -372,7 +372,7 @@ class Camera(object):
             self._buffers.put(buf)
             return frame
         except:
-            return None
+            self.error_msg = "{0}:{1} at index:{2}".format(self.type,self.name,self.index)
 
     def _get_webcam_frame(self):
         try:
@@ -383,7 +383,6 @@ class Camera(object):
             return frame[y:h+y, x:w+x]
         except:
             self.error_msg = "{0}:{1} at index:{2}".format(self.type,self.name,self.index)
-            return None
 
     def _get_spinnaker_frame(self):
         try:
@@ -395,7 +394,7 @@ class Camera(object):
             self.frame = img
             self.error_msg = ""
         except:
-            return None
+            self.error_msg = "{0}:{1} at index:{2}".format(self.type,self.name,self.index)
 
     def _get_test_frame(self):
 
@@ -407,6 +406,8 @@ class Camera(object):
         return np.random.randint(0,max,size=(self.Height, self.Width), dtype=self.dtype)
 
     def set(self, param, value=None):
+
+        # TODO: Change camera type -> check if andor
 
         self._stop()
 

@@ -78,10 +78,7 @@ class Frame(tk.Frame):
         # Create main viewing frame
         image = self.convert_frame(cam.frame, (800,1000), True)
 
-        if cam.type in ["spinnaker", "test", "webcam"]:
-            h, w, fr = cam.Height, cam.Width, cam.AcquisitionFrameRate
-        else:
-            h, w, fr = cam.AOIHeight, cam.AOIWidth, cam.FrameRate
+        h, w, fr = cam.Height, cam.Width, cam.AcquisitionFrameRate
 
         if self.cameras[self.selected_frame].error_msg == "":
             self.main_label.config(
@@ -146,6 +143,10 @@ class Frame(tk.Frame):
         self.y = event.y
         w = self.x-self.ix
         h = self.y-self.iy
+
+        if 0 in [w,h]:
+            self.ix, self.iy, self.x, self.y = 0,0,0,0
+            return
 
         if w < 0:
             self.ix = self.x
