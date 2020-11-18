@@ -20,7 +20,7 @@ class Frame(tk.Frame):
         self.offset_x, self.offset_y, self.scale = 0,0,0
 
         # Create image panels
-        self.canvas = tk.Canvas(self.root, cursor="cross")
+        self.canvas = tk.Canvas(self.root, cursor="cross", width=1000, height=800)
         self.main_label = tk.Label(self.root)
         self.main_label.grid(column=0, row=0,sticky=tk.NW)
         self.canvas.bind("<Button-1>", self.set_aoi_start)
@@ -28,26 +28,23 @@ class Frame(tk.Frame):
         self.canvas.bind("<B1-Motion>", self.draw_rectangle)
         self.canvas.bind("<Button-3>", self.reset_aoi)
         self.canvas.bind("<Button-2>", self.reset_aoi)
-        self.canvas.grid(row=0,column=0, rowspan=2*len(self.cameras)+3)
+        self.canvas.grid(row=0,column=0, rowspan=2*len(self.cameras)+2)
 
 
         # Create subframes for other cameras
-        self.sub_frames,self.sub_labels,self.sub_status,self.sub_status_color = [], [], [], []
+        self.thumbnails,self.thumbnail_labels = [], []
 
         for i, cam in enumerate(cameras):
-            self.sub_frames.append(tk.Label(self.root))
-            self.sub_labels.append(tk.Label(self.root, text=cam.name))
-            self.sub_frames[i].grid(row=i, column=1, padx=5, pady=10, columnspan=3)
-            self.sub_labels[i].grid(row=i, column=1, sticky=tk.NW)
-            self.sub_status.append(tk.Label(self.root))
-            self.sub_status[i].grid(row=i+len(self.cameras), column=2, columnspan=2, sticky=tk.NW)
-
+            self.thumbnails.append(tk.Label(self.root))
+            self.thumbnail_labels.append(tk.Label(self.root, text=cam.name))
+            self.thumbnails[i].grid(row=i, column=1, padx=5, pady=10, columnspan=3)
+            self.thumbnail_labels[i].grid(row=i, column=1, sticky=tk.NW)
 
         # Create status labels
         self.arduino_status = tk.Label(self.root, text="Arduino Status")
         self.arduino_color = tk.Button(self.root, height=1, width=1)
-        self.arduino_status.grid(row=2*len(self.cameras)+1, column=1, columnspan=2, sticky="e")
-        self.arduino_color.grid(row=2*len(self.cameras)+1, column=3, sticky="w")
+        self.arduino_status.grid(row=len(self.cameras)+1, column=1, columnspan=2, sticky="e")
+        self.arduino_color.grid(row=len(self.cameras)+1, column=3, sticky="w")
 
         # Create buttons
         self.settings_btn = tk.Button(      self.root,
@@ -61,7 +58,7 @@ class Frame(tk.Frame):
                                         command=self.acquire)
 
         for i, btn in enumerate([self.close_btn, self.settings_btn, self.acquire_btn]):
-            btn.grid(row=2*len(self.cameras)+2,column=i+1, padx=5, pady=10)
+            btn.grid(row=len(self.cameras),column=i+1, padx=5, pady=10)
 
         # Begin Updating the images
         self.update()
@@ -71,7 +68,7 @@ class Frame(tk.Frame):
         cam = self.cameras[self.selected_frame]
 
         # Create main viewing frame
-        image = self.convert_frame(cam.frame, (750,1000))
+        image = self.convert_frame(cam.frame, (800,1000), True)
 
         if cam.type in ["spinnaker", "test", "webcam"]:
             h, w, fr = cam.Height, cam.Width, cam.AcquisitionFrameRate
@@ -100,18 +97,20 @@ class Frame(tk.Frame):
             self.rect = self.canvas.create_rectangle(self.ix, self.iy, self.x, self.y, fill="", outline="green")
         self.canvas.image = image
 
+        thumbnail_size = (600/len(self.cameras), 150)
+
         # Create subframes
         for i, cam in enumerate(self.cameras):
-            img = self.convert_frame(cam.frame, (250,250))
-            self.sub_frames[i].img = img
-            self.sub_frames[i].config(image=img, borderwidth=10, relief="flat", bg="white")
-            self.sub_frames[i].bind("<Button-1>",lambda event, idx=i: self.change_main_frame(event, idx))
+            img = self.convert_frame(cam.frame, thumbnail_size, False)
+            self.thumbnails[i].img = img
+            self.thumbnails[i].config(image=img, borderwidth=10, relief="flat", bg="white")
+            self.thumbnails[i].bind("<Button-1>",lambda event, idx=i: self.change_main_frame(event, idx))
             (txt, color) = ("Ready", "Green") if cam.error_msg == "" else (cam.error_msg, "Red")
 
         color = "green" if self.arduino.error_msg == "" else "red"
         self.arduino_color.config(background=color)
 
-        self.sub_frames[self.selected_frame].config(borderwidth=10,relief="ridge", bg="green")
+        self.thumbnails[self.selected_frame].config(borderwidth=10,relief="ridge", bg="green")
 
         self.root.after(1, self.update)
 
@@ -133,8 +132,8 @@ class Frame(tk.Frame):
 
         self.x = event.x
         self.y = event.y
-        w = int((self.x-self.ix)/self.scale)
-        h = int((self.y-self.iy)/self.scale)
+        w = self.x-self.ix
+        h = self.y-self.iy
 
         if w < 0:
             self.ix = self.x
@@ -152,10 +151,10 @@ class Frame(tk.Frame):
             x, y, he, wi = "AOILeft", "AOITop", "AOIHeight", "AOIWidth"
 
         cam.set({
-            he:h,
-            wi:w,
-            x:int(self.ix/self.scale),
-            y:int(self.iy/self.scale)
+            he:int(h/self.scale),
+            wi:int(w/self.scale),
+            x:int(getattr(cam,x)+self.ix/self.scale),
+            y:int(getattr(cam,y)+self.iy/self.scale)
         })
 
         self.ix, self.iy, self.x, self.y = 0,0,0,0
@@ -175,7 +174,8 @@ class Frame(tk.Frame):
     def change_main_frame(self, event, idx):
         self.selected_frame = idx
 
-    def convert_frame(self, image, max_size):
+    def convert_frame(self, image, max_size, main):
+
         if image.dtype == "uint16":
             image = np.sqrt(image).astype(np.uint8)
         else:
@@ -192,11 +192,10 @@ class Frame(tk.Frame):
 
         w, h = int(scale*image.shape[0]), int(scale*image.shape[1])
 
-        if max_size != (250,250):
+        if main:
             self.scale = scale
 
         return ImageTk.PhotoImage(image = Image.fromarray(image).resize((h, w)))
-
 
 class SettingsWindow(tk.Toplevel):
 

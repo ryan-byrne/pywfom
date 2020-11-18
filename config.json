@@ -31,7 +31,19 @@
     },
     {
       "type":"test",
-      "name":"MacCam",
+      "name":"test1",
+      "index":0,
+      "Height":700,
+      "Width":700,
+      "AcquisitionFrameRate":50,
+      "master":true,
+      "dtype":"uint16",
+      "OffsetX":0,
+      "OffsetY":0
+    },
+    {
+      "type":"test",
+      "name":"test2",
       "index":0,
       "Height":700,
       "Width":700,
