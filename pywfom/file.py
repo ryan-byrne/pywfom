@@ -86,6 +86,27 @@ class Writer(object):
     def _set(self, param, val):
         setattr(self, param, val)
 
+    def write(self, arduino, cameras):
+        threading.Thread(target=self._write, args=(arduino, cameras,)).start()
+
+    def _write(self, arduino, cameras):
+
+        for i, cam in enumerate(cameras):
+            if cam.master:
+                master = i
+
+        num_frms = 0
+        print("Acquiring Frames")
+        for i in range(arduino.run["number_of_runs"]):
+            self._make_run_directory(i)
+            t = time.time()
+            while time.time()-t < arduino.run["run_length"]:
+                pass
+
+    def _make_run_directory(i):
+        os.mkdir("{0}/{1}"(self.directory))
+
+
 
 class Reader(object):
     """docstring for Reader."""

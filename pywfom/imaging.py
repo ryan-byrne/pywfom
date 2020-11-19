@@ -40,11 +40,33 @@ class Camera(object):
 
         threading.Thread(target=self._update_frame).start()
 
+    def _update_frame(self):
+        while self.active:
+
+            # Ignore if there's an error
+            if self.error_msg != "":
+                self._error_frame()
+                continue
+
+            # Generates a numpy array for the self.frame variable
+            if self.device == "webcam":
+                self.frame = self._get_webcam_frame()
+
+            elif self.device == "spinnaker":
+                self.frame = self._get_spinnaker_frame()
+
+            elif self.device == "andor":
+                self.frame = self._get_andor_frame()
+
+            else:
+                self.frame = self._get_test_frame()
+
     def _start(self):
 
         self.frame = np.zeros((500,500), dtype="uint8")
 
         if self.device == "webcam":
+            self.spool = queue.Queue()
             self._camera = cv2.VideoCapture(self.index)
             ret, frame = self._camera.read()
             if not ret:
@@ -79,27 +101,6 @@ class Camera(object):
 
         if self.device == "webcam":
             pass
-
-    def _update_frame(self):
-        while self.active:
-
-            # Ignore if there's an error
-            if self.error_msg != "":
-                self._error_frame()
-                continue
-
-            # Generates a numpy array for the self.frame variable
-            if self.device == "webcam":
-                self.frame = self._get_webcam_frame()
-
-            elif self.device == "spinnaker":
-                self.frame = self._get_spinnaker_frame()
-
-            elif self.device == "andor":
-                self.frame = self._get_andor_frame()
-
-            else:
-                self.frame = self._get_test_frame()
 
     def _error_frame(self):
 
@@ -158,6 +159,9 @@ class Camera(object):
         time.sleep(1/self.AcquisitionFrameRate)
 
         return np.random.randint(0,max,size=(self.Height, self.Width), dtype=self.dtype)
+
+    def trigger(arg):
+        pass
 
     def set(self, param, value=None):
 

@@ -25,7 +25,7 @@
     {
       "device":"webcam",
       "name":"default",
-      "index":1,
+      "index":0,
       "Height":700,
       "Width":1200,
       "AcquisitionFrameRate":50,

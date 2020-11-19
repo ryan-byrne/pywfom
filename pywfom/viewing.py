@@ -144,7 +144,7 @@ class Frame(tk.Frame):
         SettingsWindow(self, self.root)
 
     def acquire(self):
-        print("Acquiring")
+        self.file.write(self.arduino, self.cameras)
 
     def close(self, event=""):
         self.root.destroy()
@@ -447,8 +447,6 @@ class SettingsWindow(tk.Toplevel):
                     self.cameras[idx].set(v[0], new_value)
 
     def delete_setting(self, item_id):
-
-        # TODO: Delete and have subframes update
 
         if len(self.tree.get_children(self.tree.parent(item_id))) == 1:
             return
