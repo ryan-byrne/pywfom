@@ -4,33 +4,43 @@ import sys
 from ctypes import POINTER, c_int, c_uint, c_double
 from PIL import Image, ImageDraw, ImageFont
 
+class CameraError(Exception):
+    """docstring for CameraError."""
+    pass
+
+class ConfigurationError(Exception):
+    pass
 
 class Camera(object):
 
-    def __init__(self, type="", index=0, name="", config=None):
+    def __init__(self, device="", index=0, name="", config=None):
 
-        self.types = {
-            "Height":int,
-            "Width":int,
-            "OffsetX":int,
-            "OffsetY":int,
-            "index":int,
-            "name":str,
-            "dtype":str,
-            "type":[
-                "webcam",
-                "spinnaker",
-                "andor",
-                "test"
-            ],
-            "master":bool
+        # Establish default settings
+        self.default = {
+            "device":"webcam",
+            "name":"default",
+            "index":0,
+            "Height":700,
+            "Width":1200,
+            "AcquisitionFrameRate":50,
+            "master":True,
+            "dtype":"uint16",
+            "OffsetX":0,
+            "OffsetY":0
         }
 
+        # Check settings in the configuration file
         for k, v in config.items():
+            try:
+                if type(v).__name__ != type(self.default[k]).__name__:
+                    msg = "\n\n '{0}' must be of type '{1}', not '{2}'\
+                    \n".format(
+                        k, type(self.default[k]).__name__, type(v).__name__)
+                    raise ConfigurationError(msg)
+            except KeyError:
+                msg = "\n\n'{0}' is not a valid configuration setting\n".format(k)
+                raise ConfigurationError(msg)
             self._set(k,v)
-
-        if not self.type and type not in self.types["type"]:
-            raise Exception("You must indicate a Camera Type.")
 
         self._start()
 
@@ -40,7 +50,7 @@ class Camera(object):
 
         self.frame = np.zeros((500,500), dtype="uint8")
 
-        if self.type == "webcam":
+        if self.device == "webcam":
             self._camera = cv2.VideoCapture(self.index)
             ret, frame = self._camera.read()
             if not ret:
@@ -48,7 +58,7 @@ class Camera(object):
             else:
                 self.error_msg = ""
 
-        elif self.type == "spinnaker":
+        elif self.device == "spinnaker":
             try:
                 import PySpin
             except Exception as e:
@@ -57,7 +67,7 @@ class Camera(object):
                 print(msg)
                 self.error_msg = msg
 
-        elif self.type == "andor":
+        elif self.device == "andor":
             try:
                 from pywfom import andor
             except Exception as e:
@@ -73,7 +83,7 @@ class Camera(object):
 
     def _stop(self):
 
-        if self.type == "webcam":
+        if self.device == "webcam":
             pass
 
     def _update_frame(self):
@@ -85,19 +95,21 @@ class Camera(object):
                 continue
 
             # Generates a numpy array for the self.frame variable
-            if self.type == "webcam":
+            if self.device == "webcam":
                 self.frame = self._get_webcam_frame()
 
-            elif self.type == "spinnaker":
+            elif self.device == "spinnaker":
                 self.frame = self._get_spinnaker_frame()
 
-            elif self.type == "andor":
+            elif self.device == "andor":
                 self.frame = self._get_andor_frame()
 
             else:
                 self.frame = self._get_test_frame()
 
     def _error_frame(self):
+
+        # Create a frame announcing the error
 
         img = Image.fromarray(np.zeros((500,500), "uint8"))
         draw = ImageDraw.Draw(img)
@@ -118,7 +130,7 @@ class Camera(object):
             self._buffers.put(buf)
             return frame
         except:
-            self.error_msg = "Unable to read {1} ( {0}:{2} )".format(self.type,self.name,self.index)
+            self.error_msg = "Unable to read {1} ( {0}:{2} )".format(self.device,self.name,self.index)
 
     def _get_webcam_frame(self):
         try:
@@ -140,7 +152,7 @@ class Camera(object):
             self.frame = img
             self.error_msg = ""
         except:
-            self.error_msg = "Unable to read {1} ( {0}:{2} )".format(self.type,self.name,self.index)
+            self.error_msg = "Unable to read {1} ( {0}:{2} )".format(self.device,self.name,self.index)
 
     def _get_test_frame(self):
 
@@ -179,7 +191,7 @@ class Camera(object):
         pass
 
     def get_max(self, param):
-        if self.type in ["webcam", "test"]:
+        if self.device in ["webcam", "test"]:
             if param == "Height":
                 return 700
             elif param == "Width":

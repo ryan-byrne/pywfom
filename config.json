@@ -23,23 +23,11 @@
   },
   "cameras": [
     {
-      "type":"andor",
-      "name":"andor",
+      "device":"webcam",
+      "name":"default",
       "index":0,
       "Height":700,
-      "Width":700,
-      "AcquisitionFrameRate":50,
-      "master":true,
-      "dtype":"uint16",
-      "OffsetX":0,
-      "OffsetY":0
-    },
-    {
-      "type":"spinnaker",
-      "name":"test2",
-      "index":0,
-      "Height":700,
-      "Width":700,
+      "Width":1200,
       "AcquisitionFrameRate":50,
       "master":true,
       "dtype":"uint16",

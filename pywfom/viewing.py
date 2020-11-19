@@ -90,7 +90,7 @@ class Frame(tk.Frame):
             self.main_label.config(
                 text="{0} ({1}): {2}x{3}, {4} fps".format(
                     cam.name,
-                    cam.type.title(),
+                    cam.device.title(),
                     h,
                     w,
                     fr
@@ -165,9 +165,9 @@ class Frame(tk.Frame):
 
         cam = self.cameras[self.selected_frame]
 
-        if cam.type in ["spinnaker", "test", "webcam"]:
+        if cam.device in ["spinnaker", "test", "webcam"]:
             x, y, he, wi = "OffsetX", "OffsetY", "Height", "Width"
-        elif cam.type == "andor":
+        elif cam.device == "andor":
             # TODO: Account or Andor AOI being from the Top
             x, y, he, wi = "AOILeft", "AOITop", "AOIHeight", "AOIWidth"
 
@@ -355,14 +355,18 @@ class SettingsWindow(tk.Toplevel):
         parent = self.tree.parent(item)
         if self.tree.item(parent)['text'] in ["", "Arduino"]:
             return
+        elif self.tree.item(parent)['text'] == "Cameras":
+            add = tk.NORMAL
+            edit = tk.DISABLED
+            delete = tk.NORMAL
         elif self.tree.item(parent)['text'] in ["Stim", "Port", "Run", "Strobe"]:
             add = tk.DISABLED
-        else:
-            add = tk.NORMAL
+            edit = tk.NORMAL
+            delete = tk.DISABLED
         menu = tk.Menu(self.root)
         menu.add_command(label="Add", command=lambda:self.add_setting(item, parent), state=add)
-        menu.add_command(label="Edit", command=lambda:self.edit_setting(item, parent))
-        menu.add_command(label="Delete", command=lambda:self.delete_setting(item, parent), state=add)
+        menu.add_command(label="Edit", command=lambda:self.edit_setting(item, parent), state=edit)
+        menu.add_command(label="Delete", command=lambda:self.delete_setting(item, parent), state=delete)
         menu.tk_popup(event.x_root, event.y_root)
 
     def add_setting(self, item_iid, parent_iid):
@@ -420,6 +424,8 @@ class SettingsWindow(tk.Toplevel):
                     self.cameras[idx].set(v[0], new_value)
 
     def delete_setting(self, item, parent):
+        idx = self.tree.get_children(self.tree.parent(parent_iid)).index(parent_iid)
+        print(idx)
         self.tree.delete(item)
 
 class ComboPopup(object):
