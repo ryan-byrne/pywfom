@@ -1,6 +1,7 @@
 import numpy as np
 import time, cv2, json
 import tkinter as tk
+from pywfom import imaging
 from tkinter import ttk, simpledialog, filedialog, messagebox
 from PIL import Image, ImageTk, ImageDraw
 
@@ -20,40 +21,33 @@ class Frame(tk.Frame):
         self.selected_frame, self.ix, self.iy, self.x, self.y = 0,0,0,0,0
         self.offset_x, self.offset_y, self.scale = 0,0,0
 
-        # Create image panels
-        self.canvas = tk.Canvas(self.root, cursor="cross", width=1000, height=800)
-        self.main_label = tk.Label(self.root)
-        self.main_label.grid(column=0, row=0,sticky=tk.NW)
+        # Create widgets
+        self.create_widgets()
+        # Establish event bindings
+        self.set_bindings()
+        # Set each item on the grid
+        self.set_grid()
+        # Begin Updating the images
+        self.update()
+
+    def set_bindings(self):
         self.canvas.bind("<Button-1>", self.set_aoi_start)
         self.canvas.bind("<ButtonRelease-1>", self.set_aoi_end)
         self.canvas.bind("<B1-Motion>", self.draw_rectangle)
         self.canvas.bind("<Button-3>", self.reset_aoi)
         self.canvas.bind("<Button-2>", self.reset_aoi)
-        self.canvas.grid(row=0,column=0, rowspan=2*len(self.cameras)+2)
 
-        # Create empty thumnails
-        self.thumbnails, self.thumbnail_labels = [], []
-        # Create thumbnails
-        for i, cam in enumerate(self.cameras):
-            self.thumbnails.append(tk.Label(self.root))
-            self.thumbnail_labels.append(tk.Label(self.root, text=cam.name))
-            self.thumbnails[i].grid(row=i, column=1, padx=5, pady=10, columnspan=3)
-            self.thumbnail_labels[i].grid(row=i, column=1, sticky=tk.NW)
-
+    def create_widgets(self):
+        # Create image panels
+        self.canvas = tk.Canvas(self.root, cursor="cross", width=1000, height=800)
+        self.main_label = tk.Label(self.root)
         # Create Arduino Status
         self.arduino_status = tk.Label(self.root, text="Arduino Status")
         self.arduino_color = tk.Button(self.root, height=1, width=1)
-        self.arduino_status.grid(row=len(self.cameras), column=1, columnspan=2, sticky="e")
-        self.arduino_color.grid(row=len(self.cameras), column=3, sticky="w")
-
         # Create File Directory
         self.dir_label = tk.Label(self.root, text="Save to:")
         self.dir_name = tk.Label(self.root)
         self.dir_button = tk.Button(self.root, text="Browse", command=self.set_dir)
-        self.dir_label.grid(row=len(self.cameras)+1, column=1)
-        self.dir_name.grid(row=len(self.cameras)+1, column=2)
-        self.dir_button.grid(row=len(self.cameras)+1, column=3)
-
         # Create buttons
         self.settings_btn = tk.Button(      self.root,
                                         text="Configure",
@@ -64,11 +58,29 @@ class Frame(tk.Frame):
         self.acquire_btn = tk.Button(  self.root,
                                         text="Acquire",
                                         command=self.acquire)
+        # Create empty thumnails
+        self.thumbnails, self.thumbnail_labels = [], []
+        # Create thumbnails
+        for cam in self.cameras:
+            self.add_thumnail(cam.name)
+
+    def add_thumnail(self, name):
+        self.thumbnails.append(tk.Label(self.root))
+        self.thumbnail_labels.append(tk.Label(self.root, text=name))
+
+    def set_grid(self):
+        self.main_label.grid(column=0, row=0,sticky=tk.NW)
+        self.canvas.grid(row=0,column=0, rowspan=2*len(self.cameras)+2)
+        for i, cam in enumerate(self.cameras):
+            self.thumbnails[i].grid(row=i, column=1, padx=5, pady=10, columnspan=3)
+            self.thumbnail_labels[i].grid(row=i, column=1, sticky=tk.NW)
+        self.arduino_status.grid(row=len(self.cameras), column=1, columnspan=2, sticky="e")
+        self.arduino_color.grid(row=len(self.cameras), column=3, sticky="w")
+        self.dir_label.grid(row=len(self.cameras)+1, column=1)
+        self.dir_name.grid(row=len(self.cameras)+1, column=2)
+        self.dir_button.grid(row=len(self.cameras)+1, column=3)
         for i, btn in enumerate([self.close_btn, self.settings_btn, self.acquire_btn]):
             btn.grid(row=len(self.cameras)+2,column=i+1, padx=5, pady=10)
-
-        # Begin Updating the images
-        self.update()
 
     def update(self):
 
@@ -125,15 +137,6 @@ class Frame(tk.Frame):
 
         self.root.after(1, self.update)
 
-    def _create_thumbnails(self):
-
-        # Clear previous thumbnails:
-        for i, tn in enumerate(self.thumbnails):
-            tn.grid_forget()
-            self.thumbnail_labels[i].grid_forget()
-
-        self.thumbnails, self.thumbnail_labels = [], []
-
     def set_dir(self):
         self.file.directory = tk.filedialog.askdirectory()
 
@@ -158,7 +161,7 @@ class Frame(tk.Frame):
         w = self.x-self.ix
         h = self.y-self.iy
 
-        if 0 in [w,h]:
+        if 0 in [w,h] or self.cameras[self.selected_frame].error_msg != "":
             self.ix, self.iy, self.x, self.y = 0,0,0,0
             return
 
@@ -380,6 +383,14 @@ class SettingsWindow(tk.Toplevel):
         menu.tk_popup(event.x_root, event.y_root)
 
     def add_setting(self, item_iid, parent_iid):
+
+        if "Cameras" in [self.tree.item(parent_iid)['text'], self.tree.item(item_iid)['text']]:
+            self.cameras.append(imaging.Camera())
+            self.parent.add_thumnail("default")
+            self.parent.set_grid()
+            self.populate_tree()
+            return
+
         parent = self.tree.item(parent_iid)['text']
         category = self.tree.item(self.tree.parent(parent_iid))['text']
         param = simpledialog.askstring(parent=self, title="Adding Setting:", prompt="Setting")

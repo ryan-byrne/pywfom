@@ -13,7 +13,7 @@ class ConfigurationError(Exception):
 
 class Camera(object):
 
-    def __init__(self, device="", index=0, name="", config=None):
+    def __init__(self, config=None):
 
         # Establish default settings
         self.default = {
@@ -29,17 +29,11 @@ class Camera(object):
             "OffsetY":0
         }
 
+        if not config:
+            config = self.default
+
         # Check settings in the configuration file
         for k, v in config.items():
-            try:
-                if type(v).__name__ != type(self.default[k]).__name__:
-                    msg = "\n\n '{0}' must be of type '{1}', not '{2}'\
-                    \n".format(
-                        k, type(self.default[k]).__name__, type(v).__name__)
-                    raise ConfigurationError(msg)
-            except KeyError:
-                msg = "\n\n'{0}' is not a valid configuration setting\n".format(k)
-                raise ConfigurationError(msg)
             self._set(k,v)
 
         self._start()
@@ -184,7 +178,21 @@ class Camera(object):
         if param in ["camera"]:
             return
 
-        setattr(self, param, value)
+        try:
+            if type(value).__name__ != type(self.default[param]).__name__:
+                msg = "\n\n '{0}' must be of type '{1}', not '{2}'\
+                \n".format(
+                    param, type(self.default[param]).__name__, type(value).__name__)
+                self.error_msg = msg
+                raise ConfigurationError(msg)
+
+            else:
+                setattr(self, param, value)
+                self.error_msg = ""
+        except KeyError:
+            msg = "\n\n'{0}' is not a valid configuration setting\n".format(param)
+            self.error_msg = msg
+            raise ConfigurationError(msg)
 
     def get(self, param):
         pass
