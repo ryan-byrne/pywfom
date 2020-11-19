@@ -5,26 +5,24 @@ import numpy as np
 _stdcall_libraries = {}
 
 arch, plat = platform.architecture()
-
+"""
 if platform.mac_ver() != "":
-    msg = "\n\nAndor SDK3 is not currently compatible with MacOS\n"
+    msg = "AndorSDK3 not compatible with MacOS"
     raise OSError(msg)
-
+"""
 if plat.startswith('Windows'):
     try:
         _stdcall_libraries['ATCORE'] = ctypes.WinDLL('atcore.dll')
         _stdcall_libraries['ATUTIL'] = ctypes.WinDLL('atutility.dll')
     except:
-        msg = 'atcore and atutlity DLL not found\n\n Follow the instructions at \
-        \n\n https://github.com/ryan-byrne/pywfom/wiki/Cameras:-Installing-the-Andor-SDK3\n'
+        msg = 'atcore and atutlity DLL not found'
         raise OSError(msg)
 else:
     try:
         _stdcall_libraries['ATCORE'] = ctypes.CDLL('atcore.so')
         _stdcall_libraries['ATUTIL'] = ctypes.CDLL('atutility.so')
     except:
-        msg = 'atcore and atutlity DLL not found\n\n Follow the instructions at \
-        \n\n https://github.com/ryan-byrne/pywfom/wiki/Cameras:-Installing-the-Andor-SDK3\n'
+        msg = 'atcore and atutlity DLL not found'
         raise OSError(msg)
 
 class AndorError(Exception):

@@ -260,7 +260,7 @@ class SettingsWindow(tk.Toplevel):
             parent = self.tree.insert(cameras, i, text=cam.name.title())
             # Add setting for each attribute
             for j, attr in enumerate(cam.__dict__.keys()):
-                if attr in ["pointers", "error_msg", "active", "paused", "system", "frame"]:
+                if attr in ["pointers", "error_msg", "active", "paused", "_camera", "frame"]:
                     continue
                 else:
                     self.tree.insert(parent, j, values=(attr, getattr(cam, attr)))

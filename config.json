@@ -23,9 +23,9 @@
   },
   "cameras": [
     {
-      "type":"andor",
-      "name":"MacCam",
-      "index":0,
+      "type":"webcam",
+      "name":"andor",
+      "index":1,
       "Height":700,
       "Width":700,
       "AcquisitionFrameRate":50,
@@ -35,8 +35,8 @@
       "OffsetY":0
     },
     {
-      "type":"test",
-      "name":"test1",
+      "type":"spinnaker",
+      "name":"spin",
       "index":0,
       "Height":700,
       "Width":700,

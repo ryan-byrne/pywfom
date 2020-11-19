@@ -3,18 +3,6 @@ import threading, time, traceback, cv2, os, ctypes, platform, queue, threading
 import sys
 from ctypes import POINTER, c_int, c_uint, c_double
 
-try:
-    import PySpin
-except ModuleNotFoundError:
-    msg = "PySpin is not installed\n\nFollow the directions here to install it:\
-    \n\nhttps://github.com/ryan-byrne/pywfom/wiki/Cameras:-Spinnaker\n"
-    raise ImportError(msg)
-
-try:
-    from pywfom import andor
-except:
-    raise
-
 
 class Camera(object):
 
@@ -28,19 +16,47 @@ class Camera(object):
 
         self._start()
 
-        self.frame = np.zeros((500,500), dtype="uint8")
-        self.active = True
-        self.error_msg = ""
-
         threading.Thread(target=self._update_frame).start()
 
     def _start(self):
 
+        self.frame = np.zeros((500,500), dtype="uint8")
+
         if self.type == "webcam":
             self._camera = cv2.VideoCapture(self.index)
+            ret, frame = self._camera.read()
+            if not ret:
+                self.error_msg = "No webcam found at index: {0}".format(self.index)
+            else:
+                self.error_msg = ""
+
+        elif self.type == "spinnaker":
+            try:
+                import PySpin
+            except Exception as e:
+                print("PySpin is not installed\n\nFollow the directions here:\
+                \n\n\thttps://github.com/ryan-byrne/pywfom/wiki/Cameras:-Spinnaker\n")
+                self.error_msg = str(e)
+
+        elif self.type == "andor":
+            try:
+                from pywfom import andor
+            except Exception as e:
+                print(
+                    "Andor libraries not properly installed \
+                    \n\nFollow the directions here:\
+                    \n\n\thttps://github.com/ryan-byrne/pywfom/wiki/Cameras:-Installing-the-Andor-SDK3\n")
+                self.error_msg = str(e)
+
+        else:
             self.error_msg = ""
 
+        self.active = True
+
+
+
     def _stop(self):
+
         if self.type == "webcam":
             pass
 
@@ -64,7 +80,6 @@ class Camera(object):
 
             else:
                 self.frame = self._get_test_frame()
-
 
     def _error_frame(self):
 
@@ -122,8 +137,8 @@ class Camera(object):
             self.error_msg = ""
             x, y, w, h = self.OffsetX, self.OffsetY, self.Width, self.Height
             return frame[y:h+y, x:w+x]
-        except:
-            self.error_msg = "Unable to read {1} ( {0}:{2} )".format(self.type,self.name,self.index)
+        except Exception as e:
+            self.error_msg = str(e)
 
     def _get_spinnaker_frame(self):
         try:
