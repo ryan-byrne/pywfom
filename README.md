@@ -1,4 +1,5 @@
-# Python Package for the [OpenWFOM](https://hillmanlab.zuckermaninstitute.columbia.edu/content/optical-imaging-and-microscopy-development-and-dissemination) Imaging System
+# ![icon](https://github.com/ryan-byrne/pywfom/blob/master/docs/banner.png)
+
 
 The ```pywfom``` Python Package and command line tool are ways to declare camera settings, test setup, and start an acquisition on an OpenWFOM imaging system.
 
