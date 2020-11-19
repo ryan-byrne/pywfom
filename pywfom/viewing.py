@@ -73,6 +73,12 @@ class Frame(tk.Frame):
 
     def update(self):
 
+        # TODO: Improve framerate of gui
+        #   * when error message
+        #   * when large frame (to be expected)
+
+        t = time.time()
+
         cam = self.cameras[self.selected_frame]
 
         # Create main viewing frame
@@ -118,6 +124,8 @@ class Frame(tk.Frame):
 
         self.thumbnails[self.selected_frame].config(borderwidth=10,relief="ridge", bg="green")
 
+        fr = " Framerate: {0} fps".format(round(1/(time.time()-t), 2))
+        print(fr, end="\r")
         self.root.after(1, self.update)
 
     def set_dir(self):
@@ -187,15 +195,15 @@ class Frame(tk.Frame):
     def change_main_frame(self, event, idx):
         self.selected_frame = idx
 
-    def convert_frame(self, image, max_size, main):
+    def convert_frame(self, frame, max_size, main):
 
-        if image.dtype == "uint16":
-            image = np.sqrt(image).astype(np.uint8)
+        if frame.dtype == "uint16":
+            frame = np.sqrt(frame).astype(np.uint8)
         else:
             pass
 
         # Create main viewing frame
-        max_dim = max(image.shape[0], image.shape[1])
+        max_dim = max(frame.shape[0], frame.shape[1])
         if max_dim < max_size[0]:
             scale = max_size[0]/max_dim
         elif max_dim > max_size[1]:
@@ -203,12 +211,15 @@ class Frame(tk.Frame):
         else:
             scale = 1
 
-        w, h = int(scale*image.shape[0]), int(scale*image.shape[1])
+        w, h = int(scale*frame.shape[0]), int(scale*frame.shape[1])
 
         if main:
             self.scale = scale
 
-        return ImageTk.PhotoImage(image = Image.fromarray(image).resize((h, w)))
+        img = ImageTk.PhotoImage(image = Image.fromarray(frame).resize((h, w)))
+
+        return img
+
 
 class SettingsWindow(tk.Toplevel):
 
@@ -237,6 +248,7 @@ class SettingsWindow(tk.Toplevel):
         # Add ability to edit
         self.tree.bind("<Double-Button-1>", self.on_double_click)
         self.tree.bind("<Button-3>", self.right_click)
+        self.tree.bind("<Button-2>", self.right_click)
 
         self.populate_tree()
 
@@ -260,7 +272,7 @@ class SettingsWindow(tk.Toplevel):
             parent = self.tree.insert(cameras, i, text=cam.name.title())
             # Add setting for each attribute
             for j, attr in enumerate(cam.__dict__.keys()):
-                if attr in ["pointers", "error_msg", "active", "paused", "_camera", "frame"]:
+                if attr in ["types", "error_msg", "active", "_camera", "frame"]:
                     continue
                 else:
                     self.tree.insert(parent, j, values=(attr, getattr(cam, attr)))
@@ -323,6 +335,8 @@ class SettingsWindow(tk.Toplevel):
 
     def on_double_click(self, event):
 
+        # TODO: add dropdowns where possible
+
         item = self.tree.selection()[0]
         if not self.tree.parent(item) or self.tree.item(item)["text"] != "":
             return
@@ -332,12 +346,16 @@ class SettingsWindow(tk.Toplevel):
 
     def right_click(self, event):
 
+        # TODO: Fix Add delete
+        # TODO: Delete entire cameras
+        # TODO: Can't delete arduino
+
         item = self.tree.identify_row(event.y)
         self.tree.selection_set(item)
         parent = self.tree.parent(item)
-        if self.tree.item(parent)['text'] == "":
+        if self.tree.item(parent)['text'] in ["", "Arduino"]:
             return
-        elif self.tree.item(parent)['text'] in ['Strobing', "Stim", "Run"]:
+        elif self.tree.item(parent)['text'] in ["Stim", "Port", "Run", "Strobe"]:
             add = tk.DISABLED
         else:
             add = tk.NORMAL
@@ -403,3 +421,10 @@ class SettingsWindow(tk.Toplevel):
 
     def delete_setting(self, item, parent):
         self.tree.delete(item)
+
+class ComboPopup(object):
+    """docstring for ComboPopup."""
+
+    def __init__(self, arg):
+        super(ComboPopup, self).__init__()
+        self.arg = arg

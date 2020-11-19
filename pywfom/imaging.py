@@ -2,16 +2,34 @@ import numpy as np
 import threading, time, traceback, cv2, os, ctypes, platform, queue, threading
 import sys
 from ctypes import POINTER, c_int, c_uint, c_double
+from PIL import Image, ImageDraw, ImageFont
 
 
 class Camera(object):
 
     def __init__(self, type="", index=0, name="", config=None):
 
+        self.types = {
+            "Height":int,
+            "Width":int,
+            "OffsetX":int,
+            "OffsetY":int,
+            "index":int,
+            "name":str,
+            "dtype":str,
+            "type":[
+                "webcam",
+                "spinnaker",
+                "andor",
+                "test"
+            ],
+            "master":bool
+        }
+
         for k, v in config.items():
             self._set(k,v)
 
-        if not self.type and type not in ["spinnaker", "andor", "webcam", "test"]:
+        if not self.type and type not in self.types["type"]:
             raise Exception("You must indicate a Camera Type.")
 
         self._start()
@@ -34,26 +52,24 @@ class Camera(object):
             try:
                 import PySpin
             except Exception as e:
-                print("PySpin is not installed\n\nFollow the directions here:\
-                \n\n\thttps://github.com/ryan-byrne/pywfom/wiki/Cameras:-Spinnaker\n")
-                self.error_msg = str(e)
+                msg= str(e)+"\n\nFollow the directions here:\
+                \n\n\thttps://github.com/ryan-byrne/pywfom/wiki/Cameras:-Spinnaker\n"
+                print(msg)
+                self.error_msg = msg
 
         elif self.type == "andor":
             try:
                 from pywfom import andor
             except Exception as e:
-                print(
-                    "Andor libraries not properly installed \
-                    \n\nFollow the directions here:\
-                    \n\n\thttps://github.com/ryan-byrne/pywfom/wiki/Cameras:-Installing-the-Andor-SDK3\n")
-                self.error_msg = str(e)
+                msg = str(e)+"\n\nFollow the directions here:\
+                    \n\n\thttps://github.com/ryan-byrne/pywfom/wiki/Cameras:-Installing-the-Andor-SDK3\n"
+                print(msg)
+                self.error_msg = msg
 
         else:
             self.error_msg = ""
 
         self.active = True
-
-
 
     def _stop(self):
 
@@ -61,9 +77,9 @@ class Camera(object):
             pass
 
     def _update_frame(self):
-
         while self.active:
 
+            # Ignore is error
             if self.error_msg != "":
                 self._error_frame()
                 continue
@@ -83,37 +99,11 @@ class Camera(object):
 
     def _error_frame(self):
 
-        #print("ERROR: "+self.error_msg)
-
-        img = np.zeros((512,512,3), np.uint8)
-
-        font                   = cv2.FONT_HERSHEY_SIMPLEX
-        bottomLeftCornerOfText = (30,250)
-        fontScale              = 1.5
-        fontColor              = (255,0,0)
-        lineType               = 2
-
-        cv2.putText(img,"ERROR: ",
-            bottomLeftCornerOfText,
-            font,
-            fontScale,
-            fontColor,
-            lineType)
-
-        font                   = cv2.FONT_HERSHEY_SIMPLEX
-        bottomLeftCornerOfText = (30,300)
-        fontScale              = 0.75
-        fontColor              = (255,255,255)
-        lineType               = 2
-
-        cv2.putText(img,self.error_msg,
-            bottomLeftCornerOfText,
-            font,
-            fontScale,
-            fontColor,
-            lineType)
-
-        self.frame = img
+        img = Image.fromarray(np.zeros((500,500), "uint8"))
+        draw = ImageDraw.Draw(img)
+        draw.text((10, 175), "ERROR:", 255)
+        draw.text((10,225), self.error_msg, 255)
+        self.frame = np.asarray(img)
 
     def _get_andor_frame(self):
         # If not paused or testing, get next buffer from camera

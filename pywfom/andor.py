@@ -5,11 +5,11 @@ import numpy as np
 _stdcall_libraries = {}
 
 arch, plat = platform.architecture()
-"""
+
 if platform.mac_ver() != "":
     msg = "AndorSDK3 not compatible with MacOS"
     raise OSError(msg)
-"""
+
 if plat.startswith('Windows'):
     try:
         _stdcall_libraries['ATCORE'] = ctypes.WinDLL('atcore.dll')
