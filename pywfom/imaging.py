@@ -89,7 +89,7 @@ class Camera(object):
     def _update_frame(self):
         while self.active:
 
-            # Ignore is error
+            # Ignore if there's an error
             if self.error_msg != "":
                 self._error_frame()
                 continue
@@ -160,6 +160,8 @@ class Camera(object):
             max = 255
         else:
             max = 65024
+
+        time.sleep(1/self.AcquisitionFrameRate)
 
         return np.random.randint(0,max,size=(self.Height, self.Width), dtype=self.dtype)
 

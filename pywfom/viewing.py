@@ -1,5 +1,5 @@
 import numpy as np
-import time, threading, cv2, json
+import time, cv2, json
 import tkinter as tk
 from tkinter import ttk, simpledialog, filedialog, messagebox
 from PIL import Image, ImageTk, ImageDraw
@@ -31,11 +31,10 @@ class Frame(tk.Frame):
         self.canvas.bind("<Button-2>", self.reset_aoi)
         self.canvas.grid(row=0,column=0, rowspan=2*len(self.cameras)+2)
 
-
-        # Create subframes for other cameras
-        self.thumbnails,self.thumbnail_labels = [], []
-
-        for i, cam in enumerate(cameras):
+        # Create empty thumnails
+        self.thumbnails, self.thumbnail_labels = [], []
+        # Create thumbnails
+        for i, cam in enumerate(self.cameras):
             self.thumbnails.append(tk.Label(self.root))
             self.thumbnail_labels.append(tk.Label(self.root, text=cam.name))
             self.thumbnails[i].grid(row=i, column=1, padx=5, pady=10, columnspan=3)
@@ -124,9 +123,16 @@ class Frame(tk.Frame):
 
         self.thumbnails[self.selected_frame].config(borderwidth=10,relief="ridge", bg="green")
 
-        fr = " Framerate: {0} fps".format(round(1/(time.time()-t), 2))
-        print(fr, end="\r")
         self.root.after(1, self.update)
+
+    def _create_thumbnails(self):
+
+        # Clear previous thumbnails:
+        for i, tn in enumerate(self.thumbnails):
+            tn.grid_forget()
+            self.thumbnail_labels[i].grid_forget()
+
+        self.thumbnails, self.thumbnail_labels = [], []
 
     def set_dir(self):
         self.file.directory = tk.filedialog.askdirectory()
@@ -228,6 +234,7 @@ class SettingsWindow(tk.Toplevel):
         super().__init__(master = master)
 
         # Get parent window, config settings, and types
+        self.parent = parent
         self.root = parent.root
         self.cameras = parent.cameras
         self.arduino = parent.arduino
@@ -305,7 +312,6 @@ class SettingsWindow(tk.Toplevel):
             btn.pack(side='right',pady=10, padx=10)
 
     def close(self):
-        self.settings = None
         self.destroy()
 
     def save(self):
@@ -346,15 +352,15 @@ class SettingsWindow(tk.Toplevel):
 
     def right_click(self, event):
 
-        # TODO: Fix Add delete
-        # TODO: Delete entire cameras
-        # TODO: Can't delete arduino
-
         item = self.tree.identify_row(event.y)
         self.tree.selection_set(item)
         parent = self.tree.parent(item)
-        if self.tree.item(parent)['text'] in ["", "Arduino"]:
+        if self.tree.item(item)['text'] in ["Arduino", "File"]:
             return
+        elif self.tree.item(item)['text'] == "Cameras":
+            add = tk.NORMAL
+            edit = tk.DISABLED
+            delete = tk.DISABLED
         elif self.tree.item(parent)['text'] == "Cameras":
             add = tk.NORMAL
             edit = tk.DISABLED
@@ -363,16 +369,22 @@ class SettingsWindow(tk.Toplevel):
             add = tk.DISABLED
             edit = tk.NORMAL
             delete = tk.DISABLED
+        else:
+            add = tk.DISABLED
+            edit = tk.NORMAL
+            delete = tk.DISABLED
         menu = tk.Menu(self.root)
         menu.add_command(label="Add", command=lambda:self.add_setting(item, parent), state=add)
         menu.add_command(label="Edit", command=lambda:self.edit_setting(item, parent), state=edit)
-        menu.add_command(label="Delete", command=lambda:self.delete_setting(item, parent), state=delete)
+        menu.add_command(label="Delete", command=lambda:self.delete_setting(item), state=delete)
         menu.tk_popup(event.x_root, event.y_root)
 
     def add_setting(self, item_iid, parent_iid):
         parent = self.tree.item(parent_iid)['text']
         category = self.tree.item(self.tree.parent(parent_iid))['text']
         param = simpledialog.askstring(parent=self, title="Adding Setting:", prompt="Setting")
+        if not param:
+            return
         if param not in self.config[category].types.keys():
             messagebox.showerror("Adding Setting", "{0} is not a valid setting for: {1}".format(param, parent))
         if parent == "strobing":
@@ -423,10 +435,19 @@ class SettingsWindow(tk.Toplevel):
                 else:
                     self.cameras[idx].set(v[0], new_value)
 
-    def delete_setting(self, item, parent):
-        idx = self.tree.get_children(self.tree.parent(parent_iid)).index(parent_iid)
-        print(idx)
-        self.tree.delete(item)
+    def delete_setting(self, item_id):
+
+        # TODO: Delete and have subframes update
+
+        if len(self.tree.get_children(self.tree.parent(item_id))) == 1:
+            return
+        idx = self.tree.get_children(self.tree.parent(item_id)).index(item_id)
+
+        self.cameras.pop(idx).close()
+        self.parent.thumbnails.pop(idx).grid_forget()
+        self.parent.thumbnail_labels.pop(idx).grid_forget()
+        self.parent.selected_frame = 0
+        self.populate_tree()
 
 class ComboPopup(object):
     """docstring for ComboPopup."""
