@@ -91,7 +91,7 @@ class Frame(tk.Frame):
         t = time.time()
 
         cam = self.cameras[self.selected_frame]
-
+        
         # Create main viewing frame
         image = self.convert_frame(cam.frame, (800,1000), True)
 
@@ -155,6 +155,8 @@ class Frame(tk.Frame):
         self.iy = event.y
 
     def set_aoi_end(self, event):
+
+        # TODO: Fix issue with usb webcams
 
         self.x = event.x
         self.y = event.y

@@ -100,7 +100,7 @@ class Writer(object):
         for i in range(arduino.run["number_of_runs"]):
             path = self._make_run_directory(i)
             t = time.time()
-            while num_frms < arduino.run["run_length"]*:
+            while num_frms < arduino.run["run_length"]:
                 pass
 
     def _make_run_directory(self, i):

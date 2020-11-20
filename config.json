@@ -23,7 +23,7 @@
   },
   "cameras": [
     {
-      "device":"webcam",
+      "device":"andor",
       "name":"default",
       "index":0,
       "Height":700,
