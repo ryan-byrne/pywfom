@@ -1,7 +1,7 @@
 import numpy as np
 import threading, time, traceback, cv2, os, ctypes, platform, queue, threading
-import sys
-from ctypes import POINTER, c_int, c_uint, c_double
+import sys, PySpin
+from pywfom import andor
 from PIL import Image, ImageDraw, ImageFont
 
 class CameraError(Exception):
@@ -30,6 +30,7 @@ class Camera(object):
             "OffsetX":0,
             "OffsetY":0
         }
+        self.max_frame = (None, None)
 
         if not config:
             config = self.default
@@ -38,17 +39,7 @@ class Camera(object):
         for k, v in config.items():
             self._set(k,v)
 
-        try:
-            self._start()
-            msg = ""
-        except (IndexError, CameraError) as e:
-            msg = "({2}) No '{1}' camera not found with index:{0}".format(self.index, self.device, self.name)
-        except ModuleNotFoundError as e:
-            msg = str(e)+"\n\nFollow the directions here:\
-            \n\n\thttps://github.com/ryan-byrne/pywfom/wiki\n"
-
-        print(msg)
-        self.error_msg = msg
+        self._start()
 
         threading.Thread(target=self._update_frame).start()
 
@@ -62,7 +53,6 @@ class Camera(object):
         }
 
         self.active = True
-        self.frame = np.zeros((500,500), dtype="uint8")
 
         while self.active:
             # Ignore if there's an error
@@ -74,36 +64,46 @@ class Camera(object):
 
     def _start(self):
 
-        # TODO: Freeze when adjusting AOI
+        self.frame = self._loading_frame()
 
-        if self.device == "webcam":
-            self._camera = cv2.VideoCapture(self.index)
-            if not self._camera.isOpened():
-                raise CameraError
+        try:
+            if self.device == "webcam":
+                self._camera = cv2.VideoCapture(self.index)
+                if not self._camera.isOpened():
+                    raise CameraError
 
-        elif self.device == "spinnaker":
-                import PySpin
-                self._camera = PySpin.System.GetInstance().GetCameras()[self.index]
+            elif self.device == "spinnaker":
+                    self._camera = PySpin.System.GetInstance().GetCameras()[self.index]
 
-        elif self.device == "andor":
-            from pywfom import andor
-            self._camera = andor
-            self._handle = andor.Open(self.index)
-            if not self._handle.value == andor.AT_SUCCESS:
-                raise IndexError
-            self._buffer = queue.Queue()
-            for i in range(10):
-                bits = 8 if self.dtype == "uint8" else 16
-                buf = np.zeros((self.Height*self.Width*bits), self.dtype)
-                self._camera.QueueBuffer(
-                    self._handle,
-                    buf.ctypes.data_as(self._camera.POINTER(self._camera.AT_U8)),
-                    buf.nbytes
-                )
-                self._buffer.put(buf)
+            elif self.device == "andor":
+                self._camera = andor
+                self._handle = andor.Open(self.index)
+                if not self._handle.value == andor.AT_SUCCESS:
+                    raise IndexError
+                self._buffer = queue.Queue()
+                for i in range(10):
+                    bits = 8 if self.dtype == "uint8" else 16
+                    buf = np.zeros((self.Height*self.Width*bits), self.dtype)
+                    self._camera.QueueBuffer(
+                        self._handle,
+                        buf.ctypes.data_as(self._camera.POINTER(self._camera.AT_U8)),
+                        buf.nbytes
+                    )
+                    self._buffer.put(buf)
 
-        else:
-            self._camera = None
+            else:
+                self._camera = None
+
+            msg = ""
+
+        except (IndexError, CameraError) as e:
+            msg = "({2}) No '{1}' camera not found with index:{0}".format(self.index, self.device, self.name)
+        except ModuleNotFoundError as e:
+            msg = str(e)+"\n\nFollow the directions here:\
+            \n\n\thttps://github.com/ryan-byrne/pywfom/wiki\n"
+
+        self.error_msg = msg
+        print(msg)
 
     def _stop(self):
 
@@ -119,6 +119,13 @@ class Camera(object):
         draw.text((10,225), self.error_msg, 255)
         return np.asarray(img)
 
+    def _loading_frame(self):
+        # Create a frame announcing the error
+        img = Image.fromarray(np.zeros((500,500), "uint8"))
+        draw = ImageDraw.Draw(img)
+        draw.text((200,250), "Loading Frame...", 255)
+        return np.asarray(img)
+
     def _get_andor_frame(self):
         buf = self._buffer.get()
         self._camera.AT_WaitBuffer
@@ -128,7 +135,7 @@ class Camera(object):
             self.error_msg = "No webcam found at index: {0}".format(self.index)
             raise
         else:
-            frame = self._camera.read()[1]
+            ret, frame = self._camera.read()
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             self.error_msg = ""
             x, y, w, h = self.OffsetX, self.OffsetY, self.Width, self.Height
@@ -170,24 +177,23 @@ class Camera(object):
         self._start()
 
     def _set(self, param, value):
-
-        if param in ["camera"]:
-            return
-
         try:
             if type(value).__name__ != type(self.default[param]).__name__:
                 msg = "\n\n '{0}' must be of type '{1}', not '{2}'\
-                \n".format(
-                    param, type(self.default[param]).__name__, type(value).__name__)
-                self.error_msg = msg
-                raise ConfigurationError(msg)
+                \nSetting to default of {3}".format(
+                    param,
+                    type(self.default[param]).__name__,
+                    type(value).__name__,
+                    self.default[param]
+                )
+                setattr(self, param, self.default[param])
+                print(msg)
             else:
                 setattr(self, param, value)
                 self.error_msg = ""
         except KeyError:
             msg = "\n\n'{0}' is not a valid configuration setting\n".format(param)
             self.error_msg = msg
-            raise ConfigurationError(msg)
 
     def get(self, param):
         pass
@@ -196,7 +202,19 @@ class Camera(object):
         pass
 
     def get_max(self, param):
-        pass
+
+        if self.error_msg != "":
+            return
+
+        # TODO: Add maximum functions for other cameras
+
+        if self.device == "webcam":
+            functions = {
+                "Height":self._camera.get(4),
+                "Width":self._camera.get(3)
+            }
+
+        return int(functions[param])
 
     def close(self):
         self.active = False

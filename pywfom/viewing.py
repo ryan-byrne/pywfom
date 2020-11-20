@@ -91,7 +91,7 @@ class Frame(tk.Frame):
         t = time.time()
 
         cam = self.cameras[self.selected_frame]
-        
+
         # Create main viewing frame
         image = self.convert_frame(cam.frame, (800,1000), True)
 
@@ -360,28 +360,18 @@ class SettingsWindow(tk.Toplevel):
         item = self.tree.identify_row(event.y)
         self.tree.selection_set(item)
         parent = self.tree.parent(item)
+
+        menu = tk.Menu(self.root, tearoff=0)
+
         if self.tree.item(item)['text'] in ["Arduino", "File"]:
             return
-        elif self.tree.item(item)['text'] == "Cameras":
-            add = tk.NORMAL
-            edit = tk.DISABLED
-            delete = tk.DISABLED
         elif self.tree.item(parent)['text'] == "Cameras":
-            add = tk.NORMAL
-            edit = tk.DISABLED
-            delete = tk.NORMAL
-        elif self.tree.item(parent)['text'] in ["Stim", "Port", "Run", "Strobe"]:
-            add = tk.DISABLED
-            edit = tk.NORMAL
-            delete = tk.DISABLED
+            menu.add_command(label="Add Camera", command=lambda:self.add_setting(item, parent))
+            menu.add_command(label="Delete Camera", command=lambda:self.delete_setting(item))
+        elif self.tree.item(item)['text'] == "Cameras":
+            menu.add_command(label="Add Camera", command=lambda:self.add_setting(item, parent))
         else:
-            add = tk.DISABLED
-            edit = tk.NORMAL
-            delete = tk.DISABLED
-        menu = tk.Menu(self.root)
-        menu.add_command(label="Add", command=lambda:self.add_setting(item, parent), state=add)
-        menu.add_command(label="Edit", command=lambda:self.edit_setting(item, parent), state=edit)
-        menu.add_command(label="Delete", command=lambda:self.delete_setting(item), state=delete)
+            menu.add_command(label="Edit", command=lambda:self.edit_setting(item, parent))
         menu.tk_popup(event.x_root, event.y_root)
 
     def add_setting(self, item_iid, parent_iid):
