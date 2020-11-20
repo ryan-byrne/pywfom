@@ -98,13 +98,15 @@ class Writer(object):
         num_frms = 0
         print("Acquiring Frames")
         for i in range(arduino.run["number_of_runs"]):
-            self._make_run_directory(i)
+            path = self._make_run_directory(i)
             t = time.time()
-            while time.time()-t < arduino.run["run_length"]:
+            while num_frms < arduino.run["run_length"]*:
                 pass
 
-    def _make_run_directory(i):
-        os.mkdir("{0}/{1}"(self.directory))
+    def _make_run_directory(self, i):
+        path = "{0}{1}//run{2}".format(self.directory, self.mouse, i)
+        os.mkdir(path)
+        return path
 
 
 
