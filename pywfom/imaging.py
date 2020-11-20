@@ -20,7 +20,7 @@ class Camera(object):
         self._camera = None
         self.default = {
             "device":"webcam",
-            "name":"default",
+            "name":"default1",
             "index":0,
             "Height":700,
             "Width":1200,
