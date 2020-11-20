@@ -1,4 +1,4 @@
-# ![icon](https://github.com/ryan-byrne/pywfom/blob/master/docs/banner.png)
+#<img height=120 src="https://github.com/ryan-byrne/pywfom/blob/master/docs/banner.png"><img height=120 src="https://github.com/ryan-byrne/pywfom/blob/master/docs/icon1.png">
 
 ## Usage
 
