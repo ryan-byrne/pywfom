@@ -1,6 +1,4 @@
-<p align="center"><img align="center" height=150 src="https://github.com/ryan-byrne/pywfom/blob/master/docs/banner.png"><img height=100 src="https://github.com/ryan-byrne/pywfom/blob/master/docs/icon1.png"></p>
-
-<h1 align="center">OpenWFOM's Python Package</h1>
+<p align="center"><img align="center" height=150 src="https://github.com/ryan-byrne/pywfom/blob/master/docs/banner.png"><img height=100 src="https://github.com/ryan-byrne/pywfom/blob/master/docs/icon1.png"><i><h3 align="center">OpenWFOM's Python Package</h3></i></p>
 
 ## Compatible Cameras
 
