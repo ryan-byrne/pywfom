@@ -1,4 +1,4 @@
-<p align="center"><img align="center" height=120 src="https://github.com/ryan-byrne/pywfom/blob/master/docs/banner.png"><img height=120 src="https://github.com/ryan-byrne/pywfom/blob/master/docs/icon1.png"></p>
+<p align="center"><img align="center" height=150 src="https://github.com/ryan-byrne/pywfom/blob/master/docs/banner.png"><img height=100 src="https://github.com/ryan-byrne/pywfom/blob/master/docs/icon1.png"></p>
 
 ## Usage
 
