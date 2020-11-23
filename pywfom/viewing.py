@@ -84,10 +84,6 @@ class Frame(tk.Frame):
 
     def update(self):
 
-        # TODO: Improve framerate of gui
-        #   * when error message
-        #   * when large frame (to be expected)
-
         t = time.time()
 
         cam = self.cameras[self.selected_frame]
@@ -155,8 +151,6 @@ class Frame(tk.Frame):
         self.iy = event.y
 
     def set_aoi_end(self, event):
-
-        # TODO: Fix issue with usb webcams
 
         self.x = event.x
         self.y = event.y
@@ -231,12 +225,22 @@ class Frame(tk.Frame):
 
         return img
 
-
 class SettingsWindow(tk.Toplevel):
 
     def __init__(self, parent=None, master=None):
 
         super().__init__(master = master)
+
+        self.ignore = [
+            "types",
+            "error_msg",
+            "active",
+            "_camera",
+            "frame",
+            "default",
+            "max_frame",
+            "ser"
+        ]
 
         # Get parent window, config settings, and types
         self.parent = parent
@@ -284,7 +288,7 @@ class SettingsWindow(tk.Toplevel):
             parent = self.tree.insert(cameras, i, text=cam.name.title())
             # Add setting for each attribute
             for j, attr in enumerate(cam.__dict__.keys()):
-                if attr in ["types", "error_msg", "active", "_camera", "frame"]:
+                if attr in self.ignore:
                     continue
                 else:
                     self.tree.insert(parent, j, values=(attr, getattr(cam, attr)))
@@ -293,19 +297,24 @@ class SettingsWindow(tk.Toplevel):
         arduino = self.tree.insert("", 2, text="Arduino")
         # Go through each Arduino attribute
         for i, attr in enumerate(self.arduino.__dict__.keys()):
-            if attr in ["error_msg", "types", "ser"]:
+            if attr in self.ignore:
                 continue
             parent = self.tree.insert(arduino, i, text=attr.title())
+            settings = getattr(self.arduino, attr)
             if attr == "port":
                 self.tree.insert(parent, i, values=("Port", self.arduino.port))
-                continue
-            settings = self.arduino.strobing if attr == "strobing" else getattr(self.arduino, attr).keys()
-            for j, setting in enumerate(settings):
-                if attr == "strobing":
-                    values = ("", setting.upper())
-                else:
-                    values = (setting.replace("_", " ").title(), getattr(self.arduino, attr)[setting])
-                self.tree.insert(parent, j, values=values)
+            elif attr == "strobing":
+                self.tree.insert(parent, 0, values=("Trigger", settings['trigger']))
+                for j, led in enumerate(settings['leds']):
+                    self.tree.insert(parent, j+1, values=(led["name"], led["pin"]))
+            elif attr == "stim":
+                for k, stim in enumerate(settings):
+                    stim_parent = self.tree.insert(parent, k, text=stim["name"])
+                    for m, setting in enumerate(stim):
+                        self.tree.insert(stim_parent, m, values=(setting, stim[setting]))
+            else:
+                for l, setting in enumerate(settings):
+                    self.tree.insert(parent, l, values=(setting, settings[setting]))
 
     def create_buttons(self):
         reset = tk.Button(self, text="Reset", command=self.reset)
@@ -346,8 +355,6 @@ class SettingsWindow(tk.Toplevel):
 
     def on_double_click(self, event):
 
-        # TODO: add dropdowns where possible
-
         item = self.tree.selection()[0]
         if not self.tree.parent(item) or self.tree.item(item)["text"] != "":
             return
@@ -357,19 +364,19 @@ class SettingsWindow(tk.Toplevel):
 
     def right_click(self, event):
 
+        # TODO: Focus on right clicked row
+
         item = self.tree.identify_row(event.y)
-        self.tree.selection_set(item)
         parent = self.tree.parent(item)
-
         menu = tk.Menu(self.root, tearoff=0)
-
         if self.tree.item(item)['text'] in ["Arduino", "File"]:
             return
-        elif self.tree.item(parent)['text'] == "Cameras":
+        elif "Cameras" in [self.tree.item(parent)['text'], self.tree.item(item)['text']]:
             menu.add_command(label="Add Camera", command=lambda:self.add_setting(item, parent))
             menu.add_command(label="Delete Camera", command=lambda:self.delete_setting(item))
-        elif self.tree.item(item)['text'] == "Cameras":
-            menu.add_command(label="Add Camera", command=lambda:self.add_setting(item, parent))
+        elif "Stim" in [self.tree.item(parent)['text'], self.tree.item(item)['text']]:
+            menu.add_command(label="Add Stim", command=lambda:self.add_setting(item, parent))
+            menu.add_command(label="Delete Stim", command=lambda:self.delete_setting(item))
         else:
             menu.add_command(label="Edit", command=lambda:self.edit_setting(item, parent))
         menu.tk_popup(event.x_root, event.y_root)
@@ -379,53 +386,58 @@ class SettingsWindow(tk.Toplevel):
         if "Cameras" in [self.tree.item(parent_iid)['text'], self.tree.item(item_iid)['text']]:
             self.cameras.append(imaging.Camera())
             self.parent.add_thumnail("default")
-            self.parent.set_grid()
-            self.populate_tree()
-            return
-
-        parent = self.tree.item(parent_iid)['text']
-        category = self.tree.item(self.tree.parent(parent_iid))['text']
-        param = simpledialog.askstring(parent=self, title="Adding Setting:", prompt="Setting")
-        if not param:
-            return
-        if param not in self.config[category].types.keys():
-            messagebox.showerror("Adding Setting", "{0} is not a valid setting for: {1}".format(param, parent))
-        if parent == "strobing":
-            self.tree.insert(parent_iid, len(self.tree.get_children(parent_iid)), values=("", param))
-            strobe_order = []
-            for led in self.tree.get_children(parent_iid):
-                strobe_order.append(self.tree.item(led)['values'][1])
-            self.settings['arduino']['strobing'] = strobe_order
-            return
-
-        value = simpledialog.askstring(parent=self, title="Setting: {0}".format(param), prompt=param)
-        self.tree.insert(parent_iid, len(self.tree.get_children(parent_iid)), values=(param, value))
-        idx = self.tree.get_children(self.tree.parent(parent_iid)).index(parent_iid)
-        if category == "arduino":
-            self.settings['arduino'][parent][param] = value
-        else:
-            self.settings['cameras'][idx][param] = value
+        elif "Stim" in [self.tree.item(parent_iid)['text'], self.tree.item(item_iid)['text']]:
+            self.arduino.stim.append({
+                "name":"default",
+                "pre_stim":4.0,
+                "stim":7.0,
+                "post_stim":8.0
+            })
+        self.parent.set_grid()
+        self.populate_tree()
 
     def edit_setting(self, item_iid, parent_iid):
+
         parent = self.tree.item(parent_iid)['text']
         category = self.tree.item(self.tree.parent(parent_iid))['text']
-        v = self.tree.item(item_iid)['values']
-        new_value = simpledialog.askstring(parent=self, title="Setting {0}:".format(v[0]), prompt=v[0])
+        setting = self.tree.item(item_iid)['values'][0]
+
+        if setting in ["device", "master", "dtype", "port"]:
+            combo = ComboboxSelectionWindow(self, self.root, setting)
+            self.root.wait_window(combo)
+            new_value = combo.value
+
+        elif setting == "directory":
+            new_value = tk.filedialog.askdirectory()
+
+        elif setting in ["user", "mouse", "name", ""]:
+            new_value = simpledialog.askstring(
+                parent=self,
+                title="Setting {0}:".format(setting),
+                prompt=setting
+            )
+        elif setting in ["Height", "Width", "OffsetX", "OffsetY", "number_of_runs", "pin", "trigger"]:
+            new_value = simpledialog.askinteger(
+                parent=self,
+                title="Setting {0}:".format(setting),
+                prompt=setting
+            )
+        elif setting in ["AcquisitionFrameRate", "pre_stim", "stim", "post_stim", "run_length"]:
+            new_value = simpledialog.askfloat(
+                parent=self,
+                title="Setting {0}:".format(setting),
+                prompt=setting
+            )
+
         if not new_value:
+            print("*"*100)
             return
-        try:
-            new_value = int(new_value)
-        except ValueError:
-            try:
-                new_value = float(new_value)
-            except ValueError:
-                new_value = new_value
 
         idx = self.tree.get_children(self.tree.parent(parent_iid)).index(parent_iid)
         for i, child_iid in enumerate(self.tree.get_children(parent_iid)):
             if child_iid == item_iid:
                 self.tree.delete(item_iid)
-                self.tree.insert(parent_iid, i, values=(v[0], new_value))
+                self.tree.insert(parent_iid, i, values=(setting, new_value))
                 cat = self.tree.item(self.tree.parent(parent_iid))['text'].lower()
                 if parent.lower() == "strobing":
                     self.arduino.set("strobing", new_value)
@@ -436,7 +448,7 @@ class SettingsWindow(tk.Toplevel):
                 if cat == "arduino":
                     self.arduino.set(cat, new_value)
                 else:
-                    self.cameras[idx].set(v[0], new_value)
+                    self.cameras[idx].set(setting, new_value)
 
     def delete_setting(self, item_id):
 
@@ -450,9 +462,42 @@ class SettingsWindow(tk.Toplevel):
         self.parent.selected_frame = 0
         self.populate_tree()
 
-class ComboPopup(object):
-    """docstring for ComboPopup."""
+class ComboboxSelectionWindow(tk.Toplevel):
+    def __init__(self, parent=None, master=None, setting=None):
 
-    def __init__(self, arg):
-        super(ComboPopup, self).__init__()
-        self.arg = arg
+        super().__init__(master = master)
+        self.root = parent.root
+        self.title(setting.title())
+        self.setting = setting
+        self.options = {
+            "device":[
+                "spinnaker",
+                "andor",
+                "test",
+                "webcam"
+            ],
+            "master":[
+                True,
+                False
+            ],
+            "dtype":[
+                "uint16",
+                "uint8"
+            ],
+            "port":["COM{0}".format(i) for i in range(10)]
+        }
+
+        self.create_widgets()
+
+
+    def create_widgets(self):
+
+        self.combo = ttk.Combobox(master=self, values=self.options[self.setting])
+        self.combo.current(1)
+        self.combo.pack()
+        self.done_btn = tk.Button(master=self, text="Done", command=self.callback)
+        self.done_btn.pack()
+
+    def callback(self):
+        self.value = self.combo.get()
+        self.destroy()

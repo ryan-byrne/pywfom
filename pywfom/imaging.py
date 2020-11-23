@@ -1,7 +1,6 @@
 import numpy as np
 import threading, time, traceback, cv2, os, ctypes, platform, queue, threading
-import sys, PySpin
-from pywfom import andor
+import sys
 from PIL import Image, ImageDraw, ImageFont
 
 class CameraError(Exception):
@@ -24,7 +23,7 @@ class Camera(object):
             "index":0,
             "Height":700,
             "Width":1200,
-            "AcquisitionFrameRate":50,
+            "AcquisitionFrameRate":50.0,
             "master":True,
             "dtype":"uint16",
             "OffsetX":0,
@@ -73,12 +72,14 @@ class Camera(object):
                     raise CameraError
 
             elif self.device == "spinnaker":
-                    self._camera = PySpin.System.GetInstance().GetCameras()[self.index]
+                import PySpin
+                self._camera = PySpin.System.GetInstance().GetCameras()[self.index]
 
             elif self.device == "andor":
+                from pywfom import andor
                 self._camera = andor
-                self._handle = andor.Open(self.index)
-                if not self._handle.value == andor.AT_SUCCESS:
+                self._handle = self._camera.Open(self.index)
+                if not self._handle.value == self._camera.AT_SUCCESS:
                     raise IndexError
                 self._buffer = queue.Queue()
                 for i in range(10):
@@ -94,16 +95,18 @@ class Camera(object):
             else:
                 self._camera = None
 
-            msg = ""
+            msg = None
 
         except (IndexError, CameraError) as e:
             msg = "({2}) No '{1}' camera not found with index:{0}".format(self.index, self.device, self.name)
-        except ModuleNotFoundError as e:
+        except (ModuleNotFoundError, OSError) as e:
             msg = str(e)+"\n\nFollow the directions here:\
             \n\n\thttps://github.com/ryan-byrne/pywfom/wiki\n"
 
         self.error_msg = msg
-        print(msg)
+
+        if msg:
+            print(msg)
 
     def _stop(self):
 

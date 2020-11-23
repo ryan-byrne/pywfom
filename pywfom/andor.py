@@ -7,7 +7,7 @@ _stdcall_libraries = {}
 arch, plat = platform.architecture()
 
 if platform.mac_ver()[0] != "":
-    msg = "AndorSDK3 not compatible with MacOS"
+    msg = "AndorSDK3 is not currently compatible with MacOS"
     raise OSError(msg)
 
 if plat.startswith('Windows'):

@@ -1,21 +1,36 @@
 {
   "file":{
     "user":"rjb2202",
-    "mouse":"cm103",
-    "directory":"C:/"
+    "mouse":"cm100",
+    "directory":"C:/data"
   },
   "arduino": {
     "port": "COM3",
-    "strobing": [
-      "RED",
-      "GREEN",
-      "BLUE"
-    ],
-    "stim": {
-      "pre_stim":4.0,
-      "stim":7.0,
-      "post_stim":8.0
+    "strobing": {
+      "leds":[
+        {
+          "name":"RED",
+          "pin":14
+        },
+        {
+          "name":"GREEN",
+          "pin":13
+        },
+        {
+          "name":"RED",
+          "pin":12
+        }
+      ],
+      "trigger":14
     },
+    "stim": [
+      {
+        "name":"default",
+        "pre_stim":4.0,
+        "stim":7.0,
+        "post_stim":8.0
+      }
+    ],
     "run": {
       "number_of_runs": 1,
       "run_length": 5.0
@@ -23,12 +38,12 @@
   },
   "cameras": [
     {
-      "device":"webcam",
+      "device":"andor",
       "name":"default",
       "index":0,
       "Height":700,
       "Width":1200,
-      "AcquisitionFrameRate":50,
+      "AcquisitionFrameRate":50.0,
       "master":true,
       "dtype":"uint16",
       "OffsetX":0,
