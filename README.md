@@ -1,5 +1,13 @@
 <p align="center"><img align="center" height=150 src="https://github.com/ryan-byrne/pywfom/blob/master/docs/banner.png"><img height=100 src="https://github.com/ryan-byrne/pywfom/blob/master/docs/icon1.png"></p>
 
+<h1 align="center">OpenWFOM's Python Package</h1>
+
+## Compatible Cameras
+
+* [Andor SDK3]() - Andor Cameras (Neo, Zyla)
+* [Spinnaker SDK]() - FLIR Cameras (Blackfly, Blackfly S)
+* [Other USB Webcams]() - Also compatible with most USB Webcams
+
 ## Usage
 
 To install ```pywfom``` and test your installation run:
@@ -9,12 +17,6 @@ pip install pywfom; wfom --test
 ```
 
 The ```pywfom``` Python Package and command line tool are ways to declare camera settings, test setup, and start an acquisition on an OpenWFOM imaging system.
-
-## Compatible Cameras
-
-* [Andor SDK3]() - Andor Cameras (Neo, Zyla)
-* [Spinnaker SDK]() - FLIR Cameras (Blackfly, Blackfly S)
-* [Other USB Webcams]() - Also compatible with most USB Webcams
 
 ## Versioning
 
