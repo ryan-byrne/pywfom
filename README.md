@@ -1,7 +1,5 @@
-<figure align="center">
-  <img align="center" height=150 src="https://github.com/ryan-byrne/pywfom/blob/master/docs/banner.png">
-  <figcaption>Caption goes here</figcaption>
-</figure>
+<p align="center"><img align="center" height=150 src="https://github.com/ryan-byrne/pywfom/blob/master/docs/banner.png"></p>
+<p align="center"><img align="center" height=50 src="https://github.com/ryan-byrne/pywfom/blob/master/docs/icon1.png"><i>OpenWFOM's Python Package</i></p>
 
 ## Compatible Cameras
 
