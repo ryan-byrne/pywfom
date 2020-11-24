@@ -140,7 +140,15 @@ class Frame(tk.Frame):
         SettingsWindow(self, self.root)
 
     def acquire(self):
-        self.file.write(self.arduino, self.cameras)
+        for btn in [self.settings_btn, self.close_btn, self.acquire_btn]:
+            btn["state"] = tk.DISABLED
+        result = tk.messagebox.askyesno("pywfom", message="Start acquistion?")
+        if result:
+            self.file.write(self.arduino, self.cameras)
+        else:
+            pass
+        for btn in [self.settings_btn, self.close_btn, self.acquire_btn]:
+            btn["state"] = tk.NORMAL
 
     def close(self, event=""):
         self.root.destroy()
@@ -371,12 +379,16 @@ class SettingsWindow(tk.Toplevel):
         menu = tk.Menu(self.root, tearoff=0)
         if self.tree.item(item)['text'] in ["Arduino", "File"]:
             return
-        elif "Cameras" in [self.tree.item(parent)['text'], self.tree.item(item)['text']]:
+        elif "Cameras" == self.tree.item(parent)['text']:
             menu.add_command(label="Add Camera", command=lambda:self.add_setting(item, parent))
             menu.add_command(label="Delete Camera", command=lambda:self.delete_setting(item))
-        elif "Stim" in [self.tree.item(parent)['text'], self.tree.item(item)['text']]:
+        elif "Cameras" == self.tree.item(item)['text']:
+            menu.add_command(label="Add Camera", command=lambda:self.add_setting(item, parent))
+        elif "Stim" == self.tree.item(parent)['text']:
             menu.add_command(label="Add Stim", command=lambda:self.add_setting(item, parent))
             menu.add_command(label="Delete Stim", command=lambda:self.delete_setting(item))
+        elif "Stim" == self.tree.item(item)['text']:
+            menu.add_command(label="Add Stim", command=lambda:self.add_setting(item, parent))
         else:
             menu.add_command(label="Edit", command=lambda:self.edit_setting(item, parent))
         menu.tk_popup(event.x_root, event.y_root)

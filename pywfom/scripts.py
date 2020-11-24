@@ -1,5 +1,4 @@
-import time, argparse, sys, os, json, pkgutil
-import numpy as np
+import time, argparse, sys, os, json
 import tkinter as tk
 
 def _get_args():
@@ -40,31 +39,11 @@ def _get_args():
     return args
 
 def main(config=None):
-
-    from pywfom.imaging.test import TestCamera
-    from pywfom.viewing.frame import Frame
-    from pywfom.control.arduino import Arduino
-    from pywfom.imaging import andor, spinnaker, usb
-
-    CAMERA_TYPES = {
-        "andor":andor.Camera,
-        "test":TestCamera,
-        "spinnaker":spinnaker.Camera,
-        "webcam":webcam.Camera
-    }
-
-    cameras = [CAMERA_TYPES[cam['type']](cam) for cam in config["cameras"]]
-    arduino = Arduino(config["arduino"])
-
-    root = tk.Tk()
-    frame = Frame(root, "pywfom", cameras, arduino)
-    frame.root.mainloop()
-
-    for cam in cameras:
-        cam.close()
+    pass
 
 def test(config=None):
 
+    import pywfom
     from pywfom.imaging import Camera
     from pywfom.viewing import Frame
     from pywfom.control import Arduino
@@ -75,12 +54,15 @@ def test(config=None):
     file = Writer(config["file"])
 
     root = tk.Tk()
+    photo = tk.PhotoImage(
+        file = os.path.dirname(pywfom.__file__)+"/lib/icon1.png"
+    )
+    root.iconphoto(False, photo)
     frame = Frame(root, "pywfom", cameras, arduino, file)
     frame.root.mainloop()
 
     for cam in cameras:
         cam.close()
-
 
 def configure():
     pass

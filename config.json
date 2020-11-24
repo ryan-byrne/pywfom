@@ -38,7 +38,7 @@
   },
   "cameras": [
     {
-      "device":"andor",
+      "device":"tes",
       "name":"default",
       "index":0,
       "Height":700,

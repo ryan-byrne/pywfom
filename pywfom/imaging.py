@@ -7,9 +7,6 @@ class CameraError(Exception):
     """docstring for CameraError."""
     pass
 
-class ConfigurationError(Exception):
-    pass
-
 class Camera(object):
 
     def __init__(self, config=None):
@@ -66,7 +63,12 @@ class Camera(object):
         self.frame = self._loading_frame()
 
         try:
-            if self.device == "webcam":
+
+            if self.device not in ["webcam", "spinnaker", "andor", "test"]:
+                self.error_msg = "Invalid device type '{0}'".format(self.device)
+                return
+
+            elif self.device == "webcam":
                 self._camera = cv2.VideoCapture(self.index)
                 if not self._camera.isOpened():
                     raise CameraError
