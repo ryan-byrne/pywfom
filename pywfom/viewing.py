@@ -40,49 +40,69 @@ class Frame(tk.Frame):
         self.canvas.bind("<Button-2>", self.reset_aoi)
 
     def create_widgets(self):
-        # Create image panels
-        self.canvas = tk.Canvas(self.root, cursor="cross", width=1000, height=800)
-        self.main_label = tk.Label(self.root)
-        # Create Arduino Status
-        self.arduino_status = tk.Label(self.root, text="Arduino Status")
-        self.arduino_color = tk.Button(self.root, height=1, width=1)
-        # Create File Directory
-        self.dir_label = tk.Label(self.root, text="Save to:")
-        self.dir_name = tk.Label(self.root)
-        self.dir_button = tk.Button(self.root, text="Browse", command=self.set_dir)
-        # Create buttons
-        self.settings_btn = tk.Button(      self.root,
-                                        text="Configure",
-                                        command=self.view_settings)
-        self.close_btn = tk.Button(     self.root,
-                                        text="Quit",
-                                        command=self.close)
-        self.acquire_btn = tk.Button(  self.root,
-                                        text="Acquire",
-                                        command=self.acquire)
+        # Create Left Side of Frame
+        self.left_side = tk.Frame(self.root)
+        self.canvas = tk.Canvas(self.left_side, cursor="cross", width=1000, height=800)
+        self.main_label = tk.Label(self.left_side, font=("Helvetica", 14))
+        # Create Right Side of Frame
+        self.right_side = tk.Frame(self.root)
         # Create empty thumnails
+        self.thumnails_frame = tk.Frame(self.right_side)
         self.thumbnails, self.thumbnail_labels = [], []
         # Create thumbnails
         for cam in self.cameras:
             self.add_thumnail(cam.name)
+        # Create Arduino Status
+        self.arduino_frame = tk.Frame(self.right_side)
+        self.arduino_status = tk.Label(self.arduino_frame, text="Arduino Status")
+        self.arduino_color = tk.Button(self.arduino_frame, height=1, width=1)
+        # Create File Directory
+        self.dir_frame = tk.Frame(self.right_side)
+        self.dir_label = tk.Label(self.dir_frame, text="Save to:", font=("Helvetica", 10, 'bold'))
+        self.dir_name = tk.Label(self.dir_frame)
+        self.dir_button = tk.Button(self.dir_frame, text="Browse", command=self.set_dir)
+        # Create buttons
+        self.btn_frame = tk.Frame(self.right_side)
+        self.settings_btn = tk.Button(      self.btn_frame,
+                                        text="Configure",
+                                        command=self.view_settings)
+        self.close_btn = tk.Button(     self.btn_frame,
+                                        text="Quit",
+                                        command=self.close)
+        self.acquire_btn = tk.Button(  self.btn_frame,
+                                        text="Acquire",
+                                        command=self.acquire)
 
     def add_thumnail(self, name):
-        self.thumbnails.append(tk.Label(self.root))
-        self.thumbnail_labels.append(tk.Label(self.root, text=name))
+        self.thumbnails.append(tk.Label(self.thumnails_frame))
+        self.thumbnail_labels.append(tk.Label(self.thumnails_frame, text=name))
 
     def set_grid(self):
-        self.main_label.grid(column=0, row=0,sticky=tk.NW)
-        self.canvas.grid(row=0,column=0, rowspan=2*len(self.cameras)+2)
+        pad = 10
+        # pack left side
+        self.left_side.pack(side="left")
+        self.main_label.pack()
+        self.canvas.pack()
+        # pack right Side
+        self.right_side.pack(side="right")
+        self.thumnails_frame.pack()
+        # pack thumnails
         for i, cam in enumerate(self.cameras):
-            self.thumbnails[i].grid(row=i, column=1, padx=5, pady=10, columnspan=3)
-            self.thumbnail_labels[i].grid(row=i, column=1, sticky=tk.NW)
-        self.arduino_status.grid(row=len(self.cameras), column=1, columnspan=2, sticky="e")
-        self.arduino_color.grid(row=len(self.cameras), column=3, sticky="w")
-        self.dir_label.grid(row=len(self.cameras)+1, column=1)
-        self.dir_name.grid(row=len(self.cameras)+1, column=2)
-        self.dir_button.grid(row=len(self.cameras)+1, column=3)
-        for i, btn in enumerate([self.close_btn, self.settings_btn, self.acquire_btn]):
-            btn.grid(row=len(self.cameras)+2,column=i+1, padx=5, pady=10)
+            self.thumbnail_labels[i].pack()
+            self.thumbnails[i].pack()
+        # pack arduino status
+        self.arduino_frame.pack(padx=pad, pady=pad)
+        self.arduino_status.pack(side="left",padx=pad, pady=pad)
+        self.arduino_color.pack(side="left",padx=pad, pady=pad)
+        # pack directory status
+        self.dir_frame.pack(padx=pad, pady=pad)
+        self.dir_label.pack(side="left",padx=pad, pady=pad)
+        self.dir_name.pack(side="left",padx=pad, pady=pad)
+        self.dir_button.pack(side="left",padx=pad, pady=pad)
+        # pack button
+        self.btn_frame.pack(padx=pad, pady=pad)
+        for i, btn in enumerate([self.acquire_btn, self.settings_btn, self.close_btn]):
+            btn.pack(side="right",padx=pad, pady=pad)
 
     def update(self):
 

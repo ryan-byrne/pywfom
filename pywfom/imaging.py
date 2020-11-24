@@ -215,6 +215,11 @@ class Camera(object):
                 "Height":self._camera.get(4),
                 "Width":self._camera.get(3)
             }
+        elif self.device == "test":
+            functions = {
+                "Height":700,
+                "Width":1200
+            }
 
         return int(functions[param])
 
