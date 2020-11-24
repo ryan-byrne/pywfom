@@ -41,7 +41,13 @@ class Arduino():
         else:
             self._set(param,value)
 
+    def toggle_led(self, pin):
+        print("Toggling LED at Pin "+str(pin))
+
     def _set(self, param, value):
+
+        # Set Trigger : t14
+        # Set LED : l12
 
         setattr(self, param, value)
 

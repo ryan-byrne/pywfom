@@ -190,7 +190,6 @@ class Camera(object):
                     self.default[param]
                 )
                 setattr(self, param, self.default[param])
-                print(msg)
             else:
                 setattr(self, param, value)
                 self.error_msg = ""

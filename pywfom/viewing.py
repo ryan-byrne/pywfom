@@ -1,7 +1,8 @@
 import numpy as np
-import time, cv2, json
+import time, cv2, json, os
 import tkinter as tk
 from pywfom import imaging
+import pywfom
 from tkinter import ttk, simpledialog, filedialog, messagebox
 from PIL import Image, ImageTk, ImageDraw
 
@@ -14,6 +15,7 @@ class Frame(tk.Frame):
         self.file = file
 
         self.root = parent
+        self.root.resizable(width=False, height=False)
         self.root.bind("<Escape>", self.close)
         self.root.title(win_name)
         self.rect = None
@@ -245,11 +247,13 @@ class SettingsWindow(tk.Toplevel):
             "frame",
             "default",
             "max_frame",
-            "ser"
+            "ser",
+            "writing"
         ]
 
         # Get parent window, config settings, and types
         self.parent = parent
+        self.resizable(width=False, height=False)
         self.root = parent.root
         self.cameras = parent.cameras
         self.arduino = parent.arduino
@@ -326,10 +330,14 @@ class SettingsWindow(tk.Toplevel):
         reset = tk.Button(self, text="Reset", command=self.reset)
         save = tk.Button(self, text="Save", command=self.save)
         load = tk.Button(self, text="Load", command=self.load)
+        leds = tk.Button(self, text="Test LEDs", command=self.leds)
         cancel = tk.Button(self, text="Done", command=self.close)
 
-        for i, btn in enumerate([cancel, reset, save, load]):
+        for i, btn in enumerate([cancel, leds, reset, save, load]):
             btn.pack(side='right',pady=10, padx=10)
+
+    def leds(self):
+        LedConfig(self, self.root)
 
     def close(self):
         self.destroy()
@@ -402,7 +410,7 @@ class SettingsWindow(tk.Toplevel):
 
         parent = self.tree.item(parent_iid)['text']
         category = self.tree.item(self.tree.parent(parent_iid))['text']
-        setting = self.tree.item(item_iid)['values'][0].lowers()
+        setting = self.tree.item(item_iid)['values'][0].lower()
 
         idx = self.tree.get_children(self.tree.parent(parent_iid)).index(parent_iid)
 
@@ -462,6 +470,8 @@ class SettingsWindow(tk.Toplevel):
                         self.arduino.set("port", new_value)
                 else:
                     self.cameras[idx].set(setting, new_value)
+
+        self.populate_tree()
 
     def add_setting(self, item_iid, parent_iid):
 
@@ -526,6 +536,7 @@ class ComboboxSelectionWindow(tk.Toplevel):
         super().__init__(master = master)
         self.root = parent.root
         self.title(setting.title())
+        self.resizable(width=False, height=False)
         self.setting = setting
         self.options = {
             "device":[
@@ -559,3 +570,45 @@ class ComboboxSelectionWindow(tk.Toplevel):
     def callback(self):
         self.value = self.combo.get()
         self.destroy()
+
+class LedConfig(tk.Toplevel):
+
+    def __init__(self, parent=None, master=None):
+
+        super().__init__(master = master)
+        self.resizable(width=False, height=False)
+        self.root = parent.root
+        self.arduino = parent.arduino
+        self.title("LED Configuration")
+
+        self.make_notice()
+        self.make_buttons()
+
+    def make_notice(self):
+        lbl = tk.Label(
+            master=self,
+            text="1. Switch your LED drivers to\n'Constant Current (CM)' Mode"
+        )
+        pic = os.path.dirname(pywfom.__file__)+"/lib/driverDemo.png"
+        img = ImageTk.PhotoImage(Image.open(pic))
+        panel = tk.Label(master=self, image=img)
+        panel.image = img
+
+        lbl.pack()
+        panel.pack()
+
+    def make_buttons(self):
+        lbl = tk.Label(
+            master=self,
+            text="2. Select an LED"
+        )
+        lbl.pack()
+        for i, led in enumerate(self.arduino.strobing['leds']):
+            btn = tk.Button(
+                master=self,
+                text=led['name'],
+                command=lambda p=led['pin'] :self.arduino.toggle_led(p),
+                height=3,
+                width=20
+            )
+            btn.pack(pady=10)

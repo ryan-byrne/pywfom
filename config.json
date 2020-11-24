@@ -18,11 +18,11 @@
           "pin":13
         },
         {
-          "name":"RED",
+          "name":"LIME",
           "pin":12
         }
       ],
-      "trigger":14
+      "trigger":9
     },
     "stim": [
       {
