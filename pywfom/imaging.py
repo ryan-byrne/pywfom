@@ -97,18 +97,16 @@ class Camera(object):
             else:
                 self._camera = None
 
-            msg = None
+            msg = ""
 
-        except (IndexError, CameraError) as e:
+        except (IndexError, CameraError, AttributeError) as e:
             msg = "({2}) No '{1}' camera not found with index:{0}".format(self.index, self.device, self.name)
         except (ModuleNotFoundError, OSError) as e:
-            msg = str(e)+"\n\nFollow the directions here:\
+            msg = str(e)+"\n\nFollow the directions at:\
             \n\n\thttps://github.com/ryan-byrne/pywfom/wiki\n"
 
         self.error_msg = msg
-
-        if msg:
-            print(msg)
+        print(msg)
 
     def _stop(self):
 
