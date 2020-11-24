@@ -2,7 +2,8 @@
   "file":{
     "user":"rjb2202",
     "mouse":"cm100",
-    "directory":"C:/data"
+    "directory":"/Users/rbyrne/projects/pywfom/data",
+    "writing":false
   },
   "arduino": {
     "port": "COM3",
@@ -38,11 +39,11 @@
   },
   "cameras": [
     {
-      "device":"tes",
+      "device":"test",
       "name":"default",
       "index":0,
-      "Height":700,
-      "Width":1200,
+      "Height":400,
+      "Width":100,
       "AcquisitionFrameRate":50.0,
       "master":true,
       "dtype":"uint16",

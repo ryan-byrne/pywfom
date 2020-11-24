@@ -140,15 +140,13 @@ class Frame(tk.Frame):
         SettingsWindow(self, self.root)
 
     def acquire(self):
-        for btn in [self.settings_btn, self.close_btn, self.acquire_btn]:
-            btn["state"] = tk.DISABLED
+
         result = tk.messagebox.askyesno("pywfom", message="Start acquistion?")
+
         if result:
             self.file.write(self.arduino, self.cameras)
         else:
             pass
-        for btn in [self.settings_btn, self.close_btn, self.acquire_btn]:
-            btn["state"] = tk.NORMAL
 
     def close(self, event=""):
         self.root.destroy()
@@ -377,42 +375,38 @@ class SettingsWindow(tk.Toplevel):
         item = self.tree.identify_row(event.y)
         parent = self.tree.parent(item)
         menu = tk.Menu(self.root, tearoff=0)
+
         if self.tree.item(item)['text'] in ["Arduino", "File"]:
             return
         elif "Cameras" == self.tree.item(parent)['text']:
             menu.add_command(label="Add Camera", command=lambda:self.add_setting(item, parent))
-            menu.add_command(label="Delete Camera", command=lambda:self.delete_setting(item))
+            menu.add_command(label="Delete Camera", command=lambda:self.delete_setting(item, parent))
         elif "Cameras" == self.tree.item(item)['text']:
             menu.add_command(label="Add Camera", command=lambda:self.add_setting(item, parent))
         elif "Stim" == self.tree.item(parent)['text']:
             menu.add_command(label="Add Stim", command=lambda:self.add_setting(item, parent))
-            menu.add_command(label="Delete Stim", command=lambda:self.delete_setting(item))
+            menu.add_command(label="Delete Stim", command=lambda:self.delete_setting(item, parent))
         elif "Stim" == self.tree.item(item)['text']:
             menu.add_command(label="Add Stim", command=lambda:self.add_setting(item, parent))
+        elif "Strobing" == self.tree.item(parent)['text'] and "Trigger" != self.tree.item(item)['values'][0]:
+            menu.add_command(label="Add LED", command=lambda:self.add_setting(item, parent))
+            menu.add_command(label="Delete LED", command=lambda:self.delete_setting(item, parent))
+        elif "Strobing" == self.tree.item(item)['text']:
+            menu.add_command(label="Add LED", command=lambda:self.add_setting(item, parent))
         else:
             menu.add_command(label="Edit", command=lambda:self.edit_setting(item, parent))
+
         menu.tk_popup(event.x_root, event.y_root)
-
-    def add_setting(self, item_iid, parent_iid):
-
-        if "Cameras" in [self.tree.item(parent_iid)['text'], self.tree.item(item_iid)['text']]:
-            self.cameras.append(imaging.Camera())
-            self.parent.add_thumnail("default")
-        elif "Stim" in [self.tree.item(parent_iid)['text'], self.tree.item(item_iid)['text']]:
-            self.arduino.stim.append({
-                "name":"default",
-                "pre_stim":4.0,
-                "stim":7.0,
-                "post_stim":8.0
-            })
-        self.parent.set_grid()
-        self.populate_tree()
 
     def edit_setting(self, item_iid, parent_iid):
 
         parent = self.tree.item(parent_iid)['text']
         category = self.tree.item(self.tree.parent(parent_iid))['text']
-        setting = self.tree.item(item_iid)['values'][0]
+        setting = self.tree.item(item_iid)['values'][0].lowers()
+
+        idx = self.tree.get_children(self.tree.parent(parent_iid)).index(parent_iid)
+
+        new_value = None
 
         if setting in ["device", "master", "dtype", "port"]:
             combo = ComboboxSelectionWindow(self, self.root, setting)
@@ -422,7 +416,7 @@ class SettingsWindow(tk.Toplevel):
         elif setting == "directory":
             new_value = tk.filedialog.askdirectory()
 
-        elif setting in ["user", "mouse", "name", ""]:
+        elif setting in ["user", "mouse", "name"]:
             new_value = simpledialog.askstring(
                 parent=self,
                 title="Setting {0}:".format(setting),
@@ -440,38 +434,90 @@ class SettingsWindow(tk.Toplevel):
                 title="Setting {0}:".format(setting),
                 prompt=setting
             )
+        elif parent == "Strobing" and setting != "trigger":
+            name = simpledialog.askstring(
+                parent=self,
+                title="Strobe LED",
+                prompt="Choose a name for the LED:"
+            )
+            pin = simpledialog.askinteger(
+                parent=self,
+                title="Strobe LED",
+                prompt="Choose a Pin on the Arduino:"
+            )
+            new_value = {"name":name,"pin":pin}
 
         if not new_value:
-            print("*"*100)
             return
 
-        idx = self.tree.get_children(self.tree.parent(parent_iid)).index(parent_iid)
         for i, child_iid in enumerate(self.tree.get_children(parent_iid)):
             if child_iid == item_iid:
                 self.tree.delete(item_iid)
                 self.tree.insert(parent_iid, i, values=(setting, new_value))
                 cat = self.tree.item(self.tree.parent(parent_iid))['text'].lower()
-                if parent.lower() == "strobing":
-                    self.arduino.set("strobing", new_value)
-                    return
-                elif parent.lower() == "port":
-                    self.arduino.set("port", new_value)
-                    return
                 if cat == "arduino":
-                    self.arduino.set(cat, new_value)
+                    if parent.lower() == "strobing" and setting != "trigger":
+                        self.arduino.strobing.leds[idx] = new_value
+                    elif parent.lower() == "port":
+                        self.arduino.set("port", new_value)
                 else:
                     self.cameras[idx].set(setting, new_value)
 
-    def delete_setting(self, item_id):
+    def add_setting(self, item_iid, parent_iid):
 
-        if len(self.tree.get_children(self.tree.parent(item_id))) == 1:
+        cat = [self.tree.item(parent_iid)['text'], self.tree.item(item_iid)['text']]
+
+        if "Cameras" in cat:
+            self.cameras.append(imaging.Camera())
+            self.parent.add_thumnail("default")
+        elif "Stim" in cat:
+            stims = getattr(self.arduino, 'stim')
+            self.arduino.stim.append({
+                "name":"default",
+                "pre_stim":4.0,
+                "stim":7.0,
+                "post_stim":8.0
+            })
+        elif "Strobing" in cat:
+            name = simpledialog.askstring(
+                parent=self,
+                title="Strobe LED",
+                prompt="Choose a name for the LED:"
+            )
+            pin = simpledialog.askinteger(
+                parent=self,
+                title="Strobe LED",
+                prompt="Choose a Pin on the Arduino:"
+            )
+            strobing = getattr(self.arduino, 'strobing')
+            strobing["leds"].append({
+                "name":name,
+                "pin":pin
+            })
+
+        self.parent.set_grid()
+        self.populate_tree()
+
+    def delete_setting(self, item_iid, parent_iid):
+
+        if len(self.tree.get_children(self.tree.parent(item_iid))) == 1:
             return
-        idx = self.tree.get_children(self.tree.parent(item_id)).index(item_id)
 
-        self.cameras.pop(idx).close()
-        self.parent.thumbnails.pop(idx).grid_forget()
-        self.parent.thumbnail_labels.pop(idx).grid_forget()
-        self.parent.selected_frame = 0
+        idx = self.tree.get_children(self.tree.parent(item_iid)).index(item_iid)
+        cat = [self.tree.item(parent_iid)['text'], self.tree.item(item_iid)['text']]
+
+        if "Cameras" in cat:
+            self.cameras.pop(idx).close()
+            self.parent.thumbnails.pop(idx).grid_forget()
+            self.parent.thumbnail_labels.pop(idx).grid_forget()
+            self.parent.selected_frame = 0
+        elif "Stim" in cat:
+            stims = getattr(self.arduino, 'stim')
+            stims.pop(idx)
+        elif "Strobing" in cat:
+            strobing = getattr(self.arduino, 'strobing')
+            strobing['leds'].pop(idx-1)
+
         self.populate_tree()
 
 class ComboboxSelectionWindow(tk.Toplevel):
