@@ -1,4 +1,4 @@
-<p align="center"><img align="center" height=50 src="https://github.com/ryan-byrne/pywfom/blob/master/docs/icon1.png"><i>OpenWFOM's Python Package</i></p>
+<p align="center"><img align="center" height=50 src="https://github.com/ryan-byrne/pywfom/blob/master/pywfom/lib/icon1.png"><i>OpenWFOM's Python Package</i></p>
 <p align="center"><img align="center" height=150 src="https://github.com/ryan-byrne/pywfom/blob/master/docs/banner.png"></p>
 
 <b><i><p align="center">Establish camera settings, start an acquisition and more on an OpenWFOM imaging system.</p></i></b>
