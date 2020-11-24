@@ -48,14 +48,22 @@ class Writer(object):
                 master = i
 
         num_frms = 0
+        num_runs = arduino.run["number_of_runs"]
+        run_frms = arduino.run["run_length"]*cameras[master].AcquisitionFrameRate
 
-        print("Acquiring Frames")
+        print("Acquiring {0} Frames per run ({1} Total)".format(run_frms, int(run_frms*num_runs)))
 
-        for i in range(arduino.run["number_of_runs"]):
+        for i in range(num_runs):
             path = self._make_run_directory(i)
-            t = time.time()
-            while num_frms < arduino.run["run_length"]:
-                pass
+            while num_frms < run_frms:
+                arduino.strobe()
+                for cam in cameras:
+                    pass
+                num_frms+=1
+
+            print("Run {0} Complete".format(i))
+
+        print("Acquisition Complete")
 
         self.writing = False
 

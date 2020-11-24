@@ -2,27 +2,23 @@
   "file":{
     "user":"rjb2202",
     "mouse":"cm100",
-    "directory":"/Users/rbyrne/projects/pywfom/data",
+    "directory":"C:/data",
     "writing":false
   },
   "arduino": {
-    "port": "COM3",
+    "port": "COM6",
     "strobing": {
       "leds":[
         {
-          "name":"RED",
-          "pin":14
+          "name":"blue",
+          "pin":10
         },
         {
-          "name":"GREEN",
-          "pin":13
-        },
-        {
-          "name":"LIME",
-          "pin":12
+          "name":"green",
+          "pin":11
         }
       ],
-      "trigger":9
+      "trigger":3
     },
     "stim": [
       {

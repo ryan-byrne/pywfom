@@ -478,6 +478,8 @@ class SettingsWindow(tk.Toplevel):
         if not new_value:
             return
 
+        # TODO: Complete strobing and stim settings
+
         for i, child_iid in enumerate(self.tree.get_children(parent_iid)):
             if child_iid == item_iid:
                 self.tree.delete(item_iid)
@@ -486,8 +488,11 @@ class SettingsWindow(tk.Toplevel):
                 if cat == "arduino":
                     if parent.lower() == "strobing" and setting != "trigger":
                         self.arduino.strobing.leds[idx] = new_value
+                    elif parent.lower() == "strobing" and setting == "trigger":
+                        self.arduino.strobing['trigger'] = new_value
                     elif parent.lower() == "port":
-                        self.arduino.set("port", new_value)
+                        self.arduino.port = new_value
+                    self.arduino.update()
                 else:
                     self.cameras[idx].set(setting, new_value)
 

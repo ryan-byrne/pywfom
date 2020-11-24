@@ -8,8 +8,11 @@ class Arduino():
 
     def __init__(self, config=None):
 
+        self.port = config['port']
+        self.connect_to_arduino()
+
         for k, v in config.items():
-            setattr(self, k, v)
+            self.set(k, v)
 
         self.types = {
             "number_of_runs":int,
@@ -23,17 +26,6 @@ class Arduino():
 
         self.error_msg = ""
 
-        self.connect_to_arduino()
-
-    def _disable(self):
-        print("Disabling Python <-> Arduino Communication")
-        self.ser.close()
-
-    def _enable(self):
-        print("Enabling Python <-> Arduino Communication")
-        self.ser.open()
-        time.sleep(1)
-
     def set(self, param, value=None):
         if type(param).__name__ == "dict":
             for k, v in param.items():
@@ -46,28 +38,13 @@ class Arduino():
 
     def _set(self, param, value):
 
-        # Set Trigger : t14
-        # Set LED : l12
-
-        setattr(self, param, value)
-
         if param == "port":
-            if not self.ser:
-                self.port = value
-                self.connect_to_arduino()
-            else:
+            # Restart arduino if port changes
+            if self.port != value:
                 self.ser.close()
                 self.connect_to_arduino()
 
-        if not self.ser:
-            return
 
-        if param == 'strobing':
-            order = ""
-            for led in value:
-                order += led[0]
-            print("Setting the Strobe order on the Arduino to: "+order)
-            self.ser.write(order.encode())
 
     def _clear(self):
         self.ser.write("0000".encode())
