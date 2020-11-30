@@ -50,8 +50,8 @@ def test(config=None):
     from pywfom.file import Writer
 
     cameras = [Camera(config=cfg) for cfg in config["cameras"]]
-    arduino = Arduino(config["arduino"])
-    file = Writer(config["file"])
+    arduino = Arduino(config=config["arduino"])
+    file = Writer(config=config["file"])
 
     root = tk.Tk()
     photo = tk.PhotoImage(

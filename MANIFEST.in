@@ -1,1 +1,2 @@
 include pywfom/lib/icon1.png
+include config.json

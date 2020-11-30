@@ -2,7 +2,7 @@
   "file":{
     "user":"rjb2202",
     "mouse":"cm100",
-    "directory":"C:/data",
+    "directory":"/Users/rbyrne/projects/pywfom/data",
     "writing":false
   },
   "arduino": {
@@ -23,23 +23,25 @@
     "stim": [
       {
         "name":"default",
+        "type":"2PinStepper",
+        "pins":[5,6],
         "pre_stim":4.0,
         "stim":7.0,
         "post_stim":8.0
       }
     ],
     "run": {
-      "number_of_runs": 1,
-      "run_length": 5.0
+      "number_of_runs": 5,
+      "run_length": 1.0
     }
   },
   "cameras": [
     {
       "device":"webcam",
       "name":"default",
-      "index":0,
+      "index":1,
       "Height":400,
-      "Width":400,
+      "Width":100,
       "AcquisitionFrameRate":50.0,
       "master":true,
       "dtype":"uint16",

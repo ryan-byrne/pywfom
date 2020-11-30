@@ -1,4 +1,7 @@
-int led, incomingByte;
+int incomingByte;
+int trig;
+int ledPins[] = {};
+int stimPins[] = {};
 String msg;
 
 void setup() {
@@ -23,16 +26,8 @@ void loop() {
       else{
         msg += char(c);
       }
-      delay(50);
+      delay(1);
     }
   }
 
-}
-
-
-void controlLed(String msg){
-  // Example Message : 0100
-  for (int i = 0; i < msg.length(); i++){
-    digitalWrite(ledArray[i], int(msg[i])-48);
-  }
 }

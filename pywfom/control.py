@@ -6,13 +6,13 @@ class ArduinoError(Exception):
 class Arduino():
     """ Methods pertaining to Communication with the Arduino """
 
-    def __init__(self, config=None):
+    def __init__(self, port=None, config=None):
 
-        self.port = config['port']
+        # Starting Arduino at specified port
+        self.port = config['port'] if not port else port
         self.connect_to_arduino()
 
-        for k, v in config.items():
-            self.set(k, v)
+        self.set(config)
 
         self.types = {
             "number_of_runs":int,
@@ -38,34 +38,37 @@ class Arduino():
 
     def _set(self, param, value):
 
-        if param == "port":
-            # Restart arduino if port changes
-            if self.port != value:
-                self.ser.close()
-                self.connect_to_arduino()
+        setattr(self, param, value)
 
+        if param == "port" and self.port != value:
+            self.ser.close()
+            self.connect_to_arduino()
+        else:
+            return
 
+        if not self.ser:
+            return
 
-    def _clear(self):
-        self.ser.write("0000".encode())
-        self.strobe_order = []
+        if param == "strobing":
+            # Send command for setting trigger pin (i.e. T3)
+            self.ser.write("T{0}".format(value['trigger']).encode())
+            for led in value['leds']:
+                # Send command for led pin (i.e. l11)
+                self.ser.write("l{0}".format(led['pin']).encode())
 
-    def _turn_on_strobing(self, strobe_order):
-        print("Strobing the LEDs with the order: {0}".format(strobe_order))
-
-        ord = ""
-
-        for color in strobe_order:
-            ord += color[0]
-
-        # Send a 1-4 digit color code to Arduino i.e. RGBL
-        self.ser.write(ord.encode())
-        time.sleep(1)
-        self.ser.write("S".encode())
-
-    def _turn_off_strobing(self):
-        print("Turning off the LED strobing...")
-        self.ser.write("s".encode())
+        elif param == "stim":
+            for stim in value['stim']:
+                # Send command for setting stim pins (i.e. p5_6)
+                self.ser.write(stim['pins'].join("_"))
+                # Send command for setting stim (i.e. )
+                self.ser.write("{0}_{1}_{2}".format(
+                        stim['pre_stim'],
+                        stim['stim'],
+                        stim['post_stim']
+                    ).encode()
+                )
+        elif param == "run":
+            return
 
     def connect_to_arduino(self):
         try:
@@ -86,6 +89,5 @@ class Arduino():
             print(self.error_msg)
 
     def shutdown(self):
-        self._turn_off_strobing()
-        self._clear()
-        self._disable()
+        self.ser.write("c".encode())
+        self.ser.close()

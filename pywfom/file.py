@@ -20,11 +20,11 @@ class Writer(object):
 
         runs = len(os.listdir(mouse_dir))
 
-        run_dir = os.path.join(self.directory, mouse_dir, "run"+str(i+runs))
+        run_dir = os.path.join(self.directory, mouse_dir, "run"+str(runs))
 
         os.mkdir(run_dir)
 
-        return run_dir
+        return run_dir, runs
 
     def set(self, param, value=None):
         if type(param).__name__ == "dict":
@@ -47,21 +47,23 @@ class Writer(object):
             if cam.master:
                 master = i
 
-        num_frms = 0
         num_runs = arduino.run["number_of_runs"]
         run_frms = arduino.run["run_length"]*cameras[master].AcquisitionFrameRate
 
         print("Acquiring {0} Frames per run ({1} Total)".format(run_frms, int(run_frms*num_runs)))
 
+        # TODO: Actually have it write a file
+
         for i in range(num_runs):
-            path = self._make_run_directory(i)
+            path, run = self._make_run_directory(i)
+            num_frms = 0
             while num_frms < run_frms:
-                arduino.strobe()
                 for cam in cameras:
                     pass
+                time.sleep(1/cameras[master].AcquisitionFrameRate)
                 num_frms+=1
 
-            print("Run {0} Complete".format(i))
+            print("Run {0} Complete".format(run))
 
         print("Acquisition Complete")
 

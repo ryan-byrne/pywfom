@@ -430,11 +430,13 @@ class SettingsWindow(tk.Toplevel):
 
         parent = self.tree.item(parent_iid)['text']
         category = self.tree.item(self.tree.parent(parent_iid))['text']
-        setting = self.tree.item(item_iid)['values'][0].lower()
+        setting = self.tree.item(item_iid)['values'][0]
 
         idx = self.tree.get_children(self.tree.parent(parent_iid)).index(parent_iid)
 
         new_value = None
+
+        print(setting)
 
         if setting in ["device", "master", "dtype", "port"]:
             combo = ComboboxSelectionWindow(self, self.root, setting)
@@ -450,7 +452,7 @@ class SettingsWindow(tk.Toplevel):
                 title="Setting {0}:".format(setting),
                 prompt=setting
             )
-        elif setting in ["Height", "Width", "OffsetX", "OffsetY", "number_of_runs", "pin", "trigger"]:
+        elif setting in ["Height", "index", "Width", "OffsetX", "OffsetY", "number_of_runs", "pin", "trigger"]:
             new_value = simpledialog.askinteger(
                 parent=self,
                 title="Setting {0}:".format(setting),
