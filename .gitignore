@@ -2,3 +2,5 @@
 /pywfom.egg-info
 /dist
 /build
+.DS_STORE
+/data

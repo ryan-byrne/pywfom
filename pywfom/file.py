@@ -58,8 +58,14 @@ class Writer(object):
             path, run = self._make_run_directory(i)
             num_frms = 0
             while num_frms < run_frms:
-                for cam in cameras:
-                    pass
+
+                frames = {cam.name: cam.frame for cam in cameras}
+
+                np.savez(
+                    "{0}/frame{1}".format(path, num_frms),
+                    frames
+                )
+                
                 time.sleep(1/cameras[master].AcquisitionFrameRate)
                 num_frms+=1
 

@@ -106,7 +106,9 @@ class Camera(object):
             \n\n\thttps://github.com/ryan-byrne/pywfom/wiki\n"
 
         self.error_msg = msg
-        print(msg)
+        
+        if self.error_msg != "":
+            print(msg)
 
     def _stop(self):
 
