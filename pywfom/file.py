@@ -39,6 +39,11 @@ class Writer(object):
     def write(self, arduino, camera):
         threading.Thread(target=self._write, args=(arduino, camera,)).start()
 
+    def _write_frame_file(self, fname, frames):
+        t = time.time()
+        np.savez(fname, frames)
+        print("{0} MB/sec".format(float(os.stat(fname).st_size)/(time.time()-t)/1000000))
+
     def _write(self, arduino, cameras):
 
         self.writing = True
@@ -55,18 +60,20 @@ class Writer(object):
         # TODO: Actually have it write a file
 
         for i in range(num_runs):
+            
             path, run = self._make_run_directory(i)
             num_frms = 0
+
             while num_frms < run_frms:
 
                 frames = {cam.name: cam.frame for cam in cameras}
 
-                np.savez(
-                    "{0}/frame{1}".format(path, num_frms),
-                    frames
-                )
-                
+                fname = "{0}/frame{1}.npz".format(path, num_frms)
+
+                threading.Thread(target=self._write_frame_file, args=(fname, frames,)).start()
+
                 time.sleep(1/cameras[master].AcquisitionFrameRate)
+
                 num_frms+=1
 
             print("Run {0} Complete".format(run))

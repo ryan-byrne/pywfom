@@ -59,6 +59,18 @@
       "dtype":"uint8",
       "OffsetX":0,
       "OffsetY":0
+    },
+    {
+      "device":"test",
+      "name":"test",
+      "index":0,
+      "Height":400,
+      "Width":400,
+      "AcquisitionFrameRate":50.0,
+      "master":true,
+      "dtype":"uint8",
+      "OffsetX":0,
+      "OffsetY":0
     }
   ]
 }
