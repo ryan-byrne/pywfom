@@ -7,7 +7,7 @@
 
 * [Andor SDK3]() - Andor Cameras (Neo, Zyla)
 * [Spinnaker SDK]() - FLIR Cameras (Blackfly, Blackfly S)
-* [Other USB Webcams]() - Also compatible with most USB Webcams
+* [Built-in & USB Webcams]() - OpenCV Compatible Webcams
 
 ## Installation
 
