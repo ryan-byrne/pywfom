@@ -1,4 +1,4 @@
-import os, h5py, queue, threading, time
+import os, h5py, queue, threading, time, shutil
 import numpy as np
 
 class Writer(object):
@@ -24,6 +24,8 @@ class Writer(object):
 
         os.mkdir(run_dir)
 
+        shutil.copy("config.json", run_dir+"/config.json")
+
         return run_dir, runs
 
     def set(self, param, value=None):
@@ -42,7 +44,6 @@ class Writer(object):
     def _write_frame_file(self, fname, frames):
         t = time.time()
         np.savez(fname, frames)
-        print("{0} MB/sec".format(float(os.stat(fname).st_size)/(time.time()-t)/1000000))
 
     def _write(self, arduino, cameras):
 
@@ -57,10 +58,10 @@ class Writer(object):
 
         print("Acquiring {0} Frames per run ({1} Total)".format(run_frms, int(run_frms*num_runs)))
 
-        # TODO: Actually have it write a file
+        # TODO: Master triggers the other cameras
 
         for i in range(num_runs):
-            
+
             path, run = self._make_run_directory(i)
             num_frms = 0
 
@@ -92,6 +93,4 @@ class Reader(object):
         pass
 
     def view(self):
-        for spool in os.listdir(self.run_dir):
-            with h5py.File("{0}\\{1}".format(self.run_dir, spool), 'r') as h5:
-                pass
+        pass
