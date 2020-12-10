@@ -3,16 +3,16 @@ import threading, time, traceback, cv2, os, ctypes, platform, queue, threading
 import sys
 from PIL import Image, ImageDraw, ImageFont
 
-def error_frame(self):
+def error_frame(msg):
 
     # Create a frame announcing the error
     img = Image.fromarray(np.zeros((500,500), "uint8"))
     draw = ImageDraw.Draw(img)
     draw.text((10, 175), "ERROR:", 255)
-    draw.text((10,225), self.error_msg, 255)
+    draw.text((10,225), msg, 255)
     return np.asarray(img)
 
-def loading_frame(self):
+def loading_frame():
     # Create a frame announcing the error
     img = Image.fromarray(np.zeros((500,500), "uint8"))
     draw = ImageDraw.Draw(img)
@@ -29,18 +29,6 @@ def update_frame(camera):
             camera.frame = camera.read()
         except Exception as e:
             camera.frame = error_frame(str(e))
-
-def set(camera, setting, value):
-
-    camera.stop()
-
-    if type(setting).__name__ == 'dict':
-        for k, v in camera.items():
-            camera._set(k, v)
-    else:
-        camera._set(param, value)
-
-    camera.start()
 
 class CameraError(Exception):
     """docstring for CameraError."""
@@ -246,7 +234,9 @@ class Test(object):
         }
 
         for k, v in settings.items():
-            setattr(self, k, v)
+            self.set(k, v)
+
+        threading.Thread(target=update_frame, args=(self,)).start()
 
     def start(self):
         pass
@@ -265,8 +255,19 @@ class Test(object):
 
         return np.random.randint(0,max,size=(self.Height, self.Width), dtype=self.dtype)
 
-    def _set(self, setting, value):
-        pass
+    def set(self, setting, value=None):
+
+        self.stop()
+
+        self.frame = loading_frame()
+
+        if type(setting).__name__ == 'dict':
+            for k, v in setting.items():
+                setattr(self, k, v)
+        else:
+            setattr(self, setting, value)
+
+        self.start()
 
     def get(self, setting):
         return getattr(self, setting)
@@ -283,32 +284,68 @@ class Test(object):
         self.active = False
 
 class Spinnaker(object):
-
     def __init__(self, settings):
-        pass
+
+        self.default = {
+            "device":"test",
+            "name":"default1",
+            "index":0,
+            "Height":700,
+            "Width":1200,
+            "AcquisitionFrameRate":50.0,
+            "master":True,
+            "dtype":"uint8",
+            "OffsetX":0,
+            "OffsetY":0
+        }
+
+        import PySpin
+        self.system = PySpin.System.GetInstance()
+        self.camera = self.system.GetCameras().GetByIndex(settings['index'])
+        self.camera.Init()
+
+        for k, v in settings.items():
+            self.set(k, v)
+
+        threading.Thread(target=update_frame, args=(self,)).start()
 
     def start(self):
-        pass
+        self.camera.BeginAcquisition()
 
     def stop(self):
-        pass
+        try:
+            self.camera.EndAcquisition()
+        except:
+            pass
 
     def read(self):
-        pass
+        return self.camera.GetNextImage(1000).GetNDArray()
+
+    def set(self, setting, value=None):
+
+        self.stop()
+
+        self.frame = loading_frame()
+
+        if type(setting).__name__ == 'dict':
+            for k, v in setting.items():
+                self._set(k, v)
+        else:
+            self._set(setting, value)
+
+        self.start()
 
     def _set(self, setting, value):
-        pass
+        setattr(self, setting, value)
 
     def get(self, setting):
-        return getattr(self, setting)
+        pass
 
     def get_max(self, setting):
-        maximums = {
-            "Height":1000,
-            "Width":1400,
-            "AcquisitionFrameRate":100
-        }
-        return maximums[setting]
+        pass
+
+    def close(self):
+        self.active = False
 
 class Andor(object):
 

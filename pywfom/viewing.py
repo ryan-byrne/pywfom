@@ -115,18 +115,15 @@ class Frame(tk.Frame):
 
         h, w, fr = cam.Height, cam.Width, cam.AcquisitionFrameRate
 
-        if self.cameras[self.selected_frame].error_msg == "":
-            self.main_label.config(
-                text="{0} ({1}): {2}x{3}, {4} fps".format(
-                    cam.name,
-                    cam.device.title(),
-                    h,
-                    w,
-                    fr
-                )
+        self.main_label.config(
+            text="{0} ({1}): {2}x{3}, {4} fps".format(
+                cam.name,
+                cam.device.title(),
+                h,
+                w,
+                fr
             )
-        else:
-            self.main_label.config(text="ERROR")
+        )
 
         self.canvas.config(height=image.height(), width=image.width())
         self.canvas.create_image(0,0,image=image,anchor="nw")
@@ -145,7 +142,6 @@ class Frame(tk.Frame):
             self.thumbnails[i].img = img
             self.thumbnails[i].config(image=img, borderwidth=10, relief="flat", bg="white")
             self.thumbnails[i].bind("<Button-1>",lambda event, idx=i: self.change_main_frame(event, idx))
-            (txt, color) = ("Ready", "Green") if cam.error_msg == "" else (cam.error_msg, "Red")
 
         color = "green" if self.arduino.error_msg == "" else "red"
         self.arduino_color.config(background=color)
@@ -185,7 +181,7 @@ class Frame(tk.Frame):
         w = self.x-self.ix
         h = self.y-self.iy
 
-        if 0 in [w,h] or self.cameras[self.selected_frame].error_msg != "":
+        if 0 in [w,h]:
             self.ix, self.iy, self.x, self.y = 0,0,0,0
             return
 
@@ -260,13 +256,10 @@ class SettingsWindow(tk.Toplevel):
         super().__init__(master = master)
 
         self.ignore = [
-            "types",
-            "error_msg",
             "active",
-            "_camera",
+            "camera",
             "frame",
             "default",
-            "max_frame",
             "ser",
             "writing"
         ]

@@ -37,7 +37,7 @@
   },
   "cameras": [
     {
-      "device":"test",
+      "device":"spinnaker",
       "name":"default",
       "index":0,
       "Height":400,
