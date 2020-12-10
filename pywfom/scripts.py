@@ -44,12 +44,19 @@ def main(config=None):
 def test(config=None):
 
     import pywfom
-    from pywfom.imaging import Camera
+    from pywfom import imaging
     from pywfom.viewing import Frame
     from pywfom.control import Arduino
     from pywfom.file import Writer
 
-    cameras = [Camera(config=cfg) for cfg in config["cameras"]]
+    Camera = {
+        "spinnaker":imaging.Spinnaker,
+        "andor":imaging.Andor,
+        "webcam":imaging.Webcam,
+        "test":imaging.Test
+    }
+
+    cameras = [Camera[cfg['device']](cfg) for cfg in config["cameras"]]
     arduino = Arduino(config=config["arduino"])
     file = Writer(config=config["file"])
 

@@ -12,6 +12,36 @@ def error_frame(self):
     draw.text((10,225), self.error_msg, 255)
     return np.asarray(img)
 
+def loading_frame(self):
+    # Create a frame announcing the error
+    img = Image.fromarray(np.zeros((500,500), "uint8"))
+    draw = ImageDraw.Draw(img)
+    draw.text((200,250), "Loading Frame...", 255)
+    return np.asarray(img)
+
+def update_frame(camera):
+
+    camera.active = True
+
+    while camera.active:
+
+        try:
+            camera.frame = camera.read()
+        except Exception as e:
+            camera.frame = error_frame(str(e))
+
+def set(camera, setting, value):
+
+    camera.stop()
+
+    if type(setting).__name__ == 'dict':
+        for k, v in camera.items():
+            camera._set(k, v)
+    else:
+        camera._set(param, value)
+
+    camera.start()
+
 class CameraError(Exception):
     """docstring for CameraError."""
     pass
@@ -56,16 +86,6 @@ class Camera(object):
             "andor":self._get_andor_frame,
             "test":self._get_test_frame
         }
-
-        self.active = True
-
-        while self.active:
-            # Ignore if there's an error
-            # Generates a numpy array for the self.frame variable
-            try:
-                self.frame = frame_function[self.device]()
-            except:
-                self.frame = self._error_frame()
 
     def _start(self):
 
@@ -124,13 +144,6 @@ class Camera(object):
         if self.device == "webcam":
             pass
 
-    def _loading_frame(self):
-        # Create a frame announcing the error
-        img = Image.fromarray(np.zeros((500,500), "uint8"))
-        draw = ImageDraw.Draw(img)
-        draw.text((200,250), "Loading Frame...", 255)
-        return np.asarray(img)
-
     def _get_andor_frame(self):
         buf = self._buffer.get()
         self._camera.AT_WaitBuffer
@@ -167,19 +180,6 @@ class Camera(object):
 
     def trigger(arg):
         pass
-
-    def set(self, param, value=None):
-
-        # TODO: Change camera type -> check if andor
-        self._stop()
-
-        if type(param).__name__ == 'dict':
-            for k, v in param.items():
-                self._set(k, v)
-        else:
-            self._set(param, value)
-
-        self._start()
 
     def _set(self, param, value):
         try:
@@ -228,9 +228,192 @@ class Camera(object):
     def close(self):
         self.active = False
 
-class ClassName(object):
-    """docstring for ."""
+class Test(object):
 
-    def __init__(self, arg):
-        super(, self).__init__()
-        self.arg = arg
+    def __init__(self, settings):
+
+        self.default = {
+            "device":"test",
+            "name":"default1",
+            "index":0,
+            "Height":700,
+            "Width":1200,
+            "AcquisitionFrameRate":50.0,
+            "master":True,
+            "dtype":"uint8",
+            "OffsetX":0,
+            "OffsetY":0
+        }
+
+        for k, v in settings.items():
+            setattr(self, k, v)
+
+    def start(self):
+        pass
+
+    def stop(self):
+        pass
+
+    def read(self):
+        if self.dtype == 'uint8':
+            max = 255
+        else:
+            max = 65024
+
+        if self.master:
+            time.sleep(1/self.AcquisitionFrameRate)
+
+        return np.random.randint(0,max,size=(self.Height, self.Width), dtype=self.dtype)
+
+    def _set(self, setting, value):
+        pass
+
+    def get(self, setting):
+        return getattr(self, setting)
+
+    def get_max(self, setting):
+        maximums = {
+            "Height":1000,
+            "Width":1400,
+            "AcquisitionFrameRate":100
+        }
+        return maximums[setting]
+
+    def close(self):
+        self.active = False
+
+class Spinnaker(object):
+
+    def __init__(self, settings):
+        pass
+
+    def start(self):
+        pass
+
+    def stop(self):
+        pass
+
+    def read(self):
+        pass
+
+    def _set(self, setting, value):
+        pass
+
+    def get(self, setting):
+        return getattr(self, setting)
+
+    def get_max(self, setting):
+        maximums = {
+            "Height":1000,
+            "Width":1400,
+            "AcquisitionFrameRate":100
+        }
+        return maximums[setting]
+
+class Andor(object):
+
+    def __init__(self, settings):
+
+        self.default = {
+            "device":"test",
+            "name":"default1",
+            "index":0,
+            "Height":700,
+            "Width":1200,
+            "AcquisitionFrameRate":50.0,
+            "master":True,
+            "dtype":"uint8",
+            "OffsetX":0,
+            "OffsetY":0
+        }
+
+        for k, v in settings.items():
+            setattr(self, k, v)
+
+    def start(self):
+        pass
+
+    def stop(self):
+        pass
+
+    def read(self):
+        if self.dtype == 'uint8':
+            max = 255
+        else:
+            max = 65024
+
+        if self.master:
+            time.sleep(1/self.AcquisitionFrameRate)
+
+        return np.random.randint(0,max,size=(self.Height, self.Width), dtype=self.dtype)
+
+    def _set(self, setting, value):
+        pass
+
+    def get(self, setting):
+        return getattr(self, setting)
+
+    def get_max(self, setting):
+        maximums = {
+            "Height":1000,
+            "Width":1400,
+            "AcquisitionFrameRate":100
+        }
+        return maximums[setting]
+
+    def close(self):
+        self.active = False
+
+class Webcam(object):
+
+    def __init__(self, settings):
+
+        self.default = {
+            "device":"test",
+            "name":"default1",
+            "index":0,
+            "Height":700,
+            "Width":1200,
+            "AcquisitionFrameRate":50.0,
+            "master":True,
+            "dtype":"uint8",
+            "OffsetX":0,
+            "OffsetY":0
+        }
+
+        for k, v in settings.items():
+            setattr(self, k, v)
+
+    def start(self):
+        pass
+
+    def stop(self):
+        pass
+
+    def read(self):
+        if self.dtype == 'uint8':
+            max = 255
+        else:
+            max = 65024
+
+        if self.master:
+            time.sleep(1/self.AcquisitionFrameRate)
+
+        return np.random.randint(0,max,size=(self.Height, self.Width), dtype=self.dtype)
+
+    def _set(self, setting, value):
+        pass
+
+    def get(self, setting):
+        return getattr(self, setting)
+
+    def get_max(self, setting):
+        maximums = {
+            "Height":1000,
+            "Width":1400,
+            "AcquisitionFrameRate":100
+        }
+        return maximums[setting]
+
+    def close(self):
+        self.active = False

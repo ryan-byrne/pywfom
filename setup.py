@@ -17,7 +17,8 @@ setup(
         "opencv-python",
         "pyserial",
         "numpy",
-        "h5py"
+        "h5py",
+        "Pillow"
     ],
     entry_points={
         'console_scripts':[
