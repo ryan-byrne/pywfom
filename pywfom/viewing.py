@@ -256,6 +256,10 @@ class SettingsWindow(tk.Toplevel):
         super().__init__(master = master)
 
         self.ignore = [
+            "_pointers",
+            "settings",
+            "methods",
+            "system",
             "active",
             "camera",
             "frame",
@@ -428,8 +432,6 @@ class SettingsWindow(tk.Toplevel):
         idx = self.tree.get_children(self.tree.parent(parent_iid)).index(parent_iid)
 
         new_value = None
-
-        print(setting)
 
         if setting in ["device", "master", "dtype", "port"]:
             combo = ComboboxSelectionWindow(self, self.root, setting)

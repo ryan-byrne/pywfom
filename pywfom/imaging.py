@@ -1,5 +1,5 @@
 import numpy as np
-import threading, time, traceback, cv2, os, ctypes, platform, queue, threading
+import threading, time, traceback, os, ctypes, platform, queue
 import sys
 from PIL import Image, ImageDraw, ImageFont
 
@@ -284,25 +284,35 @@ class Test(object):
         self.active = False
 
 class Spinnaker(object):
+
     def __init__(self, settings):
 
-        self.default = {
-            "device":"test",
-            "name":"default1",
-            "index":0,
-            "Height":700,
-            "Width":1200,
-            "AcquisitionFrameRate":50.0,
-            "master":True,
-            "dtype":"uint8",
-            "OffsetX":0,
-            "OffsetY":0
+        import PySpin
+
+        self._pointers = {
+            PySpin.intfIFloat: PySpin.CFloatPtr,
+            PySpin.intfIBoolean: PySpin.CBooleanPtr,
+            PySpin.intfIInteger: PySpin.CIntegerPtr,
+            PySpin.intfIEnumeration: PySpin.CEnumerationPtr,
+            PySpin.intfIString: PySpin.CStringPtr
         }
 
-        import PySpin
+        self.settings = {}
+        self.methods = {}
+
         self.system = PySpin.System.GetInstance()
         self.camera = self.system.GetCameras().GetByIndex(settings['index'])
         self.camera.Init()
+
+        for node in self.camera.GetNodeMap().GetNodes():
+            pit = node.GetPrincipalInterfaceType()
+            name = node.GetName()
+            if pit == PySpin.intfICommand:
+                self.methods[name] = PySpin.CCommandPtr(node)
+            elif pit in self._pointers:
+                self.settings[name] = self._pointers[pit](node)
+
+        self.set("AcquisitionFrameRateEnable", True)
 
         for k, v in settings.items():
             self.set(k, v)
@@ -336,13 +346,29 @@ class Spinnaker(object):
         self.start()
 
     def _set(self, setting, value):
+
+        if setting in ['name', 'device', 'index', 'master', 'dtype']:
+            pass
+        else:
+            try:
+                self.settings[setting].SetValue(value)
+            except:
+                print("({0}) Could not set {1}".format(self.name, setting))
+                value = self.get(setting)
+
         setattr(self, setting, value)
 
     def get(self, setting):
-        pass
+        try:
+            return self.settings[setting].GetValue()
+        except:
+            try:
+                return self.settings[setting].ToString()
+            except:
+                return None
 
     def get_max(self, setting):
-        pass
+        return self.settings[setting].GetMax()
 
     def close(self):
         self.active = False
@@ -363,6 +389,8 @@ class Andor(object):
             "OffsetX":0,
             "OffsetY":0
         }
+
+        from pywfom import andor
 
         for k, v in settings.items():
             setattr(self, k, v)
@@ -402,6 +430,9 @@ class Andor(object):
         self.active = False
 
 class Webcam(object):
+
+    global cv2
+    import cv2
 
     def __init__(self, settings):
 
