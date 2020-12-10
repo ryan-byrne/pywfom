@@ -3,6 +3,15 @@ import threading, time, traceback, cv2, os, ctypes, platform, queue, threading
 import sys
 from PIL import Image, ImageDraw, ImageFont
 
+def error_frame(self):
+
+    # Create a frame announcing the error
+    img = Image.fromarray(np.zeros((500,500), "uint8"))
+    draw = ImageDraw.Draw(img)
+    draw.text((10, 175), "ERROR:", 255)
+    draw.text((10,225), self.error_msg, 255)
+    return np.asarray(img)
+
 class CameraError(Exception):
     """docstring for CameraError."""
     pass
@@ -106,7 +115,7 @@ class Camera(object):
             \n\n\thttps://github.com/ryan-byrne/pywfom/wiki\n"
 
         self.error_msg = msg
-        
+
         if self.error_msg != "":
             print(msg)
 
@@ -114,15 +123,6 @@ class Camera(object):
 
         if self.device == "webcam":
             pass
-
-    def _error_frame(self):
-
-        # Create a frame announcing the error
-        img = Image.fromarray(np.zeros((500,500), "uint8"))
-        draw = ImageDraw.Draw(img)
-        draw.text((10, 175), "ERROR:", 255)
-        draw.text((10,225), self.error_msg, 255)
-        return np.asarray(img)
 
     def _loading_frame(self):
         # Create a frame announcing the error
@@ -227,3 +227,10 @@ class Camera(object):
 
     def close(self):
         self.active = False
+
+class ClassName(object):
+    """docstring for ."""
+
+    def __init__(self, arg):
+        super(, self).__init__()
+        self.arg = arg
