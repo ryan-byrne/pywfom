@@ -289,6 +289,8 @@ class Spinnaker(object):
 
         import PySpin
 
+        self.writable, self.available = PySpin.IsWritable, PySpin.IsAvailable
+
         self._pointers = {
             PySpin.intfIFloat: PySpin.CFloatPtr,
             PySpin.intfIBoolean: PySpin.CBooleanPtr,
@@ -312,6 +314,7 @@ class Spinnaker(object):
             elif pit in self._pointers:
                 self.settings[name] = self._pointers[pit](node)
 
+
         self.set("AcquisitionFrameRateEnable", True)
 
         for k, v in settings.items():
@@ -334,9 +337,7 @@ class Spinnaker(object):
     def set(self, setting, value=None):
 
         self.stop()
-
         self.frame = loading_frame()
-
         if type(setting).__name__ == 'dict':
             for k, v in setting.items():
                 self._set(k, v)
@@ -350,11 +351,29 @@ class Spinnaker(object):
         if setting in ['name', 'device', 'index', 'master', 'dtype']:
             pass
         else:
-            try:
-                self.settings[setting].SetValue(value)
-            except:
-                print("({0}) Could not set {1}".format(self.name, setting))
-                value = self.get(setting)
+
+            node = self.settings[setting]
+
+            if node.GetName() == "AcquisitionFrameRateEnable":
+                node.SetValue(value)
+                return
+
+            if value > self.get_max(setting):
+                value = self.get_max(setting)
+                print("({0}) Setting {1} to the maximum value of {2}".format(self.name, setting, value))
+            elif value < self.get_min(setting):
+                value = self.get_min(setting)
+                print("({0}) Setting {1} to the minimum value of {2}".format(self.name, setting, value))
+
+            if node.GetName() == "AcquisitionFrameRate":
+                node.SetValue(value)
+                setattr(self, setting, value)
+                return
+
+            while value%self.get_inc(setting) != 0:
+                value+= 1
+
+            node.SetValue(value)
 
         setattr(self, setting, value)
 
@@ -369,6 +388,12 @@ class Spinnaker(object):
 
     def get_max(self, setting):
         return self.settings[setting].GetMax()
+
+    def get_min(self, setting):
+        return self.settings[setting].GetMin()
+
+    def get_inc(self, setting):
+        return self.settings[setting].GetInc()
 
     def close(self):
         self.active = False
