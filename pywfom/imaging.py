@@ -303,7 +303,10 @@ class Spinnaker(object):
         self.methods = {}
 
         self.system = PySpin.System.GetInstance()
-        self.camera = self.system.GetCameras().GetByIndex(settings['index'])
+        try:
+            self.camera = self.system.GetCameras().GetByIndex(settings['index'])
+        except PySpin.SpinnakerException:
+            return
         self.camera.Init()
 
         for node in self.camera.GetNodeMap().GetNodes():
@@ -402,54 +405,95 @@ class Andor(object):
 
     def __init__(self, settings):
 
-        self.default = {
-            "device":"test",
-            "name":"default1",
-            "index":0,
-            "Height":700,
-            "Width":1200,
-            "AcquisitionFrameRate":50.0,
-            "master":True,
-            "dtype":"uint8",
-            "OffsetX":0,
-            "OffsetY":0
-        }
+        from pywfom.utils import andor
 
-        from pywfom import andor
+        self._handle = andor.Open(settings['index'])
+
+        print(self._handle.value)
+        input()
 
         for k, v in settings.items():
-            setattr(self, k, v)
+            self.set(k, v)
+
+        threading.Thread(target=update_frame, args=(self,)).start()
 
     def start(self):
-        pass
+        self.camera.BeginAcquisition()
 
     def stop(self):
-        pass
+        try:
+            self.camera.EndAcquisition()
+        except:
+            pass
 
     def read(self):
-        if self.dtype == 'uint8':
-            max = 255
+        buf = self._buffers.get()
+        WaitBuffer(self._handle, 1000)
+        img = (buf[::2]*buf[1::2]).reshape(self.height, self.width)
+        QueueBuffer(self._handle, buf.ctypes.data_as(POINTER(AT_U8)), buf.nbytes)
+        self._buffers.put(buf)
+        return img
+
+    def set(self, setting, value=None):
+
+        self.stop()
+        self.frame = loading_frame()
+        if type(setting).__name__ == 'dict':
+            for k, v in setting.items():
+                self._set(k, v)
         else:
-            max = 65024
+            self._set(setting, value)
 
-        if self.master:
-            time.sleep(1/self.AcquisitionFrameRate)
-
-        return np.random.randint(0,max,size=(self.Height, self.Width), dtype=self.dtype)
+        self.start()
 
     def _set(self, setting, value):
-        pass
+
+        if setting in ['name', 'device', 'index', 'master', 'dtype']:
+            pass
+        else:
+
+            node = self.settings[setting]
+
+            if node.GetName() == "AcquisitionFrameRateEnable":
+                node.SetValue(value)
+                return
+
+            if value > self.get_max(setting):
+                value = self.get_max(setting)
+                print("({0}) Setting {1} to the maximum value of {2}".format(self.name, setting, value))
+            elif value < self.get_min(setting):
+                value = self.get_min(setting)
+                print("({0}) Setting {1} to the minimum value of {2}".format(self.name, setting, value))
+
+            if node.GetName() == "AcquisitionFrameRate":
+                node.SetValue(value)
+                setattr(self, setting, value)
+                return
+
+            while value%self.get_inc(setting) != 0:
+                value+= 1
+
+            node.SetValue(value)
+
+        setattr(self, setting, value)
 
     def get(self, setting):
-        return getattr(self, setting)
+        try:
+            return self.settings[setting].GetValue()
+        except:
+            try:
+                return self.settings[setting].ToString()
+            except:
+                return None
 
     def get_max(self, setting):
-        maximums = {
-            "Height":1000,
-            "Width":1400,
-            "AcquisitionFrameRate":100
-        }
-        return maximums[setting]
+        return self.settings[setting].GetMax()
+
+    def get_min(self, setting):
+        return self.settings[setting].GetMin()
+
+    def get_inc(self, setting):
+        return self.settings[setting].GetInc()
 
     def close(self):
         self.active = False
