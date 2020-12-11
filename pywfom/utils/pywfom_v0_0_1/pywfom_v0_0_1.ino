@@ -1,10 +1,11 @@
 int incomingByte;
 int trigPin;
-int ledPins[] = {};
+int ledPins[10];
+int numLeds = 0;
 int currentLed = 0;
-int stimPins[] = {};
+int stimPins[10];
 String msg;
-bool strobing = false;
+boolean strobing = false;
 
 void setup() {
   Serial.begin(115200);
@@ -18,7 +19,7 @@ void loop() {
   if (Serial.available() > 0){
     // Recieving new message over the Serial Port
     // Creating blank message
-    String msg = "";
+    String msg;
     while (Serial.available() > 0){
       // Reading the first byte of the message into a char
       int c = Serial.read();
@@ -31,62 +32,95 @@ void loop() {
       }
       delay(1);
     }
+
     // Deciphering message from serial port
-    switch (msg.substring(0,1)) {
-      case "l":
+    switch (msg.charAt(0)) {
+      case 'p':
         updateLedPins(msg);
         break;
-      case "T":
+      case 'T':
         toggleLed(msg);
         break;
-      case "s":
+      case 's':
         updateStimPins(msg);
         break;
-      case "f":
+      case 'f':
         updateStimFunction(msg);
         break;
-      case "t":
+      case 't':
         updateTrigger(msg);
         break;
-      case "S":
+      case 'S':
         // Toggle Strobing
         strobing != strobing;
         break;
-      case "C":
+      case 'C':
         clearSettings();
+        break;
+      case 'c':
+        clearLeds();
         break;
     }
   }
-
+  
   if ((digitalRead(trigPin)) && (strobing)){
     strobe();
   }
-
 }
 
 void strobe(){
 
-  if (i > (sizeof(ledPins) / sizeof(ledPins[0]))){
+  digitalWrite(currentLed, LOW);
+  currentLed++;
+
+  if (currentLed > (sizeof(ledPins) / sizeof(ledPins[0]))){
     currentLed = 0;
   }
 
   digitalWrite(currentLed, HIGH);
-  currentLed++;
   
 }
 
 void clearSettings(){
   incomingByte;
   trigPin;
-  ledPins[] = {};
-  stimPins[] = {};
+  int ledPins[] = {};
+  int stimPins[] = {};
   String msg;
   currentLed = 0;
+  numLeds = 0;
   strobing = false;
 }
 
-void updateLedPins(String msg){
+void clearLeds(){
+  Serial.println(numLeds);
+  for (int i = 0; i < numLeds; i++){
+    Serial.println(ledPins[i]);
+    digitalWrite(ledPins[i], LOW);
+  }
+}
 
+void updateLedPins(String msg){
+  
+  numLeds = 0;
+  String pin = "";
+
+  for (int i = 0; i < msg.length(); i++){
+    if (msg[i]=='p'){
+      if (pin == ""){
+        continue;
+      }
+      else {
+        ledPins[numLeds] = pin.toInt();
+        pinMode(pin.toInt(), OUTPUT);
+        numLeds++;
+        pin = ""; 
+      }
+    }
+    else {
+      pin += msg[i];
+    }
+  }
 }
 
 void updateStimPins(String msg){
@@ -98,5 +132,14 @@ void updateStimFunction(String msg){
 }
 
 void updateTrigger(String msg){
+  trigPin = msg.substring(1).toInt();
+  pinMode(trigPin, INPUT);
+}
 
+void toggleLed(String msg){
+  clearLeds();
+  Serial.println("Toggling LED at");
+  Serial.println(msg.substring(1).toInt());
+  int pin = msg.substring(1).toInt();
+  digitalWrite(pin, HIGH);
 }

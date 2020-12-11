@@ -293,6 +293,8 @@ class Andor(object):
 
     def set(self, setting, value=None):
 
+        print("Adjusting Andor settings...")
+
         self.stop()
         self.frame = loading_frame()
         if type(setting).__name__ == 'dict':
