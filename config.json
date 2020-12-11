@@ -44,7 +44,7 @@
       "Width":400,
       "AcquisitionFrameRate":50.0,
       "master":true,
-      "dtype":"uint8",
+      "dtype":"uint16",
       "OffsetX":0,
       "OffsetY":0
     }

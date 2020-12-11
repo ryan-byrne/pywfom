@@ -31,7 +31,7 @@ def update_frame(camera):
 
         try:
             camera.frame = camera.read()
-            camera.AcquisitionFrameRate = camera.get("FrameRate")
+            camera.AcquisitionFrameRate = camera.get("AcquisitionFrameRate")
         except Exception as e:
             camera.frame = error_frame(str(e))
 
@@ -248,14 +248,13 @@ class Andor(object):
             return
 
         self.buffers = queue.Queue()
-
-        for k, v in settings.items():
-            self.set(k, v)
+        self.set(settings)
 
         threading.Thread(target=update_frame, args=(self,)).start()
 
     def start(self):
 
+        # Create new buffers
         for i in range(10):
             buf = np.zeros((self.get("ImageSizeBytes")), 'uint8')
             andor.QueueBuffer(
@@ -265,10 +264,12 @@ class Andor(object):
             )
             self.buffers.put(buf)
 
+        # Start the acquisition
         andor.Command(self.camera, "AcquisitionStart")
 
     def stop(self):
         try:
+            # CLear all buffers and queues
             andor.Command(self.camera, "AcquisitionStop")
             self.buffers.queue.clear()
             andor.Flush(self.camera)
@@ -276,6 +277,9 @@ class Andor(object):
             pass
 
     def read(self):
+
+        # TODO: Match up size of frame and buffer
+
         buf = self.buffers.get()
         andor.WaitBuffer(self.camera, 1000)
         img = (buf[::2]*buf[1::2]).reshape(self.Height, self.Width)
@@ -318,8 +322,8 @@ class Andor(object):
             # TODO: Change Trigger Mode
             pass
         elif setting == 'dtype':
-            # TODO: Change Format
-            pass
+            idx = {"uint16":"Mono16",'uint8':"Mono12",'uint32':"Mono32"}
+            andor.SetEnumString(self.camera, "PixelEncoding", idx[value])
         else:
             try:
                 andor.SetEnumString(self.camera, settings[setting], value)
@@ -339,13 +343,26 @@ class Andor(object):
         setattr(self, setting, value)
 
     def get(self, setting):
+
+        settings = {
+            "Height":"AOIHeight",
+            "Width":"AOIWidth",
+            "OffsetX":"AOILeft",
+            "OffsetY":"AOITop",
+            "AcquisitionFrameRate":"FrameRate"
+        }
+
         try:
             value = andor.GetInt(self.camera, setting).value
         except:
             try:
                 value = andor.GetFloat(self.camera, setting).value
             except:
-                value = andor.GetString(self.camera, setting, 255).value
+                try:
+                    value = andor.GetString(self.camera, setting, 255).value
+                except:
+                    idx = andor.GetEnumIndex(self.camera, setting).value
+                    value = andor.GetEnumStringByIndex(self.camera, setting, idx, 255).value
         return value
 
     def get_max(self, setting):
