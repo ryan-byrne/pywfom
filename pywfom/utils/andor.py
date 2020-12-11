@@ -70,10 +70,10 @@ class AndorError(Exception):
             'AT_ERR_NULL_PTRSIZE',
             'AT_ERR_NOMEMORY',
         ]
-        self.error = error_list[num]
+        self.error = error_list[num][7:]
         self.func = func
     def __str__(self):
-        return "{0} while running {1}".format(self.error[:7], self.func)
+        return "{0} while running {1}".format(self.error, self.func)
 
 # typedefs
 AT_H = ctypes.c_int
@@ -87,8 +87,8 @@ AT_WC = ctypes.c_wchar
 AT_INFINITE = 0xFFFFFFFF
 AT_CALLBACK_SUCCESS = 0
 
-AT_TRUE = 1
-AT_FALSE = 0
+AT_TRUE = 0
+AT_FALSE = 1
 
 AT_SUCCESS = 0
 
