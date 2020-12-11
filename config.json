@@ -3,7 +3,9 @@
     "user":"rjb2202",
     "mouse":"cm100",
     "directory":"/Users/rbyrne/projects/pywfom/data",
-    "writing":false
+    "writing":false,
+    "runs": 5,
+    "run_length": 1.0
   },
   "arduino": {
     "port": "COM6",
@@ -29,19 +31,15 @@
         "stim":7.0,
         "post_stim":8.0
       }
-    ],
-    "run": {
-      "number_of_runs": 5,
-      "run_length": 1.0
-    }
+    ]
   },
   "cameras": [
     {
-      "device":"webcam",
+      "device":"andor",
       "name":"default",
       "index":0,
       "Height":400,
-      "Width":400,
+      "Width":50,
       "AcquisitionFrameRate":50.0,
       "master":true,
       "dtype":"uint16",

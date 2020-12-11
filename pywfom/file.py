@@ -53,16 +53,15 @@ class Writer(object):
             if cam.master:
                 master = i
 
-        num_runs = arduino.run["number_of_runs"]
-        run_frms = arduino.run["run_length"]*cameras[master].AcquisitionFrameRate
-
         print("Acquiring {0} Frames per run ({1} Total)".format(run_frms, int(run_frms*num_runs)))
 
         # TODO: Master triggers the other cameras
+        # TODO: Consolidate file writing code
 
-        for i in range(num_runs):
+        for i in range(this.number_of_runs):
 
             path, run = self._make_run_directory(i)
+            run_frms = this.run_length*cameras[i].AcquisitionFrameRate
             num_frms = 0
 
             while num_frms < run_frms:

@@ -6,57 +6,45 @@ class ArduinoError(Exception):
 class Arduino():
     """ Methods pertaining to Communication with the Arduino """
 
-    def __init__(self, port=None, config=None):
+    def __init__(self, settings):
 
-        # Starting Arduino at specified port
-        self.port = config['port'] if not port else port
-        self.connect_to_arduino()
-
-        self.set(config)
-
-        self.types = {
-            "number_of_runs":int,
-            "run_length":float,
-            "pre_stim":float,
-            "stim":float,
-            "post_stim":float,
-            "port":str,
-            "strobing":list
-        }
+        self.set(settings)
 
         self.error_msg = ""
 
-    def set(self, param, value=None):
-        if type(param).__name__ == "dict":
-            for k, v in param.items():
+    def set(self, setting, value=None):
+
+        print("(arduino) Adjusting settings...")
+
+        self.stop()
+
+        if type(setting).__name__ == "dict":
+            for k, v in setting.items():
                 self._set(k,v)
         else:
-            self._set(param,value)
+            self._set(setting,value)
 
-    def toggle_led(self, pin):
-        print("Toggling LED at Pin "+str(pin))
+        self.start()
 
-    def _set(self, param, value):
+    def _set(self, setting, value):
 
-        setattr(self, param, value)
-
-        if param == "port" and self.port != value:
-            self.ser.close()
+        if setting == "port":
+            self.port = value
             self.connect_to_arduino()
-        else:
+
+        elif setting != "port" and not self.ser:
             return
 
-        if not self.ser:
-            return
-
-        if param == "strobing":
+        elif setting == "strobing":
             # Send command for setting trigger pin (i.e. T3)
             self.ser.write("T{0}".format(value['trigger']).encode())
             for led in value['leds']:
                 # Send command for led pin (i.e. l11)
                 self.ser.write("l{0}".format(led['pin']).encode())
 
-        elif param == "stim":
+        elif setting == "stim":
+            # TODO: Set stim
+            return
             for stim in value['stim']:
                 # Send command for setting stim pins (i.e. p5_6)
                 self.ser.write(stim['pins'].join("_"))
@@ -67,8 +55,10 @@ class Arduino():
                         stim['post_stim']
                     ).encode()
                 )
-        elif param == "run":
-            return
+        setattr(self, setting, value)
+
+    def toggle_led(self, pin):
+        print("Toggling LED at Pin "+str(pin))
 
     def connect_to_arduino(self):
         try:
@@ -88,6 +78,16 @@ class Arduino():
             self.ser = None
             print(self.error_msg)
 
+    def stop(self):
+
+        try:
+            self.ser.write("C".encode())
+        except:
+            return
+
+    def start(self):
+        pass
+
     def shutdown(self):
-        self.ser.write("c".encode())
+        self.ser.write("C".encode())
         self.ser.close()

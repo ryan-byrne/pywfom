@@ -10,6 +10,8 @@ class Frame(tk.Frame):
 
     def __init__(self, parent, win_name, cameras=[], arduino={}, file={}):
 
+        print("Opening Viewing Frame...")
+
         self.cameras = cameras
         self.arduino = arduino
         self.file = file
@@ -167,6 +169,7 @@ class Frame(tk.Frame):
             pass
 
     def close(self, event=""):
+        print("Closing pywfom...")
         self.root.destroy()
 
     def set_aoi_start(self, event):
@@ -339,9 +342,6 @@ class SettingsWindow(tk.Toplevel):
                     stim_parent = self.tree.insert(parent, k, text=stim["name"])
                     for m, setting in enumerate(stim):
                         self.tree.insert(stim_parent, m, values=(setting, stim[setting]))
-            else:
-                for l, setting in enumerate(settings):
-                    self.tree.insert(parent, l, values=(setting, settings[setting]))
 
     def create_buttons(self):
         reset = tk.Button(self, text="Reset", command=self.reset)
@@ -449,7 +449,7 @@ class SettingsWindow(tk.Toplevel):
                 title="Setting {0}:".format(setting),
                 prompt=setting
             )
-        elif setting in ["Height", "index", "Width", "OffsetX", "OffsetY", "number_of_runs", "pin", "trigger"]:
+        elif setting in ["Height", "index", "Width", "OffsetX", "OffsetY", "runs", "pin", "trigger"]:
             new_value = simpledialog.askinteger(
                 parent=self,
                 title="Setting {0}:".format(setting),
@@ -474,15 +474,15 @@ class SettingsWindow(tk.Toplevel):
             )
             new_value = {"name":name,"pin":pin}
 
-        if not new_value:
-            return
 
-        # TODO: Complete strobing and stim settings
+        if new_value == None:
+            return
 
         for i, child_iid in enumerate(self.tree.get_children(parent_iid)):
             if child_iid == item_iid:
                 self.tree.delete(item_iid)
-                self.tree.insert(parent_iid, i, values=(setting, new_value))
+                item = self.tree.insert(parent_iid, i, values=(setting, new_value))
+                self.tree.see(item)
                 cat = self.tree.item(self.tree.parent(parent_iid))['text'].lower()
                 if cat == "arduino":
                     if parent.lower() == "strobing" and setting != "trigger":
@@ -493,9 +493,12 @@ class SettingsWindow(tk.Toplevel):
                         self.arduino.port = new_value
                     self.arduino.update()
                 else:
-                    self.cameras[idx].set(setting, new_value)
-
-        self.populate_tree()
+                    if setting == "device":
+                        # Close current device and open a new one
+                        self.cameras[idx].close()
+                        self.cameras[idx] = imaging.DEVICES[new_value](self.cameras[idx].__dict__)
+                    else:
+                        self.cameras[idx].set(setting, new_value)
 
     def add_setting(self, item_iid, parent_iid):
 
@@ -604,6 +607,48 @@ class LedConfig(tk.Toplevel):
         self.root = parent.root
         self.arduino = parent.arduino
         self.title("LED Configuration")
+
+        self.make_notice()
+        self.make_buttons()
+
+    def make_notice(self):
+        lbl = tk.Label(
+            master=self,
+            text="1. Switch your LED drivers to\n'Constant Current (CM)' Mode"
+        )
+        pic = os.path.dirname(pywfom.__file__)+"/lib/driverDemo.png"
+        img = ImageTk.PhotoImage(Image.open(pic))
+        panel = tk.Label(master=self, image=img)
+        panel.image = img
+
+        lbl.pack()
+        panel.pack()
+
+    def make_buttons(self):
+        lbl = tk.Label(
+            master=self,
+            text="2. Select an LED"
+        )
+        lbl.pack()
+        for i, led in enumerate(self.arduino.strobing['leds']):
+            btn = tk.Button(
+                master=self,
+                text=led['name'],
+                command=lambda p=led['pin'] :self.arduino.toggle_led(p),
+                height=3,
+                width=20
+            )
+            btn.pack(pady=10)
+
+class StimConfig(tk.Toplevel):
+
+    def __init__(self, parent=None, master=None):
+
+        super().__init__(master = master)
+        self.resizable(width=False, height=False)
+        self.root = parent.root
+        self.arduino = parent.arduino
+        self.title("Stim Configuration")
 
         self.make_notice()
         self.make_buttons()

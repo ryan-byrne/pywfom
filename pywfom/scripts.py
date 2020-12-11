@@ -57,7 +57,7 @@ def test(config=None):
     }
 
     cameras = [Camera[cfg['device']](cfg) for cfg in config["cameras"]]
-    arduino = Arduino(config=config["arduino"])
+    arduino = Arduino(config["arduino"])
     file = Writer(config=config["file"])
 
     root = tk.Tk()

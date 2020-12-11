@@ -24,7 +24,6 @@ def update_frame(camera):
     camera.active = True
 
     while camera.active:
-
         try:
             camera.frame = camera.read()
             camera.AcquisitionFrameRate = camera.get("AcquisitionFrameRate")
@@ -231,18 +230,18 @@ class Andor(object):
 
     def __init__(self, settings):
 
-        print("Importing Andor SDK3 Libraries...")
-        global andor
-        from pywfom.utils import andor
-
         try:
+            print("Importing Andor SDK3 Libraries...")
+            global andor
+            from pywfom.utils import andor
+            print("Initializing Andor Camera at index "+settings['index'])
             self.camera = andor.Open(settings['index'])
             if self.get("SerialNumber")[:3] == "SFT":
-                raise
-        except:
+                raise andor.AndorError
+        except Exception as e:
             for k, v in settings.items():
                 setattr(self, k, v)
-            self.frame = error_frame("({0}) no Andor camera found at index:{1}".format(self.name, self.index))
+            self.frame = error_frame("({0}) {1}".format(self.name, str(e)))
             return
 
         self.buffers = queue.Queue()
@@ -308,7 +307,6 @@ class Andor(object):
             "AcquisitionFrameRate":"FrameRate"
         }
 
-        print("Setting {0} -> {1}".format(setting, value))
         if setting in ['name', 'device']:
             pass
         elif setting == 'index':
@@ -367,7 +365,6 @@ class Andor(object):
         except:
             return andor.GetFloatMax(self.camera, setting).value
 
-
     def get_min(self, setting):
         try:
             return andor.GetIntMin(self.camera, setting).value
@@ -384,6 +381,7 @@ class Webcam(object):
 
     def __init__(self, settings):
 
+        print("Importing Webcam Libraries...")
         global cv2
         import cv2
 
@@ -401,8 +399,6 @@ class Webcam(object):
         }
 
         self.set(settings)
-
-        self.camera = cv2.VideoCapture(self.index)
 
         if not self.camera.isOpened():
             self.frame = error_frame("({0}) no Webcam found at index:{1}".format(self.name, self.index))
@@ -424,20 +420,41 @@ class Webcam(object):
 
     def set(self, setting, value=None):
 
+        print("Adjusting webcam settings...")
+
         self.stop()
 
         self.frame = loading_frame()
 
         if type(setting).__name__ == 'dict':
             for k, v in setting.items():
-                setattr(self, k, v)
+                self._set(k, v)
         else:
-            setattr(self, setting, value)
+            self._set(setting, value)
 
         self.start()
 
+    def _set(self, setting, value):
+
+        if setting == "index":
+            self.camera = cv2.VideoCapture(value)
+        else:
+            pass
+
+        setattr(self, setting, value)
+
     def get(self, setting):
-        return getattr(self, setting)
+
+        prop_ids = {
+            "AcquisitionFrameRate":cv2.CAP_PROP_FPS,
+            "Height":cv2.CAP_PROP_FRAME_HEIGHT,
+            "Width":cv2.CAP_PROP_FRAME_WIDTH
+        }
+
+        if setting in prop_ids.keys():
+            return self.camera.get(prop_ids[setting])
+        else:
+            return getattr(self, setting)
 
     def get_max(self, setting):
 
@@ -449,3 +466,10 @@ class Webcam(object):
 
     def close(self):
         self.active = False
+
+DEVICES = {
+    'andor':Andor,
+    'webcam':Webcam,
+    'test':Test,
+    'spinnaker':Spinnaker
+}

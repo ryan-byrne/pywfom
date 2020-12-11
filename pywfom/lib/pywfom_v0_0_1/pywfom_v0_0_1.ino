@@ -12,6 +12,7 @@ void setup() {
 }
 
 void loop() {
+
   if (Serial.available() > 0){
     // Recieving new message over the Serial Port
     // Creating blank message
@@ -27,6 +28,10 @@ void loop() {
         msg += char(c);
       }
       delay(1);
+    }
+    // Deciphering message from serial port
+    switch (msg.substring(0,1)) {
+      case "p"
     }
   }
 
