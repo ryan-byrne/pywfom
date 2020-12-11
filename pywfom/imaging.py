@@ -244,16 +244,15 @@ class Andor(object):
             self.camera = andor.Open(settings['index'])
             if self.get("SerialNumber")[:3] == "SFT":
                 raise andor.AndorError
+            self.buffers = queue.Queue()
+            self.set(settings)
+
+            threading.Thread(target=update_frame, args=(self,)).start()
         except Exception as e:
             for k, v in settings.items():
                 setattr(self, k, v)
             self.frame = error_frame("({0}) {1}".format(self.name, str(e)))
             return
-
-        self.buffers = queue.Queue()
-        self.set(settings)
-
-        threading.Thread(target=update_frame, args=(self,)).start()
 
     def start(self):
 
@@ -301,6 +300,7 @@ class Andor(object):
                 self._set(k, v)
         else:
             self._set(setting, value)
+
         self.start()
 
     def _set(self, setting, value):
@@ -316,8 +316,9 @@ class Andor(object):
         if setting in ['name', 'device']:
             pass
         elif setting == 'index':
-            # TODO: Change Index
-            pass
+            self.camera = andor.Open(settings['index'])
+            if self.get("SerialNumber")[:3] == "SFT":
+                raise andor.AndorError
         elif setting == 'master':
             # TODO: Change Trigger Mode
             pass
@@ -406,10 +407,6 @@ class Webcam(object):
 
         self.set(settings)
 
-        if not self.camera.isOpened():
-            self.frame = error_frame("({0}) no Webcam found at index:{1}".format(self.name, self.index))
-            return
-
         threading.Thread(target=update_frame, args=(self,)).start()
 
     def start(self):
@@ -437,6 +434,10 @@ class Webcam(object):
                 self._set(k, v)
         else:
             self._set(setting, value)
+
+        if not self.camera.isOpened():
+            self.frame = error_frame("({0}) no Webcam found at index:{1}".format(self.name, self.index))
+            return
 
         self.start()
 

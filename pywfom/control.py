@@ -58,7 +58,13 @@ class Arduino():
         setattr(self, setting, value)
 
     def toggle_led(self, pin):
-        print("Toggling LED at Pin "+str(pin))
+        self.ser.write("t{0}".format(pin).encode())
+
+    def start_strobing(self):
+        self.ser.write("S".encode())
+
+    def stop_strobing(self):
+        self.ser.write("s".encode())
 
     def connect_to_arduino(self):
         try:
@@ -88,6 +94,6 @@ class Arduino():
     def start(self):
         pass
 
-    def shutdown(self):
+    def close(self):
         self.ser.write("C".encode())
         self.ser.close()
