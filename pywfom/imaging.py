@@ -2,10 +2,6 @@ import numpy as np
 import threading, time, traceback, os, ctypes, platform, queue
 import sys
 from PIL import Image, ImageDraw, ImageFont
-print("Importing Spinnaker SDK Libraries")
-import PySpin
-print("Importing Andor SDK3 Libraries...")
-from pywfom.utils import andor
 
 def error_frame(msg):
 
@@ -35,10 +31,6 @@ def update_frame(camera):
         except Exception as e:
             camera.frame = error_frame(str(e))
 
-class CameraError(Exception):
-    """docstring for CameraError."""
-    pass
-
 class Test(object):
 
     def __init__(self, settings):
@@ -56,8 +48,7 @@ class Test(object):
             "OffsetY":0
         }
 
-        for k, v in settings.items():
-            self.set(k, v)
+        self.set(settings)
 
         threading.Thread(target=update_frame, args=(self,)).start()
 
@@ -109,6 +100,9 @@ class Test(object):
 class Spinnaker(object):
 
     def __init__(self, settings):
+
+        print("Importing Spinnaker SDK Libraries...")
+        import PySpin
 
         self.writable, self.available = PySpin.IsWritable, PySpin.IsAvailable
 
@@ -236,6 +230,10 @@ class Spinnaker(object):
 class Andor(object):
 
     def __init__(self, settings):
+
+        print("Importing Andor SDK3 Libraries...")
+        global andor
+        from pywfom.utils import andor
 
         try:
             self.camera = andor.Open(settings['index'])
@@ -386,10 +384,10 @@ class Andor(object):
 
 class Webcam(object):
 
-    global cv2
-    import cv2
-
     def __init__(self, settings):
+
+        global cv2
+        import cv2
 
         self.default = {
             "device":"test",
@@ -404,8 +402,15 @@ class Webcam(object):
             "OffsetY":0
         }
 
-        for k, v in settings.items():
-            setattr(self, k, v)
+        self.set(settings)
+
+        self.camera = cv2.VideoCapture(self.index)
+
+        if not self.camera.isOpened():
+            self.frame = error_frame("({0}) no Webcam found at index:{1}".format(self.name, self.index))
+            return
+
+        threading.Thread(target=update_frame, args=(self,)).start()
 
     def start(self):
         pass
@@ -414,27 +419,33 @@ class Webcam(object):
         pass
 
     def read(self):
-        if self.dtype == 'uint8':
-            max = 255
+        ret, img = self.camera.read()
+        img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        x, y, w, h = self.OffsetX, self.OffsetY, self.Width, self.Height
+        return img_gray[y:h+y, x:w+x]
+
+    def set(self, setting, value=None):
+
+        self.stop()
+
+        self.frame = loading_frame()
+
+        if type(setting).__name__ == 'dict':
+            for k, v in setting.items():
+                setattr(self, k, v)
         else:
-            max = 65024
+            setattr(self, setting, value)
 
-        if self.master:
-            time.sleep(1/self.AcquisitionFrameRate)
-
-        return np.random.randint(0,max,size=(self.Height, self.Width), dtype=self.dtype)
-
-    def _set(self, setting, value):
-        pass
+        self.start()
 
     def get(self, setting):
         return getattr(self, setting)
 
     def get_max(self, setting):
+
         maximums = {
-            "Height":1000,
-            "Width":1400,
-            "AcquisitionFrameRate":100
+            "Height":int(self.camera.get(4)),
+            "Width":int(self.camera.get(3))
         }
         return maximums[setting]
 
