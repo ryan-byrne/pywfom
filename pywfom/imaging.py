@@ -100,29 +100,35 @@ class Spinnaker(object):
 
     def __init__(self, settings):
 
-        print("Importing Spinnaker SDK Libraries...")
-        import PySpin
-
-        self.writable, self.available = PySpin.IsWritable, PySpin.IsAvailable
-
-        self._pointers = {
-            PySpin.intfIFloat: PySpin.CFloatPtr,
-            PySpin.intfIBoolean: PySpin.CBooleanPtr,
-            PySpin.intfIInteger: PySpin.CIntegerPtr,
-            PySpin.intfIEnumeration: PySpin.CEnumerationPtr,
-            PySpin.intfIString: PySpin.CStringPtr
-        }
-
-        self.settings = {}
-        self.methods = {}
-
-        self.system = PySpin.System.GetInstance()
         try:
+            print("Importing Spinnaker SDK Libraries...")
+            import PySpin
+
+            self.writable, self.available = PySpin.IsWritable, PySpin.IsAvailable
+
+            self._pointers = {
+                PySpin.intfIFloat: PySpin.CFloatPtr,
+                PySpin.intfIBoolean: PySpin.CBooleanPtr,
+                PySpin.intfIInteger: PySpin.CIntegerPtr,
+                PySpin.intfIEnumeration: PySpin.CEnumerationPtr,
+                PySpin.intfIString: PySpin.CStringPtr
+            }
+
+            self.settings = {}
+            self.methods = {}
+
+            self.system = PySpin.System.GetInstance()
             self.camera = self.system.GetCameras().GetByIndex(settings['index'])
-        except PySpin.SpinnakerException:
+        except Exception as e:
             for k, v in settings.items():
                 setattr(self, k, v)
-            self.frame = error_frame("({0}) no Spinnaker camera found at index:{1}".format(self.name, self.index))
+            if type(e).__name__ == "ModuleNotFoundError":
+                msg = "\nYou have not installed PySpin\n\n\
+                Follow the instructions at:\n\nhttps://github.com/ryan-byrne/pywfom/wiki/Cameras:-Spinnaker\n\n"
+            else:
+                msg = str(e)
+            self.frame = error_frame("({0}) {1}".format(self.name, msg))
+            print(msg)
             return
         self.camera.Init()
 
