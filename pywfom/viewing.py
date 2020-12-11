@@ -425,6 +425,8 @@ class SettingsWindow(tk.Toplevel):
 
     def edit_setting(self, item_iid, parent_iid):
 
+        # TODO: Change device of camera, open new one
+
         parent = self.tree.item(parent_iid)['text']
         category = self.tree.item(self.tree.parent(parent_iid))['text']
         setting = self.tree.item(item_iid)['values'][0]

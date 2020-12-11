@@ -276,8 +276,6 @@ class Andor(object):
 
     def read(self):
 
-        # TODO: Match up size of frame and buffer
-
         buf = self.buffers.get()
         andor.WaitBuffer(self.camera, 1000)
         img = (buf[::2]*buf[1::2]).reshape(self.Height, self.Width)
