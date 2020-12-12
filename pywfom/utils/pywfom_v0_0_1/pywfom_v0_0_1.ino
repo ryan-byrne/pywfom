@@ -52,7 +52,6 @@ void loop() {
       case 'S':
         // Toggle Strobing
         strobing = !strobing;
-        Serial.println(strobing);
         break;
       case 'C':
         clearSettings();
@@ -63,13 +62,15 @@ void loop() {
     }
   }
   
-  if (digitalRead(trigPin) && strobing){
+  if (analogRead(trigPin) && strobing){
     strobe();
   }
+  Serial.println(digitalRead(trigPin));
+  delay(10);
 }
 
 void strobe(){
-  
+  Serial.println("strobe");
   digitalWrite(ledPins[currentLed], LOW);
   currentLed++;
 
@@ -99,7 +100,6 @@ void clearLeds(){
 }
 
 void updateLedPins(String msg){
-  digitalWrite(10, HIGH);
   numLeds = 0;
   String pin = "";
 
