@@ -9,13 +9,13 @@ boolean strobing = false;
 
 void setup() {
   Serial.begin(115200);
+  pinMode(10, OUTPUT);
   while (!Serial) {
     ;
   }
 }
 
 void loop() {
-
   if (Serial.available() > 0){
     // Recieving new message over the Serial Port
     // Creating blank message
@@ -32,7 +32,6 @@ void loop() {
       }
       delay(1);
     }
-
     // Deciphering message from serial port
     switch (msg.charAt(0)) {
       case 'p':
@@ -52,7 +51,8 @@ void loop() {
         break;
       case 'S':
         // Toggle Strobing
-        strobing != strobing;
+        strobing = !strobing;
+        Serial.println(strobing);
         break;
       case 'C':
         clearSettings();
@@ -63,21 +63,21 @@ void loop() {
     }
   }
   
-  if ((digitalRead(trigPin)) && (strobing)){
+  if (digitalRead(trigPin) && strobing){
     strobe();
   }
 }
 
 void strobe(){
-
-  digitalWrite(currentLed, LOW);
+  
+  digitalWrite(ledPins[currentLed], LOW);
   currentLed++;
 
-  if (currentLed > (sizeof(ledPins) / sizeof(ledPins[0]))){
+  if (currentLed > numLeds){
     currentLed = 0;
   }
 
-  digitalWrite(currentLed, HIGH);
+  digitalWrite(ledPins[currentLed], HIGH);
   
 }
 
@@ -93,15 +93,13 @@ void clearSettings(){
 }
 
 void clearLeds(){
-  Serial.println(numLeds);
   for (int i = 0; i < numLeds; i++){
-    Serial.println(ledPins[i]);
     digitalWrite(ledPins[i], LOW);
   }
 }
 
 void updateLedPins(String msg){
-  
+  digitalWrite(10, HIGH);
   numLeds = 0;
   String pin = "";
 
@@ -138,8 +136,6 @@ void updateTrigger(String msg){
 
 void toggleLed(String msg){
   clearLeds();
-  Serial.println("Toggling LED at");
-  Serial.println(msg.substring(1).toInt());
   int pin = msg.substring(1).toInt();
   digitalWrite(pin, HIGH);
 }

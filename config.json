@@ -8,19 +8,27 @@
     "run_length": 1.0
   },
   "arduino": {
-    "port": "COM6",
+    "port": "COM4",
     "strobing": {
       "leds":[
         {
           "name":"blue",
-          "pin":10
+          "pin":7
         },
         {
           "name":"green",
-          "pin":11
+          "pin":8
+        },
+        {
+          "name":"red",
+          "pin":10
+        },
+        {
+          "name":"orange",
+          "pin":12
         }
       ],
-      "trigger":3
+      "trigger":5
     },
     "stim": [
       {
@@ -36,8 +44,8 @@
   "cameras": [
     {
       "device":"test",
+      "index":1,
       "name":"default",
-      "index":0,
       "Height":400,
       "Width":50,
       "AcquisitionFrameRate":50.0,

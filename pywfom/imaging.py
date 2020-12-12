@@ -102,9 +102,8 @@ class Spinnaker(object):
 
         try:
             print("Importing Spinnaker SDK Libraries...")
+            global PySpin
             import PySpin
-
-            self.writable, self.available = PySpin.IsWritable, PySpin.IsAvailable
 
             self._pointers = {
                 PySpin.intfIFloat: PySpin.CFloatPtr,
@@ -118,7 +117,7 @@ class Spinnaker(object):
             self.methods = {}
 
             self.system = PySpin.System.GetInstance()
-            self.camera = self.system.GetCameras().GetByIndex(settings['index'])
+            self.set(settings)
         except Exception as e:
             for k, v in settings.items():
                 setattr(self, k, v)
@@ -130,20 +129,6 @@ class Spinnaker(object):
             self.frame = error_frame("({0}) {1}".format(self.name, msg))
             print(msg)
             return
-        self.camera.Init()
-
-        for node in self.camera.GetNodeMap().GetNodes():
-            pit = node.GetPrincipalInterfaceType()
-            name = node.GetName()
-            if pit == PySpin.intfICommand:
-                self.methods[name] = PySpin.CCommandPtr(node)
-            elif pit in self._pointers:
-                self.settings[name] = self._pointers[pit](node)
-
-
-        self.set("AcquisitionFrameRateEnable", True)
-
-        self.set(settings)
 
         threading.Thread(target=update_frame, args=(self,)).start()
 
@@ -173,11 +158,22 @@ class Spinnaker(object):
 
     def _set(self, setting, value):
 
+        # TODO: Fix issue with switching indexes
+        print(setting, value)
+
         if setting in ['name', 'device']:
             pass
         elif setting == 'index':
-            # TODO: Change Index
-            pass
+            self.camera = self.system.GetCameras().GetByIndex(value)
+            self.camera.Init()
+            input()
+            for node in self.camera.GetNodeMap().GetNodes():
+                pit = node.GetPrincipalInterfaceType()
+                name = node.GetName()
+                if pit == PySpin.intfICommand:
+                    self.methods[name] = PySpin.CCommandPtr(node)
+                elif pit in self._pointers:
+                    self.settings[name] = self._pointers[pit](node)
         elif setting == 'master':
             # TODO: Change Trigger Mode
             pass

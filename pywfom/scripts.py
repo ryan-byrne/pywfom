@@ -71,6 +71,8 @@ def test(config=None):
     for cam in cameras:
         cam.close()
 
+    arduino.close()
+
 def configure():
     pass
 

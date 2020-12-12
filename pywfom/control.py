@@ -36,13 +36,8 @@ class Arduino():
             return
 
         elif setting == "strobing":
-            # Send command for setting trigger pin (i.e. T3)
-            self.ser.write("t{0}".format(value['trigger']).encode())
-            msg = "l"
-            for led in value['leds']:
-                # Set led pin strobe array (i.e. l6l7l8l)
-                msg += "{0}l".format(led['pin'])
-            self.ser.write(msg.encode())
+            self._set_leds(value['leds'])
+            self._set_trigger(value['trigger'])
 
         elif setting == "stim":
             # TODO: Set stim
@@ -50,6 +45,7 @@ class Arduino():
             for stim in value['stim']:
                 # Send command for setting stim pins (i.e. s5s6s)
                 self.ser.write(stim['pins'].join("_"))
+                time.sleep(0.1)
                 # Send command for setting stim (i.e. )
                 self.ser.write("{0}_{1}_{2}".format(
                         stim['pre_stim'],
@@ -57,9 +53,24 @@ class Arduino():
                         stim['post_stim']
                     ).encode()
                 )
+                time.sleep(0.1)
         setattr(self, setting, value)
 
+    def _set_leds(self, leds):
+        print("(arduino) Setting LED Pins...")
+        msg = "p"
+        for led in leds:
+            # Set led pin strobe array (i.e. p6p7p8p)
+            msg += "{0}p".format(led['pin'])
+        self.ser.write(msg.encode())
+
+    def _set_trigger(self, pin):
+        print("(arduino) Setting Trigger Pin...")
+        # Send command for setting trigger pin (i.e. t3)
+        self.ser.write("t{0}".format(pin).encode())
+
     def toggle_led(self, pin):
+        print("Toggling pin {0}".format(pin))
         self.ser.write("T{0}".format(pin).encode())
 
     def toggle_strobing(self):
@@ -68,14 +79,8 @@ class Arduino():
     def connect_to_arduino(self):
         try:
             print("Attempting to connect to Arduino at " + self.port)
-            self.ser = serial.Serial(
-                port=self.port,\
-                baudrate=115200,\
-                parity=serial.PARITY_NONE,\
-                stopbits=serial.STOPBITS_ONE,\
-                bytesize=serial.EIGHTBITS,\
-                    timeout=0)
-            time.sleep(1)
+            self.ser = serial.Serial(port=self.port , baudrate=115200)
+            time.sleep(2)
             self.error_msg = ""
             print("Successfully connected to Arduino at {0}".format(self.port))
         except serial.serialutil.SerialException:
@@ -86,7 +91,8 @@ class Arduino():
     def stop(self):
 
         try:
-            self.ser.write("C".encode())
+            self.ser.write("c".encode())
+            time.sleep(0.1)
         except:
             return
 
@@ -94,5 +100,5 @@ class Arduino():
         pass
 
     def close(self):
-        self.ser.write("C".encode())
+        self.stop()
         self.ser.close()
