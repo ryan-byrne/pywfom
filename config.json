@@ -5,7 +5,7 @@
     "directory":"/Users/rbyrne/projects/pywfom/data",
     "writing":false,
     "runs": 5,
-    "run_length": 1.0
+    "run_length": 2.0
   },
   "arduino": {
     "port": "COM4",
