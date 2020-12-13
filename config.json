@@ -30,11 +30,20 @@
       ],
       "trigger":5
     },
+    "encoders":[
+      {
+        "name":"wheel",
+        "pins":[5,6]
+      }
+    ],
     "stim": [
       {
         "name":"default",
         "type":"2PinStepper",
-        "pins":[5,6],
+        "pins":{
+          "step":5,
+          "dim":6
+        },
         "pre_stim":4.0,
         "stim":7.0,
         "post_stim":8.0

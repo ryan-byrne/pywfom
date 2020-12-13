@@ -46,6 +46,9 @@ void loop() {
       case 'f':
         updateStimFunction(msg);
         break;
+      case 'e'
+        updateEncoders(msg);
+        break;
       case 't':
         updateTrigger(msg);
         break;
@@ -61,12 +64,11 @@ void loop() {
         break;
     }
   }
-  
-  if (analogRead(trigPin) && strobing){
+
+  if (digitalRead(trigPin) && strobing){
     strobe();
   }
-  Serial.println(digitalRead(trigPin));
-  delay(10);
+
 }
 
 void strobe(){
@@ -79,7 +81,7 @@ void strobe(){
   }
 
   digitalWrite(ledPins[currentLed], HIGH);
-  
+
 }
 
 void clearSettings(){
@@ -112,7 +114,7 @@ void updateLedPins(String msg){
         ledPins[numLeds] = pin.toInt();
         pinMode(pin.toInt(), OUTPUT);
         numLeds++;
-        pin = ""; 
+        pin = "";
       }
     }
     else {
@@ -132,6 +134,10 @@ void updateStimFunction(String msg){
 void updateTrigger(String msg){
   trigPin = msg.substring(1).toInt();
   pinMode(trigPin, INPUT);
+}
+
+void updateEncoders(String msg){
+  // TODO Add encoders
 }
 
 void toggleLed(String msg){

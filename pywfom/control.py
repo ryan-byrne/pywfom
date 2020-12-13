@@ -14,7 +14,7 @@ class Arduino():
 
     def set(self, setting, value=None):
 
-        print("(arduino) Adjusting settings...")
+        
 
         self.stop()
 
@@ -57,26 +57,26 @@ class Arduino():
         setattr(self, setting, value)
 
     def _set_leds(self, leds):
-        print("(arduino) Setting LED Pins...")
+        """ Set led pin strobe array (i.e. p6p7p8p) """
         msg = "p"
         for led in leds:
-            # Set led pin strobe array (i.e. p6p7p8p)
             msg += "{0}p".format(led['pin'])
         self.ser.write(msg.encode())
 
     def _set_trigger(self, pin):
-        print("(arduino) Setting Trigger Pin...")
-        # Send command for setting trigger pin (i.e. t3)
+        """ Send command for setting trigger pin (i.e. t3) """
         self.ser.write("t{0}".format(pin).encode())
 
     def toggle_led(self, pin):
-        print("Toggling pin {0}".format(pin))
+        """ Turn on a specified LED """
         self.ser.write("T{0}".format(pin).encode())
 
     def toggle_strobing(self):
+        """ Toggles strobing on the connected LEDs"""
         self.ser.write("S".encode())
 
     def connect_to_arduino(self):
+        """ Connect to an Arduino at a specified COM Port"""
         try:
             print("Attempting to connect to Arduino at " + self.port)
             self.ser = serial.Serial(port=self.port , baudrate=115200)
