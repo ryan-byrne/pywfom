@@ -8,6 +8,10 @@ class Arduino():
 
     def __init__(self, settings):
 
+        # TODO: set stim settings
+        # TODO:  test stim
+        # # TODO: add encoder monitoring
+
         self.set(settings)
 
         self.ERROR = None
@@ -27,8 +31,7 @@ class Arduino():
     def _set(self, setting, value):
 
         if setting == "port":
-            self.port = value
-            self.connect_to_arduino()
+            self.connect_to_arduino(value)
 
         elif setting != "port" and not self.ser:
             return
@@ -73,15 +76,17 @@ class Arduino():
         """ Toggles strobing on the connected LEDs"""
         self.ser.write("S".encode())
 
-    def connect_to_arduino(self):
+    def connect_to_arduino(self, port):
         """ Connect to an Arduino at a specified COM Port"""
         try:
-            print("Attempting to connect to Arduino at " + self.port)
-            self.ser = serial.Serial(port=self.port , baudrate=115200)
+            print("Attempting to connect to Arduino at " + port)
+            self.ser = serial.Serial(port=port , baudrate=115200)
             time.sleep(2)
-            print("Successfully connected to Arduino at {0}".format(self.port))
-        except serial.serialutil.SerialException:
-            self.ERROR = "Unable to connect to Arduino at "+self.port
+            print("Successfully connected to Arduino at {0}".format(port))
+            self.port = port
+        except serial.serialutil.SerialException as e:
+            self.ERROR = "Unable to connect to Arduino at "+port
+            print(self.ERROR)
             self.ser = None
 
     def stop(self):

@@ -66,7 +66,6 @@ def run():
 def configure():
 
     config = _startup()
-
     frame = viewing.Main(root, config)
     frame.configure()
     frame.root.mainloop()

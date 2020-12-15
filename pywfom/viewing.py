@@ -280,6 +280,7 @@ class Configure(tk.Toplevel):
         self.parent = parent
         self.root = parent.root
         self.config = parent.config
+        self.title("Configure WFOM")
         self.focus_force()
 
         self.buttons = [
@@ -318,24 +319,25 @@ class Configure(tk.Toplevel):
         [btn['widget'].pack(pady=10) for btn in self.buttons]
 
     def _leds(self):
+        print(self.parent.arduino.ERROR)
         LedConfig(self, self.root)
 
     def _stim(self):
         StimConfig(self, self.root)
 
     def _settings(self):
-        SettingsWindow(self, self.root)
+        SettingsConfig(self, self.root)
 
     def _close(self, event=None):
         self.parent.set_icon()
         self.destroy()
 
-class SettingsWindow(tk.Toplevel):
+class SettingsConfig(tk.Toplevel):
 
     def __init__(self, parent=None, master=None):
 
         super().__init__(master = master)
-
+        # TODO: Catch arduino error better
         self.ignore = [
             "_pointers",
             "settings",
@@ -407,7 +409,12 @@ class SettingsWindow(tk.Toplevel):
         for i, attr in enumerate(self.arduino.__dict__.keys()):
             if attr in self.ignore:
                 continue
-            parent = self.tree.insert(arduino, i, text=attr.title())
+            elif attr == "ERROR":
+                if not self.arduino.ERROR:
+                    continue
+                else:
+                    self.tree.insert(arduino, i, text=self.arduino.ERROR)
+            parent = self.tree.insert(arduino, i, text=attr)
             settings = getattr(self.arduino, attr)
             if attr == "port":
                 self.tree.insert(parent, i, values=("Port", self.arduino.port))
@@ -425,10 +432,9 @@ class SettingsWindow(tk.Toplevel):
         reset = tk.Button(self, text="Reset", command=self.reset)
         save = tk.Button(self, text="Save", command=self.save)
         load = tk.Button(self, text="Load", command=self.load)
-        leds = tk.Button(self, text="Test LEDs", command=self.leds)
         cancel = tk.Button(self, text="Done", command=self.close)
 
-        for i, btn in enumerate([cancel, leds, reset, save, load]):
+        for i, btn in enumerate([cancel, reset, save, load]):
             btn.pack(side='right',pady=10, padx=10)
 
     def leds(self):
@@ -505,7 +511,7 @@ class SettingsWindow(tk.Toplevel):
 
         parent = self.tree.item(parent_iid)['text']
         category = self.tree.item(self.tree.parent(parent_iid))['text']
-        setting = self.tree.item(item_iid)['values'][0]
+        setting = self.tree.item(item_iid)['values'][0].lower()
 
         idx = self.tree.get_children(self.tree.parent(parent_iid)).index(parent_iid)
 
@@ -561,13 +567,7 @@ class SettingsWindow(tk.Toplevel):
                 self.tree.see(item)
                 cat = self.tree.item(self.tree.parent(parent_iid))['text'].lower()
                 if cat == "arduino":
-                    if parent.lower() == "strobing" and setting != "trigger":
-                        self.arduino.strobing.leds[idx] = new_value
-                    elif parent.lower() == "strobing" and setting == "trigger":
-                        self.arduino.strobing['trigger'] = new_value
-                    elif parent.lower() == "port":
-                        self.arduino.port = new_value
-                    self.arduino.update()
+                    self.arduino.set(setting, new_value)
                 else:
                     if setting == "device":
                         # Close current device and open a new one

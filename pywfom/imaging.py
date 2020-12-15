@@ -3,6 +3,8 @@ import threading, time, traceback, os, ctypes, platform, queue
 import sys
 from PIL import Image, ImageDraw, ImageFont
 
+# TODO: Synchronize trigger of andor with spinnakers
+
 def error_frame(msg):
 
     # Create a frame announcing the error
@@ -99,7 +101,7 @@ class Test(object):
 class Spinnaker(object):
 
     def __init__(self, settings):
-
+        # TODO: Grab images
         try:
             print("Importing Spinnaker SDK Libraries...")
             global PySpin
@@ -231,6 +233,8 @@ class Spinnaker(object):
 class Andor(object):
 
     def __init__(self, settings):
+
+        # TODO: Grab images
 
         try:
             print("Importing Andor SDK3 Libraries...")
