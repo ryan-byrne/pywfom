@@ -1,5 +1,8 @@
 import time, argparse, sys, os, json
 import tkinter as tk
+from pywfom import viewing
+
+root = tk.Tk()
 
 def _get_args():
 
@@ -38,46 +41,7 @@ def _get_args():
 
     return args
 
-def main(config=None):
-    pass
-
-def test(config=None):
-
-    import pywfom
-    from pywfom import imaging
-    from pywfom.viewing import Frame
-    from pywfom.control import Arduino
-    from pywfom.file import Writer
-
-    Camera = {
-        "spinnaker":imaging.Spinnaker,
-        "andor":imaging.Andor,
-        "webcam":imaging.Webcam,
-        "test":imaging.Test
-    }
-
-    cameras = [Camera[cfg['device']](cfg) for cfg in config["cameras"]]
-    arduino = Arduino(config["arduino"])
-    file = Writer(config=config["file"])
-
-    root = tk.Tk()
-    photo = tk.PhotoImage(
-        file = os.path.dirname(pywfom.__file__)+"/lib/icon1.png"
-    )
-    root.iconphoto(False, photo)
-    frame = Frame(root, "pywfom", cameras, arduino, file)
-    frame.root.mainloop()
-
-    for cam in cameras:
-        cam.close()
-
-    arduino.close()
-
-def configure():
-    pass
-
-def run():
-
+def _startup():
     # Get command line options
     args = _get_args()
 
@@ -86,16 +50,23 @@ def run():
         sys.stdout = open(os.devnull, 'w')
 
     # Load Configuration
-    path = args['config'] if args['config'] else "config.json"
-    with open(path) as f:
+    with open(args['config'] if args['config'] else "config.json") as f:
         config = json.load(f)
     f.close()
 
-    # Run test mode or main
-    if args["test"]:
-        test(config)
-    else:
-        main(config)
+    return config
 
-if __name__ == '__main__':
-    run()
+def run():
+
+    config = _startup()
+
+    frame = viewing.Main(root, config)
+    frame.root.mainloop()
+
+def configure():
+
+    config = _startup()
+
+    frame = viewing.Main(root, config)
+    frame.configure()
+    frame.root.mainloop()

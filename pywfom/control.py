@@ -10,11 +10,9 @@ class Arduino():
 
         self.set(settings)
 
-        self.error_msg = ""
+        self.ERROR = None
 
     def set(self, setting, value=None):
-
-        
 
         self.stop()
 
@@ -81,12 +79,10 @@ class Arduino():
             print("Attempting to connect to Arduino at " + self.port)
             self.ser = serial.Serial(port=self.port , baudrate=115200)
             time.sleep(2)
-            self.error_msg = ""
             print("Successfully connected to Arduino at {0}".format(self.port))
         except serial.serialutil.SerialException:
-            self.error_msg = "Unable to connect to Arduino at "+self.port
+            self.ERROR = "Unable to connect to Arduino at "+self.port
             self.ser = None
-            print(self.error_msg)
 
     def stop(self):
 
@@ -100,5 +96,9 @@ class Arduino():
         pass
 
     def close(self):
-        self.stop()
-        self.ser.close()
+
+        try:
+            self.stop()
+            self.ser.close()
+        except:
+            pass

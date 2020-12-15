@@ -1,25 +1,34 @@
 import numpy as np
 import time, cv2, json, os
 import tkinter as tk
-from pywfom import imaging
-import pywfom
 from tkinter import ttk, simpledialog, filedialog, messagebox
 from PIL import Image, ImageTk, ImageDraw
 
-class Frame(tk.Frame):
+from pywfom import imaging
+from pywfom.control import Arduino
+from pywfom.file import Writer
 
-    def __init__(self, parent, win_name, cameras=[], arduino={}, file={}):
+class Main(tk.Frame):
+
+    def __init__(self, parent, config):
 
         print("Opening Viewing Frame...")
 
-        self.cameras = cameras
-        self.arduino = arduino
-        self.file = file
+        self.config = config
+
+        # Initiate each component Class
+        self.cameras = [
+            imaging.DEVICES[cfg['device']](cfg) for cfg in self.config["cameras"]
+        ]
+        self.arduino = Arduino(self.config["arduino"])
+        self.file = Writer(config=self.config["file"])
 
         self.root = parent
         self.root.resizable(width=False, height=False)
         self.root.bind("<Escape>", self.close)
-        self.root.title(win_name)
+        self.set_icon()
+        self.root.title("pywfom")
+        self.root.protocol("WM_DELETE_WINDOW", self.close)
         self.rect = None
         self.drawing = False
         self.selected_frame, self.ix, self.iy, self.x, self.y = 0,0,0,0,0
@@ -33,6 +42,12 @@ class Frame(tk.Frame):
         self.set_grid()
         # Begin Updating the images
         self.update()
+
+    def set_icon(self, name="icon"):
+        photo = tk.PhotoImage(
+            file = os.path.dirname(imaging.__file__)+"/lib/{0}.png".format(name)
+        )
+        self.root.iconphoto(False, photo)
 
     def set_bindings(self):
         self.canvas.bind("<Button-1>", self.set_aoi_start)
@@ -67,7 +82,7 @@ class Frame(tk.Frame):
         self.btn_frame = tk.Frame(self.right_side)
         self.settings_btn = tk.Button(      self.btn_frame,
                                         text="Configure",
-                                        command=self.view_settings)
+                                        command=self.configure)
         self.close_btn = tk.Button(     self.btn_frame,
                                         text="Quit",
                                         command=self.close)
@@ -145,7 +160,7 @@ class Frame(tk.Frame):
             self.thumbnails[i].config(image=img, borderwidth=10, relief="flat", bg="white")
             self.thumbnails[i].bind("<Button-1>",lambda event, idx=i: self.change_main_frame(event, idx))
 
-        color = "green" if self.arduino.error_msg == "" else "red"
+        color = "green" if not self.arduino.ERROR else "red"
         self.arduino_color.config(background=color)
         self.dir_name.config(text=self.file.directory)
 
@@ -156,8 +171,9 @@ class Frame(tk.Frame):
     def set_dir(self):
         self.file.directory = tk.filedialog.askdirectory()
 
-    def view_settings(self):
-        SettingsWindow(self, self.root)
+    def configure(self):
+        self.set_icon("configure")
+        Configure(self, self.root)
 
     def acquire(self):
 
@@ -170,6 +186,8 @@ class Frame(tk.Frame):
 
     def close(self, event=""):
         print("Closing pywfom...")
+        [cam.close() for cam in self.cameras]
+        self.arduino.close()
         self.root.destroy()
 
     def set_aoi_start(self, event):
@@ -252,6 +270,66 @@ class Frame(tk.Frame):
 
         return img
 
+class Configure(tk.Toplevel):
+
+    def __init__(self, parent=None, master=None):
+
+        super().__init__(master = master)
+
+        # Establish root + configuration
+        self.parent = parent
+        self.root = parent.root
+        self.config = parent.config
+        self.focus_force()
+
+        self.buttons = [
+            {
+                "name":"LEDs",
+                "command":self._leds,
+                "widget":None
+            },
+            {
+                "name":"Stim",
+                "command":self._stim,
+                "widget":None
+            },
+            {
+                "name":"Edit Settings",
+                "command":self._settings,
+                "widget":None
+            },
+            {
+                "name":"Done",
+                "command":self._close,
+                "widget":None
+            },
+
+        ]
+
+        # Populate and organize window
+        self._create_widgets()
+        self._pack_widgets()
+
+    def _create_widgets(self):
+        for btn in self.buttons:
+            btn['widget'] = tk.Button(self, text=btn['name'], command=btn['command'])
+
+    def _pack_widgets(self):
+        [btn['widget'].pack(pady=10) for btn in self.buttons]
+
+    def _leds(self):
+        LedConfig(self, self.root)
+
+    def _stim(self):
+        StimConfig(self, self.root)
+
+    def _settings(self):
+        SettingsWindow(self, self.root)
+
+    def _close(self, event=None):
+        self.parent.set_icon()
+        self.destroy()
+
 class SettingsWindow(tk.Toplevel):
 
     def __init__(self, parent=None, master=None):
@@ -273,11 +351,11 @@ class SettingsWindow(tk.Toplevel):
 
         # Get parent window, config settings, and types
         self.parent = parent
+        self.cameras = parent.parent.cameras
+        self.arduino = parent.parent.arduino
+        self.file = parent.parent.file
         self.resizable(width=False, height=False)
         self.root = parent.root
-        self.cameras = parent.cameras
-        self.arduino = parent.arduino
-        self.file = parent.file
 
         # Store initial settings in case of reset
         self.init_cameras = [cam.__dict__.copy() for cam in self.cameras]
@@ -425,8 +503,6 @@ class SettingsWindow(tk.Toplevel):
 
     def edit_setting(self, item_iid, parent_iid):
 
-        # TODO: Change device of camera, open new one
-
         parent = self.tree.item(parent_iid)['text']
         category = self.tree.item(self.tree.parent(parent_iid))['text']
         setting = self.tree.item(item_iid)['values'][0]
@@ -496,7 +572,7 @@ class SettingsWindow(tk.Toplevel):
                     if setting == "device":
                         # Close current device and open a new one
                         self.cameras[idx].close()
-                        self.cameras[idx] = imaging.DEVICES[new_value](self.cameras[idx].__dict__)
+                        self.cameras[idx] = imaging.DEVICES[new_value](self.cameras[idx])
                     else:
                         self.cameras[idx].set(setting, new_value)
 
@@ -557,55 +633,15 @@ class SettingsWindow(tk.Toplevel):
 
         self.populate_tree()
 
-class ComboboxSelectionWindow(tk.Toplevel):
-    def __init__(self, parent=None, master=None, setting=None):
-
-        super().__init__(master = master)
-        self.root = parent.root
-        self.title(setting.title())
-        self.resizable(width=False, height=False)
-        self.setting = setting
-        self.options = {
-            "device":[
-                "spinnaker",
-                "andor",
-                "test",
-                "webcam"
-            ],
-            "master":[
-                True,
-                False
-            ],
-            "dtype":[
-                "uint16",
-                "uint8"
-            ],
-            "port":["COM{0}".format(i) for i in range(10)]
-        }
-
-        self.create_widgets()
-
-
-    def create_widgets(self):
-
-        self.combo = ttk.Combobox(master=self, values=self.options[self.setting])
-        self.combo.current(1)
-        self.combo.pack()
-        self.done_btn = tk.Button(master=self, text="Done", command=self.callback)
-        self.done_btn.pack()
-
-    def callback(self):
-        self.value = self.combo.get()
-        self.destroy()
-
 class LedConfig(tk.Toplevel):
 
     def __init__(self, parent=None, master=None):
 
         super().__init__(master = master)
+
         self.resizable(width=False, height=False)
         self.root = parent.root
-        self.arduino = parent.arduino
+        self.arduino = parent.parent.arduino
         self.title("LED Configuration")
 
         self.make_notice()
@@ -616,7 +652,7 @@ class LedConfig(tk.Toplevel):
             master=self,
             text="1. Switch your LED drivers to\n'Constant Current (CM)' Mode"
         )
-        pic = os.path.dirname(pywfom.__file__)+"/lib/driverDemo.png"
+        pic = os.path.dirname(imaging.__file__)+"/lib/driverDemo.png"
         img = ImageTk.PhotoImage(Image.open(pic))
         panel = tk.Label(master=self, image=img)
         panel.image = img
@@ -681,3 +717,43 @@ class StimConfig(tk.Toplevel):
                 width=20
             )
             btn.pack(pady=10)
+
+class ComboboxSelectionWindow(tk.Toplevel):
+
+    def __init__(self, parent=None, master=None, setting=None):
+
+        super().__init__(master = master)
+        self.root = parent.root
+        self.title(setting.title())
+        self.resizable(width=False, height=False)
+        self.setting = setting
+        self.options = {
+            "device":[
+                "spinnaker",
+                "andor",
+                "test",
+                "webcam"
+            ],
+            "master":[
+                True,
+                False
+            ],
+            "dtype":[
+                "uint16",
+                "uint8"
+            ],
+            "port":["COM{0}".format(i) for i in range(10)]
+        }
+        self.create_widgets()
+
+    def create_widgets(self):
+
+        self.combo = ttk.Combobox(master=self, values=self.options[self.setting])
+        self.combo.current(1)
+        self.combo.pack()
+        self.done_btn = tk.Button(master=self, text="Done", command=self.callback)
+        self.done_btn.pack()
+
+    def callback(self):
+        self.value = self.combo.get()
+        self.destroy()
