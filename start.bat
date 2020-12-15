@@ -1,0 +1,1 @@
+start cmd /k "cd /Ryan/wfom/Scripts && activate && cd /Ryan"

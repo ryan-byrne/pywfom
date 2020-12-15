@@ -269,5 +269,6 @@ dllFunc('AT_FinaliseUtilityLibrary', lib='ATUTIL')
 dllFunc('AT_ConvertBuffer', [POINTER(AT_U8), POINTER(AT_U8), AT_64, AT_64, AT_64, STRING, STRING], lib='ATUTIL')
 dllFunc('AT_ConvertBufferUsingMetadata', [POINTER(AT_U8), POINTER(AT_U8), AT_64, STRING], lib='ATUTIL')
 
+print("Initializing Andor Library...")
 InitialiseUtilityLibrary()
 InitialiseLibrary()

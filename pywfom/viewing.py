@@ -12,8 +12,6 @@ class Main(tk.Frame):
 
     def __init__(self, parent, config):
 
-        print("Opening Viewing Frame...")
-
         self.config = config
 
         # Initiate each component Class
@@ -22,6 +20,8 @@ class Main(tk.Frame):
         ]
         self.arduino = Arduino(self.config["arduino"])
         self.file = Writer(config=self.config["file"])
+
+        print("Opening Viewing Frame...")
 
         self.root = parent
         self.root.resizable(width=False, height=False)

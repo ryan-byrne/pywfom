@@ -9,7 +9,6 @@ boolean strobing = false;
 
 void setup() {
   Serial.begin(115200);
-  pinMode(10, OUTPUT);
   while (!Serial) {
     ;
   }
@@ -46,9 +45,6 @@ void loop() {
       case 'f':
         updateStimFunction(msg);
         break;
-      case 'e'
-        updateEncoders(msg);
-        break;
       case 't':
         updateTrigger(msg);
         break;
@@ -72,7 +68,6 @@ void loop() {
 }
 
 void strobe(){
-  Serial.println("strobe");
   digitalWrite(ledPins[currentLed], LOW);
   currentLed++;
 

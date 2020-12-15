@@ -9,6 +9,12 @@
   },
   "arduino": {
     "port": "COM4",
+    "data_acquisition":[
+      {
+        "name":"encoder",
+        "pin":20
+      }
+    ],
     "strobing": {
       "leds":[
         {
@@ -30,12 +36,6 @@
       ],
       "trigger":5
     },
-    "encoders":[
-      {
-        "name":"wheel",
-        "pins":[5,6]
-      }
-    ],
     "stim": [
       {
         "name":"default",
@@ -52,8 +52,8 @@
   },
   "cameras": [
     {
-      "device":"test",
-      "index":1,
+      "device":"andor",
+      "index":0,
       "name":"default",
       "Height":400,
       "Width":50,
