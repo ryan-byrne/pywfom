@@ -5,6 +5,8 @@ from PIL import Image, ImageDraw, ImageFont
 
 # TODO: Synchronize trigger of andor with spinnakers
 
+
+
 def error_frame(msg):
 
     # Create a frame announcing the error
@@ -257,12 +259,16 @@ class Andor(object):
             self.set(settings)
             print("({0}) Successfully Initialized Andor:{1}".format(self.name, self.get("SerialNumber")))
             self.ERROR = None
-        except andor.AndorError as e:
+        except Exception as e:
             for k,v in settings.items():
                 setattr(self, k, v)
-            self.ERROR = "({0}) {1}: Could not connect to Andor Camera at idx:{2}".format(self.name, e.error, self.index)
+            name = e.__class__.__name__
+            if name == "OSError":
+                msg = str(e)
+            else:
+                msg = "{0} : Could not connect to Andor camera at idx:{1}".format(e.error, self.index)
+            self.ERROR = "({0}) {1}".format(self.name, msg)
             self.frame = error_frame(self.ERROR)
-            raise e
 
         if not test:
             threading.Thread(target=update_frame, args=(self,)).start()
@@ -294,6 +300,11 @@ class Andor(object):
             pass
 
     def read(self):
+
+        if self.ERROR:
+            time.sleep(0.1)
+            return error_frame(self.ERROR)
+
         buf = self._buffers.get()
         andor.WaitBuffer(self._handle, 100)
         img = np.array(buf).view('uint16').reshape(self._height, self._width)

@@ -1,6 +1,5 @@
 from ctypes import POINTER, c_int, c_uint, c_double
-import time, os, ctypes, platform, queue, cv2, threading, sys
-import numpy as np
+import os, ctypes, platform, sys
 
 _stdcall_libraries = {}
 

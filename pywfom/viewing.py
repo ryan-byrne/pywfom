@@ -45,7 +45,7 @@ class Main(tk.Frame):
 
     def set_icon(self, name="icon"):
         photo = tk.PhotoImage(
-            file = os.path.dirname(imaging.__file__)+"/lib/{0}.png".format(name)
+            file = os.path.dirname(imaging.__file__)+"/img/{0}.png".format(name)
         )
         self.root.iconphoto(False, photo)
 
@@ -648,7 +648,7 @@ class LedConfig(tk.Toplevel):
             master=self,
             text="1. Switch your LED drivers to\n'Constant Current (CM)' Mode"
         )
-        pic = os.path.dirname(imaging.__file__)+"/lib/driverDemo.png"
+        pic = os.path.dirname(imaging.__file__)+"/img/driverDemo.png"
         img = ImageTk.PhotoImage(Image.open(pic))
         panel = tk.Label(master=self, image=img)
         panel.image = img
@@ -690,7 +690,7 @@ class StimConfig(tk.Toplevel):
             master=self,
             text="1. Switch your LED drivers to\n'Constant Current (CM)' Mode"
         )
-        pic = os.path.dirname(pywfom.__file__)+"/lib/driverDemo.png"
+        pic = os.path.dirname(pywfom.__file__)+"/img/driverDemo.png"
         img = ImageTk.PhotoImage(Image.open(pic))
         panel = tk.Label(master=self, image=img)
         panel.image = img
