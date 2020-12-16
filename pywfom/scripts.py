@@ -1,5 +1,7 @@
 import time, argparse, sys, os, json
 import tkinter as tk
+import numpy as np
+import queue, cv2
 from pywfom import viewing
 
 root = tk.Tk()
@@ -54,18 +56,36 @@ def _startup():
         config = json.load(f)
     f.close()
 
-    return config
+    return args, config
+
+def test(config):
+    from pywfom.imaging import Andor
+
+    cam = Andor(config['cameras'][0])
+
+    while True:
+        print(cam.read())
+
+
+
 
 def run():
 
-    config = _startup()
+    args, config = _startup()
 
-    frame = viewing.Main(root, config)
-    frame.root.mainloop()
+    if args['test']:
+        test(config)
+    else:
+        frame = viewing.Main(root, config)
+        frame.root.mainloop()
 
 def configure():
 
-    config = _startup()
-    frame = viewing.Main(root, config)
-    frame.configure()
-    frame.root.mainloop()
+    args, config = _startup()
+
+    if args['test']:
+        pass
+    else:
+        frame = viewing.Main(root, config)
+        frame.configure()
+        frame.root.mainloop()

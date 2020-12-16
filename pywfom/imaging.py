@@ -26,10 +26,11 @@ def update_frame(camera):
     camera.active = True
 
     while camera.active:
+        print(camera._buffers.qsize())
         try:
             camera.frame = camera.read()
-            camera.AcquisitionFrameRate = camera.get("AcquisitionFrameRate")
         except Exception as e:
+            print(e)
             camera.frame = error_frame("({0}) {1}".format(camera.name, str(e)))
 
 class Test(object):
@@ -239,64 +240,57 @@ class Andor(object):
         try:
             global andor
             from pywfom.utils import andor
+            self._buffers = queue.Queue()
             self.set(settings)
             print("({0}) Successfully Initialized Andor:{1}".format(self.name, self.get("SerialNumber")))
             self.ERROR = None
-            self.start()
         except andor.AndorError as e:
             for k,v in settings.items():
                 setattr(self, k, v)
             self.ERROR = "({0}) {1}: Could not connect to Andor Camera at idx:{2}".format(self.name, e.error, self.index)
             self.frame = error_frame(self.ERROR)
+            raise e
 
-        threading.Thread(target=update_frame, args=(self,)).start()
+        #threading.Thread(target=update_frame, args=(self,)).start()
 
-    def start(self):
-        self.buffers = queue.Queue()
-        # Create new buffers
+    def _start(self):
+        self._img_size_bytes = self.get("ImageSizeBytes")
+        self._buffers = queue.Queue()
         for i in range(10):
-            buf = np.zeros((self.get("ImageSizeBytes")), 'uint8')
+            buf = np.zeros((self._img_size_bytes), 'uint8')
             andor.QueueBuffer(
                 self._handle,
                 buf.ctypes.data_as(andor.POINTER(andor.AT_U8)),
                 buf.nbytes
             )
-            self.buffers.put(buf)
-
-        # Start the acquisition
+            self._buffers.put(buf)
         andor.Command(self._handle, "AcquisitionStart")
 
-    def stop(self):
+    def _stop(self):
+
         try:
-            # CLear all buffers and queues
             andor.Command(self._handle, "AcquisitionStop")
-            self.buffers.queue.clear()
             andor.Flush(self._handle)
         except:
             pass
 
     def read(self):
-
-        buf = self.buffers.get()
-        try:
-            andor.WaitBuffer(self._handle, 1000)
-            img = (buf[::2]*buf[1::2]).reshape(self.Height, self.Width)
-            andor.QueueBuffer(
-                self._handle,
-                buf.ctypes.data_as(andor.POINTER(andor.AT_U8)),
-                buf.nbytes
-            )
-            self.buffers.put(buf)
-            return img
-        except andor.AndorError as e:
-            self.buffers.put(buf)
-            raise
+        buf = self._buffers.get()
+        andor.WaitBuffer(self._handle, 1000)
+        img = (buf[::2]*256+buf[1::2]).reshape(self.Height,self.Width)
+        andor.QueueBuffer(
+            self._handle,
+            buf.ctypes.data_as(andor.POINTER(andor.AT_U8)),
+            buf.nbytes
+        )
+        self._buffers.put(buf)
+        return img
 
     def set(self, setting, value=None):
 
         print("Adjusting Andor settings...")
 
-        self.stop()
+        self._stop()
         self.frame = loading_frame()
         if type(setting).__name__ == 'dict':
             for k, v in setting.items():
@@ -304,9 +298,10 @@ class Andor(object):
         else:
             self._set(setting, value)
 
-        self.start()
+        self._start()
 
     def _set(self, setting, value):
+
         settings = {
             "Height":"AOIHeight",
             "Width":"AOIWidth",
@@ -323,17 +318,23 @@ class Andor(object):
             self._handle = andor.Open(value)
             if self.get("SerialNumber")[:3] == "SFT":
                 raise andor.AndorError('AT_Open', 7)
+            andor.Flush(self._handle)
         elif setting == 'master':
             if not value:
                 andor.SetEnumString(self._handle, "TriggerMode", "External")
+                andor.SetEnumString(self._handle, "CycleMode", "Fixed")
+                andor.SetEnumString(self._handle, "FrameCount", 1)
             else:
                 andor.SetEnumString(self._handle, "CycleMode", "Continuous")
+                andor.SetEnumString(self._handle, "AuxiliaryOutSource", "FireRow1")
         elif setting == 'dtype':
             idx = {"uint16":"Mono16",'uint8':"Mono12",'uint32':"Mono32"}
             andor.SetEnumString(self._handle, "PixelEncoding", idx[value])
+        elif setting == "OffsetY":
+            value = self.Height - value
         else:
             upper, lower = self.get_max(settings[setting]), self.get_min(settings[setting])
-            value = min(max(upper, value), lower)
+            value = min(max(lower, value), upper)
             try:
                 andor.SetInt(self._handle, settings[setting], value)
             except:
@@ -380,7 +381,10 @@ class Andor(object):
         return self.settings[setting].GetInc()
 
     def close(self):
-        self.stop()
+        try:
+            self.stop()
+        except:
+            pass
         self.active = False
 
 class Webcam(object):

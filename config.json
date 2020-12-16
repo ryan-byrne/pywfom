@@ -55,13 +55,13 @@
       "device":"andor",
       "index":0,
       "name":"default",
-      "Height":400,
-      "Width":50,
+      "Height":2000,
+      "Width":2000,
       "AcquisitionFrameRate":50.0,
       "master":true,
       "dtype":"uint16",
-      "OffsetX":0,
-      "OffsetY":0
+      "OffsetX":1,
+      "OffsetY":1
     }
   ]
 }

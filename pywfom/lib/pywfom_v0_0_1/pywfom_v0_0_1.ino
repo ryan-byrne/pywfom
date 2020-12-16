@@ -61,9 +61,13 @@ void loop() {
     }
   }
 
-  if (digitalRead(trigPin) && strobing){
-    strobe();
+  if (digitalRead(trigPin)){
+    Serial.println("Trig");
   }
+  else{
+    Serial.println("No");
+  }
+  
 
 }
 
