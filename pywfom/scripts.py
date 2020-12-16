@@ -1,7 +1,7 @@
 import time, argparse, sys, os, json
 import tkinter as tk
 import numpy as np
-import queue, cv2
+import cv2
 from pywfom import viewing
 
 root = tk.Tk()
@@ -60,13 +60,17 @@ def _startup():
 
 def test(config):
     from pywfom.imaging import Andor
+    from pywfom.control import Arduino
 
-    cam = Andor(config['cameras'][0])
+    ard = Arduino(config['arduino'])
+    cam = Andor(config['cameras'][0], True)
 
     while True:
-        print(cam.read())
-
-
+        img = cam.read()
+        cv2.imshow("", img)
+        print(img)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
 
 
 def run():

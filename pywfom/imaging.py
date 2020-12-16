@@ -26,11 +26,9 @@ def update_frame(camera):
     camera.active = True
 
     while camera.active:
-        print(camera._buffers.qsize())
         try:
             camera.frame = camera.read()
         except Exception as e:
-            print(e)
             camera.frame = error_frame("({0}) {1}".format(camera.name, str(e)))
 
 class Test(object):
@@ -233,9 +231,24 @@ class Spinnaker(object):
 
 class Andor(object):
 
-    def __init__(self, settings):
+    def __init__(self, settings, test=False):
 
-        # TODO: Grab images
+        # TODO: Add binning
+        # TODO: Add Mono12 Support
+        # TODO: fix stride
+
+        self._stg_conv = {
+            "Height":"AOIHeight",
+            "Width":"AOIWidth",
+            "OffsetX":"AOILeft",
+            "OffsetY":"AOITop",
+            "AcquisitionFrameRate":"FrameRate",
+            "Binning":"AOIBinning",
+            'uint12':0,
+            'uint12p':1,
+            "uint16":2,
+            "uint32":3
+        }
 
         try:
             global andor
@@ -251,11 +264,14 @@ class Andor(object):
             self.frame = error_frame(self.ERROR)
             raise e
 
-        #threading.Thread(target=update_frame, args=(self,)).start()
+        if not test:
+            threading.Thread(target=update_frame, args=(self,)).start()
 
     def _start(self):
+
         self._img_size_bytes = self.get("ImageSizeBytes")
         self._buffers = queue.Queue()
+
         for i in range(10):
             buf = np.zeros((self._img_size_bytes), 'uint8')
             andor.QueueBuffer(
@@ -264,6 +280,9 @@ class Andor(object):
                 buf.nbytes
             )
             self._buffers.put(buf)
+
+        self._height, self._width = self.get("Height"), self.get("Width")
+
         andor.Command(self._handle, "AcquisitionStart")
 
     def _stop(self):
@@ -276,13 +295,9 @@ class Andor(object):
 
     def read(self):
         buf = self._buffers.get()
-        andor.WaitBuffer(self._handle, 1000)
-        img = (buf[::2]*256+buf[1::2]).reshape(self.Height,self.Width)
-        andor.QueueBuffer(
-            self._handle,
-            buf.ctypes.data_as(andor.POINTER(andor.AT_U8)),
-            buf.nbytes
-        )
+        andor.WaitBuffer(self._handle, 100)
+        img = np.array(buf).view('uint16').reshape(self._height, self._width)
+        andor.QueueBuffer(self._handle, buf.ctypes.data_as(andor.POINTER(andor.AT_U8)), buf.nbytes)
         self._buffers.put(buf)
         return img
 
@@ -301,14 +316,9 @@ class Andor(object):
         self._start()
 
     def _set(self, setting, value):
-
-        settings = {
-            "Height":"AOIHeight",
-            "Width":"AOIWidth",
-            "OffsetX":"AOILeft",
-            "OffsetY":"AOITop",
-            "AcquisitionFrameRate":"FrameRate"
-        }
+        s = setting
+        if setting in self._stg_conv.keys():
+            setting = self._stg_conv[setting]
 
         if setting in ['name', 'device']:
             pass
@@ -327,30 +337,25 @@ class Andor(object):
             else:
                 andor.SetEnumString(self._handle, "CycleMode", "Continuous")
                 andor.SetEnumString(self._handle, "AuxiliaryOutSource", "FireRow1")
-        elif setting == 'dtype':
-            idx = {"uint16":"Mono16",'uint8':"Mono12",'uint32':"Mono32"}
-            andor.SetEnumString(self._handle, "PixelEncoding", idx[value])
-        elif setting == "OffsetY":
+        elif setting == "AOITop":
             value = self.Height - value
+        elif setting == "dtype":
+            andor.SetEnumIndex(self._handle, "PixelEncoding", self._stg_conv[value])
+        elif setting == "AOIBinning":
+            andor.SetEnumString(self._handle, "AOIBinning", value)
         else:
-            upper, lower = self.get_max(settings[setting]), self.get_min(settings[setting])
+            upper, lower = self.get_max(setting), self.get_min(setting)
             value = min(max(lower, value), upper)
             try:
-                andor.SetInt(self._handle, settings[setting], value)
+                andor.SetInt(self._handle, setting, value)
             except:
-                andor.SetFloat(self._handle, settings[setting], value)
+                andor.SetFloat(self._handle, setting, value)
 
-        setattr(self, setting, value)
+        setattr(self, s, value)
 
     def get(self, setting):
-
-        settings = {
-            "Height":"AOIHeight",
-            "Width":"AOIWidth",
-            "OffsetX":"AOILeft",
-            "OffsetY":"AOITop",
-            "AcquisitionFrameRate":"FrameRate"
-        }
+        if setting in self._stg_conv.keys():
+            setting = self._stg_conv[setting]
 
         try:
             value = andor.GetInt(self._handle, setting).value
@@ -363,22 +368,24 @@ class Andor(object):
                 except:
                     idx = andor.GetEnumIndex(self._handle, setting).value
                     value = andor.GetEnumStringByIndex(self._handle, setting, idx, 255).value
+
         return value
 
     def get_max(self, setting):
+        if setting in self._stg_conv.keys():
+            setting = self._stg_conv[setting]
         try:
             return andor.GetIntMax(self._handle, setting).value
         except:
             return andor.GetFloatMax(self._handle, setting).value
 
     def get_min(self, setting):
+        if setting in self._stg_conv.keys():
+            setting = self._stg_conv[setting]
         try:
             return andor.GetIntMin(self._handle, setting).value
         except:
             return andor.GetFloatMin(self._handle, setting).value
-
-    def get_inc(self, setting):
-        return self.settings[setting].GetInc()
 
     def close(self):
         try:

@@ -60,15 +60,13 @@ void loop() {
         break;
     }
   }
-
   if (digitalRead(trigPin)){
-    Serial.println("Trig");
+    digitalWrite(7, HIGH);
   }
   else{
-    Serial.println("No");
+    digitalWrite(7, LOW);
   }
   
-
 }
 
 void strobe(){

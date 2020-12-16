@@ -215,11 +215,7 @@ class Main(tk.Frame):
 
         cam = self.cameras[self.selected_frame]
 
-        if cam.device in ["spinnaker", "test", "webcam"]:
-            x, y, he, wi = "OffsetX", "OffsetY", "Height", "Width"
-        elif cam.device == "andor":
-            # TODO: Account or Andor AOI being from the Top
-            x, y, he, wi = "AOILeft", "AOITop", "AOIHeight", "AOIWidth"
+        x, y, he, wi = "OffsetX", "OffsetY", "Height", "Width"
 
         cam.set({
             he:int(h/self.scale),
@@ -238,8 +234,8 @@ class Main(tk.Frame):
         cam.set({
             "Height":cam.get_max("Height"),
             "Width":cam.get_max("Width"),
-            "OffsetX":0,
-            "OffsetY":0
+            "OffsetX":1,
+            "OffsetY":1
         })
 
     def change_main_frame(self, event, idx):
