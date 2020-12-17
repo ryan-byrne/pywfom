@@ -100,28 +100,54 @@ class Main(tk.Frame):
 
         # Create frame
         arduino_frm = tk.Frame(self.right_side)
+        arduino_frm.pack()
 
         # Create+pack Arduino Widgets
         tk.Label(
             arduino_frm,
             text="Arduino: "
+        ).pack()
+
+        # Create port frame
+        port_frm = tk.Frame(arduino_frm)
+        port_frm.pack()
+
+        tk.Label(
+            port_frm,
+            text="Port: "
         ).pack(side='left')
 
-        self.arduino_status = tk.Label(arduino_frm)
-        self.arduino_status.pack(side='left')
+        # TODO: Add refresh button
+
+        ttk.Combobox(
+            port_frm,
+            values=list_ports()
+        ).pack(side='left')
 
         tk.Button(
-            arduino_frm,
+            port_frm,
+            text="Connect"
+        ).pack(side='left')
+
+        tk.Button(
+            port_frm,
             text="Configure",
             command=self._config_arduino
         ).pack(side='left')
 
-        arduino_frm.pack()
+        self.arduino_status = tk.Label(arduino_frm)
+        self.arduino_status.pack()
 
     def _create_file_widgets(self):
 
+        tk.Label(
+            self.right_side,
+            text='File:'
+        ).pack()
+
         # Create File Directory
         file_frame = tk.Frame(self.right_side)
+        file_frame.pack()
 
         tk.Label(
             file_frame,
@@ -136,7 +162,7 @@ class Main(tk.Frame):
             file_frame,
             text="Browse",
             command=self._set_dir
-        )
+        ).pack(side='left')
 
     def _create_buttons(self):
 
@@ -303,7 +329,7 @@ class Main(tk.Frame):
         self.selected_frame = 0
 
     def _config_arduino(self):
-        pass
+        ArduinoConfig(self, self.root)
 
     def acquire(self):
 
@@ -408,7 +434,7 @@ class Main(tk.Frame):
 
         return img
 
-class Config(tk.Toplevel):
+class Config(tk.Frame):
 
     # TODO: Edit to have a different screen configuration
 
@@ -503,287 +529,6 @@ class Config(tk.Toplevel):
         # TODO: Populate
         pass
 
-class SettingsConfig(tk.Toplevel):
-
-    def __init__(self, parent=None, master=None):
-
-        super().__init__(master = master)
-        # TODO: Catch arduino error better
-        self.ignore = [
-            "_pointers",
-            "settings",
-            "methods",
-            "system",
-            "active",
-            "camera",
-            "frame",
-            "default",
-            "ser",
-            "writing"
-        ]
-
-        # Get parent window, config settings, and types
-        self.parent = parent
-        self.cameras = parent.parent.cameras
-        self.arduino = parent.parent.arduino
-        self.file = parent.parent.file
-        self.resizable(width=False, height=False)
-        self.root = parent.root
-
-        # Store initial settings in case of reset
-        self.init_cameras = [cam.__dict__.copy() for cam in self.cameras]
-        self.init_arduino = self.arduino.__dict__.copy()
-
-        # Create Treeview
-        self.tree = ttk.Treeview(self, columns=["A", "B"])
-        self.tree.column("#0", width=90, anchor='center')
-        self.tree.column("A", width=70, anchor='center')
-        self.tree.column("B", width=50, anchor='center')
-        self.tree.pack()
-        self.title("Settings")
-
-        # Add ability to edit
-        self.tree.bind("<Double-Button-1>", self.on_double_click)
-        self.tree.bind("<Button-3>", self.right_click)
-        self.tree.bind("<Button-2>", self.right_click)
-
-        self.populate_tree()
-
-        self.create_buttons()
-
-    def populate_tree(self):
-
-        # Clear previous settings from the tree
-        self.tree.delete(*self.tree.get_children())
-
-        # Create tree branch for file info
-        file = self.tree.insert("", 0, text="File")
-        for i, values in enumerate(self.file.__dict__.items()):
-            self.tree.insert(file,i, values=values)
-
-        # Create Cameras tab
-        cameras = self.tree.insert("", 1, text="Cameras")
-        # Create tabs for each camera
-        for i, cam in enumerate(self.cameras):
-            cam_settings = {}
-            parent = self.tree.insert(cameras, i, text=cam.name.title())
-            # Add setting for each attribute
-            for j, attr in enumerate(cam.__dict__.keys()):
-                if attr in self.ignore:
-                    continue
-                else:
-                    self.tree.insert(parent, j, values=(attr, getattr(cam, attr)))
-
-        # Create Arduino Tab
-        arduino = self.tree.insert("", 2, text="Arduino")
-        # Go through each Arduino attribute
-        for i, attr in enumerate(self.arduino.__dict__.keys()):
-            if attr in self.ignore:
-                continue
-            elif attr == "ERROR":
-                if not self.arduino.ERROR:
-                    continue
-                else:
-                    self.tree.insert(arduino, i, text=self.arduino.ERROR)
-            parent = self.tree.insert(arduino, i, text=attr)
-            settings = getattr(self.arduino, attr)
-            if attr == "port":
-                self.tree.insert(parent, i, values=("Port", self.arduino.port))
-            elif attr == "strobing":
-                self.tree.insert(parent, 0, values=("Trigger", settings['trigger']))
-                for j, led in enumerate(settings['leds']):
-                    self.tree.insert(parent, j+1, values=(led["name"], led["pin"]))
-            elif attr == "stim":
-                for k, stim in enumerate(settings):
-                    stim_parent = self.tree.insert(parent, k, text=stim["name"])
-                    for m, setting in enumerate(stim):
-                        self.tree.insert(stim_parent, m, values=(setting, stim[setting]))
-
-    def create_buttons(self):
-        reset = tk.Button(self, text="Reset", command=self.reset)
-        save = tk.Button(self, text="Save", command=self.save)
-        load = tk.Button(self, text="Load", command=self.load)
-        cancel = tk.Button(self, text="Done", command=self.close)
-
-        for i, btn in enumerate([cancel, reset, save, load]):
-            btn.pack(side='right',pady=10, padx=10)
-
-    def leds(self):
-        LedConfig(self, self.root)
-
-    def close(self):
-        self.destroy()
-
-    def reset(self):
-        [self.cameras[i].set(settings) for i, settings in enumerate(self.init_cameras)]
-        self.arduino.set(self.init_arduino)
-        self.populate_tree()
-
-    def on_double_click(self, event):
-
-        item = self.tree.selection()[0]
-        if not self.tree.parent(item) or self.tree.item(item)["text"] != "":
-            return
-        else:
-            parent = self.tree.parent(item)
-            self.edit_setting(item, parent)
-
-    def right_click(self, event):
-
-        # TODO: Focus on right clicked row
-
-        item = self.tree.identify_row(event.y)
-        parent = self.tree.parent(item)
-        menu = tk.Menu(self.root, tearoff=0)
-
-        if self.tree.item(item)['text'] in ["Arduino", "File"]:
-            return
-        elif "Cameras" == self.tree.item(parent)['text']:
-            menu.add_command(label="Add Camera", command=lambda:self.add_setting(item, parent))
-            menu.add_command(label="Delete Camera", command=lambda:self.delete_setting(item, parent))
-        elif "Cameras" == self.tree.item(item)['text']:
-            menu.add_command(label="Add Camera", command=lambda:self.add_setting(item, parent))
-        elif "Stim" == self.tree.item(parent)['text']:
-            menu.add_command(label="Add Stim", command=lambda:self.add_setting(item, parent))
-            menu.add_command(label="Delete Stim", command=lambda:self.delete_setting(item, parent))
-        elif "Stim" == self.tree.item(item)['text']:
-            menu.add_command(label="Add Stim", command=lambda:self.add_setting(item, parent))
-        elif "Strobing" == self.tree.item(parent)['text'] and "Trigger" != self.tree.item(item)['values'][0]:
-            menu.add_command(label="Add LED", command=lambda:self.add_setting(item, parent))
-            menu.add_command(label="Delete LED", command=lambda:self.delete_setting(item, parent))
-        elif "Strobing" == self.tree.item(item)['text']:
-            menu.add_command(label="Add LED", command=lambda:self.add_setting(item, parent))
-        else:
-            menu.add_command(label="Edit", command=lambda:self.edit_setting(item, parent))
-
-        menu.tk_popup(event.x_root, event.y_root)
-
-    def edit_setting(self, item_iid, parent_iid):
-
-        parent = self.tree.item(parent_iid)['text']
-        category = self.tree.item(self.tree.parent(parent_iid))['text']
-        setting = self.tree.item(item_iid)['values'][0].lower()
-
-        idx = self.tree.get_children(self.tree.parent(parent_iid)).index(parent_iid)
-
-        new_value = None
-
-        if setting in ["device", "master", "dtype", "port"]:
-            combo = ComboboxSelectionWindow(self, self.root, setting)
-            self.root.wait_window(combo)
-            new_value = combo.value
-
-        elif setting == "directory":
-            new_value = tk.filedialog.askdirectory()
-
-        elif setting in ["user", "mouse", "name"]:
-            new_value = simpledialog.askstring(
-                parent=self,
-                title="Setting {0}:".format(setting),
-                prompt=setting
-            )
-        elif setting in ["Height", "index", "Width", "OffsetX", "OffsetY", "runs", "pin", "trigger"]:
-            new_value = simpledialog.askinteger(
-                parent=self,
-                title="Setting {0}:".format(setting),
-                prompt=setting
-            )
-        elif setting in ["AcquisitionFrameRate", "pre_stim", "stim", "post_stim", "run_length"]:
-            new_value = simpledialog.askfloat(
-                parent=self,
-                title="Setting {0}:".format(setting),
-                prompt=setting
-            )
-        elif parent == "Strobing" and setting != "trigger":
-            name = simpledialog.askstring(
-                parent=self,
-                title="Strobe LED",
-                prompt="Choose a name for the LED:"
-            )
-            pin = simpledialog.askinteger(
-                parent=self,
-                title="Strobe LED",
-                prompt="Choose a Pin on the Arduino:"
-            )
-            new_value = {"name":name,"pin":pin}
-
-
-        if new_value == None:
-            return
-
-        for i, child_iid in enumerate(self.tree.get_children(parent_iid)):
-            if child_iid == item_iid:
-                self.tree.delete(item_iid)
-                item = self.tree.insert(parent_iid, i, values=(setting, new_value))
-                self.tree.see(item)
-                cat = self.tree.item(self.tree.parent(parent_iid))['text'].lower()
-                if cat == "arduino":
-                    self.arduino.set(setting, new_value)
-                else:
-                    if setting == "device":
-                        # Close current device and open a new one
-                        self.cameras[idx].close()
-                        self.cameras[idx] = imaging.DEVICES[new_value](self.cameras[idx])
-                    else:
-                        self.cameras[idx].set(setting, new_value)
-
-    def add_setting(self, item_iid, parent_iid):
-
-        cat = [self.tree.item(parent_iid)['text'], self.tree.item(item_iid)['text']]
-
-        if "Cameras" in cat:
-            self.cameras.append(imaging.Camera())
-            self.parent.add_thumnail("default")
-        elif "Stim" in cat:
-            stims = getattr(self.arduino, 'stim')
-            self.arduino.stim.append({
-                "name":"default",
-                "pre_stim":4.0,
-                "stim":7.0,
-                "post_stim":8.0
-            })
-        elif "Strobing" in cat:
-            name = simpledialog.askstring(
-                parent=self,
-                title="Strobe LED",
-                prompt="Choose a name for the LED:"
-            )
-            pin = simpledialog.askinteger(
-                parent=self,
-                title="Strobe LED",
-                prompt="Choose a Pin on the Arduino:"
-            )
-            strobing = getattr(self.arduino, 'strobing')
-            strobing["leds"].append({
-                "name":name,
-                "pin":pin
-            })
-
-        self.parent._pack_widgets()
-        self.populate_tree()
-
-    def delete_setting(self, item_iid, parent_iid):
-
-        if len(self.tree.get_children(self.tree.parent(item_iid))) == 1:
-            return
-
-        idx = self.tree.get_children(self.tree.parent(item_iid)).index(item_iid)
-        cat = [self.tree.item(parent_iid)['text'], self.tree.item(item_iid)['text']]
-
-        if "Cameras" in cat:
-            self.cameras.pop(idx).close()
-            self.parent.thumbnails.pop(idx).grid_forget()
-            self.parent.thumbnail_labels.pop(idx).grid_forget()
-            self.parent.selected_frame = 0
-        elif "Stim" in cat:
-            stims = getattr(self.arduino, 'stim')
-            stims.pop(idx)
-        elif "Strobing" in cat:
-            strobing = getattr(self.arduino, 'strobing')
-            strobing['leds'].pop(idx-1)
-
-        self.populate_tree()
-
 class CameraConfig(tk.Toplevel):
 
     def __init__(self, parent=None, master=None):
@@ -794,6 +539,7 @@ class CameraConfig(tk.Toplevel):
         self.root = parent.root
         self.reset = self.camera.__dict__.copy()
         self.parent = parent
+        self.parent.set_icon('configure')
 
         self.title("({0}) Settings".format(self.camera.name))
 
@@ -850,10 +596,27 @@ class CameraConfig(tk.Toplevel):
         done_btn.pack(side='left')
 
     def _callback(self, event, setting):
-        self.camera.set(setting, imaging.TYPES[setting](event.widget.get()))
+
+        if setting == 'device' and self.camera.device != event.widget.get():
+
+            _settings = {}
+            for setting in imaging.DEFAULT:
+                _settings[setting] = self.camera.get(setting)
+            _settings['device'] = event.widget.get()
+
+            self.parent.cameras[self.parent.selected_frame].close()
+            self.parent.cameras[self.parent.selected_frame] = imaging.DEVICES[event.widget.get()](_settings)
+
+        else:
+            self.camera.set(setting, imaging.TYPES[setting](event.widget.get()))
 
     def _reset(self):
-        self.camera.set(self.reset)
+        # TODO: Reset settings in window
+        _settings = {}
+        for setting in imaging.DEFAULT:
+            _settings[setting] = self.reset[setting]
+        self.parent.cameras[self.parent.selected_frame].close()
+        self.parent.cameras[self.parent.selected_frame] = imaging.DEVICES[_settings['device']](_settings)
 
     def _close(self):
         self.parent.set_icon('icon')
@@ -865,8 +628,116 @@ class ArduinoConfig(tk.Toplevel):
 
         super().__init__(master = master)
 
-        self.reset = camera.__dict__.copy()
+        self.parent = parent
+        self.root = self.parent.root
         self.arduino = parent.arduino
+        self.reset = self.arduino.__dict__.copy()
+        self.parent.set_icon('configure')
+        self.title("Arduino Settings")
+
+        self._create_strobe_widgets()
+        self._create_stim_widgets()
+        self._create_daq_widgets()
+
+    def _create_strobe_widgets(self):
+
+        strobe_frm = tk.Frame(self)
+        strobe_frm.pack()
+
+        tk.Label(
+            strobe_frm,
+            text='Strobe Settings:').grid(row=0,column=0,columnspan=3)
+
+        tk.Label(
+            strobe_frm,
+            text='Trigger'
+        ).grid(row=1, column=0)
+
+        tk.Spinbox(
+            strobe_frm,
+            from_=0,
+            to=40,
+            width=2
+        ).grid(row=1, column=1)
+
+        tk.Button(
+            strobe_frm,
+            text='Test'
+        ).grid(row=1, column=2)
+
+        for i, led in enumerate(self.arduino.strobing['leds']):
+
+            tk.Label(
+                strobe_frm,
+                text=led['name']
+            ).grid(row=i+2, column=0)
+
+            tk.Spinbox(
+                strobe_frm,
+                from_=0,
+                to=40,
+                width=2
+            ).grid(row=i+2, column=1)
+
+            tk.Button(
+                strobe_frm,
+                text='Test'
+            ).grid(row=i+2, column=2)
+
+    def _create_stim_widgets(self):
+
+        stim_frm = tk.Frame(self)
+        stim_frm.pack()
+
+        tk.Label(
+            stim_frm,
+            text='Stim Settings:').grid(row=0,column=0,columnspan=4)
+
+        for i, stim in enumerate(self.arduino.stim):
+
+            tk.Label(
+                stim_frm,
+                text = "{0} ({1})".format(stim['name'], stim['type'])
+            ).grid(row=i+1, column=0)
+
+            tk.Button(
+                stim_frm,
+                text = 'Delete'
+            ).grid(row=i+1, column=1)
+
+            tk.Button(
+                stim_frm,
+                text = 'Edit'
+            ).grid(row=i+1, column=2)
+
+            tk.Button(
+                stim_frm,
+                text = 'Test'
+            ).grid(row=i+1, column=3)
+
+    def _create_daq_widgets(self):
+
+        daq_frm = tk.Frame(self)
+        daq_frm.pack()
+
+        tk.Label(
+            daq_frm,
+            text='Data Acquisition'
+        ).grid(row=0, column=0, columnspan=2)
+
+        for i, daq in enumerate(self.arduino.data_acquisition):
+
+            tk.Label(
+                daq_frm,
+                text = daq['name']
+            ).grid(row=i+1, column=0)
+
+            tk.Spinbox(
+                daq_frm,
+                from_=0,
+                to=40,
+                width=2
+            ).grid(row=i+1, column=1)
 
 class FileConfig(tk.Toplevel):
 

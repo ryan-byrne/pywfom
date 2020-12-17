@@ -28,10 +28,8 @@ def update_frame(camera):
     camera.active = True
 
     while camera.active:
-        try:
-            camera.frame = camera.read()
-        except Exception as e:
-            camera.frame = error_frame("({0}) {1}".format(camera.name, str(e)))
+
+        camera.frame = camera.read()
 
 class Test(object):
 
@@ -39,6 +37,8 @@ class Test(object):
 
         self.height, self.width = 500,500
         self.frame = loading_frame(self.height, self.width)
+
+        self.ERROR = None
 
         self.set(settings)
 
@@ -51,6 +51,9 @@ class Test(object):
         pass
 
     def read(self):
+
+        if self.ERROR:
+            return error_frame(self.ERROR)
 
         if self.dtype == 'uint8':
             max = 255
@@ -118,6 +121,9 @@ class Spinnaker(object):
 
     def __init__(self, settings):
         # TODO: Grab images
+        self.height, self.width = 500, 500
+
+        self.frame = loading_frame(self.height, self.width)
         try:
             print("Importing Spinnaker SDK Libraries...")
             global PySpin
@@ -252,18 +258,9 @@ class Andor(object):
         # TODO: Add Mono12 Support
         # TODO: fix stride
 
-        self._stg_conv = {
-            "Height":"AOIHeight",
-            "Width":"AOIWidth",
-            "OffsetX":"AOILeft",
-            "OffsetY":"AOITop",
-            "AcquisitionFrameRate":"FrameRate",
-            "Binning":"AOIBinning",
-            'uint12':0,
-            'uint12p':1,
-            "uint16":2,
-            "uint32":3
-        }
+        self.height, self.width = 500, 500
+
+        self.frame = loading_frame(self.height, self.width)
 
         try:
             global andor
@@ -287,22 +284,24 @@ class Andor(object):
             threading.Thread(target=update_frame, args=(self,)).start()
 
     def _start(self):
+        try:
+            self._img_size_bytes = self.get("ImageSizeBytes")
+            self._buffers = queue.Queue()
 
-        self._img_size_bytes = self.get("ImageSizeBytes")
-        self._buffers = queue.Queue()
+            for i in range(10):
+                buf = np.zeros((self._img_size_bytes), 'uint8')
+                andor.QueueBuffer(
+                    self._handle,
+                    buf.ctypes.data_as(andor.POINTER(andor.AT_U8)),
+                    buf.nbytes
+                )
+                self._buffers.put(buf)
 
-        for i in range(10):
-            buf = np.zeros((self._img_size_bytes), 'uint8')
-            andor.QueueBuffer(
-                self._handle,
-                buf.ctypes.data_as(andor.POINTER(andor.AT_U8)),
-                buf.nbytes
-            )
-            self._buffers.put(buf)
+            self._height, self._width = self.get("Height"), self.get("Width")
 
-        self._height, self._width = self.get("Height"), self.get("Width")
-
-        andor.Command(self._handle, "AcquisitionStart")
+            andor.Command(self._handle, "AcquisitionStart")
+        except:
+            pass
 
     def _stop(self):
 
@@ -330,7 +329,7 @@ class Andor(object):
         print("Adjusting Andor settings...")
 
         self._stop()
-        self.frame = loading_frame()
+        self.frame = loading_frame(self.height, self.width)
         if type(setting).__name__ == 'dict':
             for k, v in setting.items():
                 self._set(k, v)
@@ -340,19 +339,24 @@ class Andor(object):
         self._start()
 
     def _set(self, setting, value):
-        s = setting
-        if setting in self._stg_conv.keys():
-            setting = self._stg_conv[setting]
 
-        if setting in ['name', 'device']:
-            pass
-        elif setting == 'index':
+        # TODO: Fix this mess
+
+        if setting == 'index':
             print("Starting Andor Camera at idx:{0}".format(value))
             self.close()
-            self._handle = andor.Open(value)
-            if self.get("SerialNumber")[:3] == "SFT":
-                raise andor.AndorError('AT_Open', 7)
-            andor.Flush(self._handle)
+            try:
+                self._handle = andor.Open(value)
+                if self.get("SerialNumber")[:3] == "SFT":
+                    raise andor.AndorError('AT_Open', 7)
+                andor.Flush(self._handle)
+                self.ERROR = None
+            except Exception as e:
+                self.ERROR = "No Andor Camera found at idx:{0}".format(value)
+
+        elif self.ERROR or setting in ['name', 'device']:
+            pass
+
         elif setting == 'master':
             if not value:
                 andor.SetEnumString(self._handle, "TriggerMode", "External")
@@ -361,23 +365,30 @@ class Andor(object):
             else:
                 andor.SetEnumString(self._handle, "CycleMode", "Continuous")
                 andor.SetEnumString(self._handle, "AuxiliaryOutSource", "FireRow1")
-        elif setting == "AOITop":
-            value = self.Height - value
+
         elif setting == "dtype":
-            andor.SetEnumIndex(self._handle, "PixelEncoding", self._stg_conv[value])
-        elif setting == "AOIBinning":
+            andor.SetEnumIndex(self._handle, "PixelEncoding", CONVERT[value])
+
+        elif setting == "binning":
             andor.SetEnumString(self._handle, "AOIBinning", value)
+
         else:
+            if setting == 'offsetY':
+                value = self.height-value
             upper, lower = self.get_max(setting), self.get_min(setting)
             value = min(max(lower, value), upper)
-            try:
-                andor.SetInt(self._handle, setting, value)
-            except:
-                andor.SetFloat(self._handle, setting, value)
+            if setting == 'framerate':
+                andor.SetFloat(self._handle, 'FrameRate', value)
+            else:
+                andor.SetInt(self._handle, CONVERT[setting], value)
 
-        setattr(self, s, value)
+        setattr(self, setting, value)
 
     def get(self, setting):
+
+        if self.ERROR:
+            return getattr(self, setting)
+
         if setting in self._stg_conv.keys():
             setting = self._stg_conv[setting]
 
@@ -396,20 +407,28 @@ class Andor(object):
         return value
 
     def get_max(self, setting):
-        if setting in self._stg_conv.keys():
-            setting = self._stg_conv[setting]
-        try:
-            return andor.GetIntMax(self._handle, setting).value
-        except:
+
+        if self.ERROR:
+            return
+
+        elif setting == 'FrameRate':
             return andor.GetFloatMax(self._handle, setting).value
+        elif setting in CONVERT:
+            setting = CONVERT[setting]
+
+        return andor.GetIntMax(self._handle, setting).value
 
     def get_min(self, setting):
-        if setting in self._stg_conv.keys():
-            setting = self._stg_conv[setting]
-        try:
-            return andor.GetIntMin(self._handle, setting).value
-        except:
+
+        if self.ERROR:
+            return
+
+        if setting == 'FrameRate':
             return andor.GetFloatMin(self._handle, setting).value
+        elif setting in CONVERT:
+            setting = CONVERT[setting]
+
+        return andor.GetIntMin(self._handle, setting).value
 
     def close(self):
         try:
@@ -429,6 +448,7 @@ class Webcam(object):
         self.height, self.width = 500, 500
 
         self.frame = loading_frame(self.height, self.width)
+        self.ERROR = None
 
         self.set(settings)
 
@@ -458,10 +478,19 @@ class Webcam(object):
 
     def _set(self, setting, value):
 
-        if setting in self.__dict__ and getattr(self, setting) == value:
-            return
-        elif setting == "index":
+        if setting == "index":
             self._camera = cv2.VideoCapture(value)
+            if not self._camera.isOpened():
+                self.ERROR = "No Webcam found at index {0}".format(value)
+            else:
+                self.ERROR = None
+
+        elif self.ERROR:
+            pass
+
+        elif setting in self.__dict__ and getattr(self, setting) == value:
+            return
+
         elif setting in ['framerate', 'height', 'width']:
             value = min(self.get_max(setting), max(self.get_min(setting), value))
 
@@ -524,6 +553,16 @@ TYPES = {
     "offsetX":int,
     "offsetY":int,
     'binning':str
+}
+
+CONVERT = {
+    'uint12':0,
+    'uint12p':1,
+    "uint16":2,
+    "uint32":3,
+    "offsetX":"AOILeft",
+    'height':'AOIHeight',
+    'width':'AOIWidth'
 }
 
 DEFAULT = {

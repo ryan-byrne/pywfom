@@ -38,6 +38,7 @@ class Arduino():
         # TODO: set stim settings
         # TODO:  test stim
         # # TODO: add encoder monitoring
+        # TODO: Test data acquisition
 
         self.ERROR = None
 
@@ -57,10 +58,9 @@ class Arduino():
 
     def _set(self, setting, value):
 
-        if setting == "ERROR":
-            return
+        setattr(self, setting, value)
 
-        elif setting == "port":
+        if setting == "port":
             self.connect_to_arduino(value)
 
         elif setting != "port" and not self.ser:
@@ -69,8 +69,8 @@ class Arduino():
             pass
 
         elif setting == "strobing":
-            self._set_leds(value['leds'])
-            self._set_trigger(value['trigger'])
+            self._set_leds()
+            self._set_trigger()
 
         elif setting == "stim":
             # TODO: Set stim
@@ -78,18 +78,17 @@ class Arduino():
                 # Send command for setting stim pins (i.e. s5s6s)
                 pass
 
-        setattr(self, setting, value)
-
     def _set_leds(self, leds):
         """ Set led pin strobe array (i.e. p6p7p8p) """
+
         msg = "p"
-        for led in leds:
+        for led in self.strobing['leds']:
             msg += "{0}p".format(led['pin'])
         self.ser.write(msg.encode())
 
-    def _set_trigger(self, pin):
+    def _set_trigger(self):
         """ Send command for setting trigger pin (i.e. t3) """
-        self.ser.write("t{0}".format(pin).encode())
+        self.ser.write("t{0}".format(self.strobing['trigger']['pin']).encode())
 
     def toggle_led(self, pin):
         """ Turn on a specified LED """
