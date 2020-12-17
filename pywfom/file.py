@@ -82,6 +82,9 @@ class Writer(object):
 
         self.writing = False
 
+    def close(self):
+        pass
+
 class Reader(object):
     """docstring for Reader."""
 

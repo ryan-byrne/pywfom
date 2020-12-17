@@ -1,4 +1,31 @@
-import serial, os, time
+import serial, os, time, sys, glob
+
+def list_ports():
+
+    if sys.platform.startswith('win'):
+        _ports = ['COM%s' % (i + 1) for i in range(256)]
+    elif sys.platform.startswith('linux'):
+        _ports = glob.glob('/dev/tty[A-Za-z]*')
+    elif sys.platform.startswith('darwin'):
+        _ports = glob.glob('/dev/tty.*')
+    else:
+        raise EnvironmentError('Unsupported platform')
+
+    _available = []
+
+    for port in _ports:
+
+        if "Bluetooth" in port:
+            continue
+
+        try:
+            s = serial.Serial(port=port)
+            _available.append(port)
+            s.close()
+        except serial.SerialException:
+            continue
+
+    return _available
 
 class ArduinoError(Exception):
     pass
@@ -12,9 +39,9 @@ class Arduino():
         # TODO:  test stim
         # # TODO: add encoder monitoring
 
-        self.set(settings)
-
         self.ERROR = None
+
+        self.set(settings)
 
     def set(self, setting, value=None):
 
@@ -30,11 +57,16 @@ class Arduino():
 
     def _set(self, setting, value):
 
-        if setting == "port":
+        if setting == "ERROR":
+            return
+
+        elif setting == "port":
             self.connect_to_arduino(value)
 
         elif setting != "port" and not self.ser:
-            return
+            # TODO: Remove this when things are working
+            #return
+            pass
 
         elif setting == "strobing":
             self._set_leds(value['leds'])
@@ -42,19 +74,10 @@ class Arduino():
 
         elif setting == "stim":
             # TODO: Set stim
-            return
             for stim in value['stim']:
                 # Send command for setting stim pins (i.e. s5s6s)
-                self.ser.write(stim['pins'].join("_"))
-                time.sleep(0.1)
-                # Send command for setting stim (i.e. )
-                self.ser.write("{0}_{1}_{2}".format(
-                        stim['pre_stim'],
-                        stim['stim'],
-                        stim['post_stim']
-                    ).encode()
-                )
-                time.sleep(0.1)
+                pass
+
         setattr(self, setting, value)
 
     def _set_leds(self, leds):

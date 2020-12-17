@@ -4,7 +4,7 @@ import sys
 from PIL import Image, ImageDraw, ImageFont
 
 # TODO: Synchronize trigger of andor with spinnakers
-
+# TODO: Make sure every class has a get_max/get_min
 
 
 def error_frame(msg):
@@ -16,11 +16,11 @@ def error_frame(msg):
     draw.text((10,225), msg, 255)
     return np.asarray(img)
 
-def loading_frame():
+def loading_frame(height, width):
     # Create a frame announcing the error
-    img = Image.fromarray(np.zeros((500,500), "uint8"))
+    img = Image.fromarray(np.zeros((height,width), "uint8"))
     draw = ImageDraw.Draw(img)
-    draw.text((200,250), "Loading Frame...", 255)
+    draw.text((height, width), "Loading Frame...", 255)
     return np.asarray(img)
 
 def update_frame(camera):
@@ -37,64 +37,79 @@ class Test(object):
 
     def __init__(self, settings):
 
-        self.default = {
-            "device":"test",
-            "name":"default1",
-            "index":0,
-            "Height":700,
-            "Width":1200,
-            "AcquisitionFrameRate":50.0,
-            "master":True,
-            "dtype":"uint8",
-            "OffsetX":0,
-            "OffsetY":0
-        }
+        self.height, self.width = 500,500
+        self.frame = loading_frame(self.height, self.width)
 
         self.set(settings)
 
         threading.Thread(target=update_frame, args=(self,)).start()
 
-    def start(self):
+    def _start(self):
         pass
 
-    def stop(self):
+    def _stop(self):
         pass
 
     def read(self):
+
         if self.dtype == 'uint8':
             max = 255
         else:
             max = 65024
 
         if self.master:
-            time.sleep(1/self.AcquisitionFrameRate)
+            time.sleep(1/self.framerate)
 
-        return np.random.randint(0,max,size=(self.Height, self.Width), dtype=self.dtype)
+        return np.random.randint(0,max,size=(self.height, self.width), dtype=self.dtype)
 
     def set(self, setting, value=None):
 
-        self.stop()
+        self._stop()
 
-        self.frame = loading_frame()
+        #self.frame = loading_frame(self.height, self.width)
 
         if type(setting).__name__ == 'dict':
             for k, v in setting.items():
-                setattr(self, k, v)
+                self._set(k, v)
         else:
-            setattr(self, setting, value)
+            self._set(setting, value)
 
-        self.start()
+        self._start()
+
+    def _set(self, setting, value):
+
+        if TYPES[setting] in [int, float]:
+            value = min(self.get_max(setting), max(self.get_min(setting), value))
+
+        setattr(self, setting, value)
 
     def get(self, setting):
         return getattr(self, setting)
 
     def get_max(self, setting):
-        maximums = {
-            "Height":1000,
-            "Width":1400,
-            "AcquisitionFrameRate":100
+        _max = {
+            "height":1000,
+            "width":1400,
+            "frameRate":100,
+            'offsetX':1390,
+            'offsetY':990,
+            'index':10,
+            'framerate':100.0
         }
-        return maximums[setting]
+        return _max[setting]
+
+    def get_min(self, setting):
+
+        _min = {
+            'height':10,
+            'width':10,
+            'offsetX':1,
+            'framerate':1.0,
+            'offsetY':1,
+            'index':0
+        }
+
+        return _min[setting]
 
     def close(self):
         self.active = False
@@ -130,7 +145,6 @@ class Spinnaker(object):
             else:
                 msg = str(e)
             self.frame = error_frame("({0}) {1}".format(self.name, msg))
-            print(msg)
             return
 
         threading.Thread(target=update_frame, args=(self,)).start()
@@ -162,7 +176,6 @@ class Spinnaker(object):
     def _set(self, setting, value):
 
         # TODO: Fix issue with switching indexes
-        print(setting, value)
 
         if setting in ['name', 'device']:
             pass
@@ -413,42 +426,25 @@ class Webcam(object):
         global cv2
         import cv2
 
-        self.default = {
-            "device":"test",
-            "name":"default1",
-            "index":0,
-            "Height":700,
-            "Width":1200,
-            "AcquisitionFrameRate":50.0,
-            "master":True,
-            "dtype":"uint8",
-            "OffsetX":0,
-            "OffsetY":0
-        }
+        self.height, self.width = 500, 500
+
+        self.frame = loading_frame(self.height, self.width)
 
         self.set(settings)
 
         threading.Thread(target=update_frame, args=(self,)).start()
 
-    def start(self):
-        pass
-
-    def stop(self):
-        pass
-
     def read(self):
-        ret, img = self.camera.read()
+        ret, img = self._camera.read()
         img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        x, y, w, h = self.OffsetX, self.OffsetY, self.Width, self.Height
+        x, y, w, h = self.offsetX, self.offsetY, self.width, self.height
         return img_gray[y:h+y, x:w+x]
 
     def set(self, setting, value=None):
 
         print("Adjusting webcam settings...")
 
-        self.stop()
-
-        self.frame = loading_frame()
+        #self.frame = loading_frame(self.height, self.width)
 
         if type(setting).__name__ == 'dict':
             for k, v in setting.items():
@@ -456,44 +452,93 @@ class Webcam(object):
         else:
             self._set(setting, value)
 
-        if not self.camera.isOpened():
+        if not self._camera.isOpened():
             self.frame = error_frame("({0}) no Webcam found at index:{1}".format(self.name, self.index))
             return
 
-        self.start()
-
     def _set(self, setting, value):
 
-        if setting == "index":
-            self.camera = cv2.VideoCapture(value)
-        else:
-            pass
+        if setting in self.__dict__ and getattr(self, setting) == value:
+            return
+        elif setting == "index":
+            self._camera = cv2.VideoCapture(value)
+        elif setting in ['framerate', 'height', 'width']:
+            value = min(self.get_max(setting), max(self.get_min(setting), value))
 
         setattr(self, setting, value)
 
     def get(self, setting):
-
-        prop_ids = {
-            "AcquisitionFrameRate":cv2.CAP_PROP_FPS,
-            "Height":cv2.CAP_PROP_FRAME_HEIGHT,
-            "Width":cv2.CAP_PROP_FRAME_WIDTH
-        }
-
-        if setting in prop_ids.keys():
-            return self.camera.get(prop_ids[setting])
-        else:
-            return getattr(self, setting)
+        return getattr(self, setting)
 
     def get_max(self, setting):
 
-        maximums = {
-            "Height":int(self.camera.get(4)),
-            "Width":int(self.camera.get(3))
+        _max = {
+            "framerate":cv2.CAP_PROP_FPS,
+            "height":cv2.CAP_PROP_FRAME_HEIGHT,
+            "width":cv2.CAP_PROP_FRAME_WIDTH,
         }
-        return maximums[setting]
+
+        if setting == 'framerate':
+            return float(self._camera.get(_max['framerate']))
+        elif setting == 'index':
+            return 10
+        elif setting == 'offsetX':
+            return self.width - 10
+        elif setting == 'offsetY':
+            return self.height - 10
+        else:
+            return int(self._camera.get(_max[setting]))
+
+    def get_min(self, setting):
+
+        _mins = {
+            'index':0,
+            'framerate':1.0,
+            'height':10,
+            'width':10,
+            'offsetY':1,
+            'offsetX':1
+        }
+
+        return _mins[setting]
 
     def close(self):
         self.active = False
+
+OPTIONS = {
+    'dtype':['uint8','uint16','uint32'],
+    'device':['andor', 'spinnaker', 'webcam', 'test'],
+    'binning':['1x1','2x2','4x4','8x8'],
+    'master':[True, False]
+}
+
+TYPES = {
+    "device":str,
+    "name":str,
+    "index":int,
+    "height":int,
+    "width":int,
+    "framerate":float,
+    "master":bool,
+    "dtype":str,
+    "offsetX":int,
+    "offsetY":int,
+    'binning':str
+}
+
+DEFAULT = {
+    "device":"test",
+    "name":"",
+    "index":0,
+    "height":700,
+    "width":1200,
+    "framerate":50.0,
+    "master":True,
+    "dtype":"uint8",
+    "offsetX":0,
+    "offsetY":0,
+    'binning':'1x1'
+}
 
 DEVICES = {
     'andor':Andor,

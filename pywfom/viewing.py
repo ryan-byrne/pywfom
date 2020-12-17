@@ -5,43 +5,170 @@ from tkinter import ttk, simpledialog, filedialog, messagebox
 from PIL import Image, ImageTk, ImageDraw
 
 from pywfom import imaging
-from pywfom.control import Arduino
+from pywfom.control import Arduino, list_ports
 from pywfom.file import Writer
 
 class Main(tk.Frame):
 
     def __init__(self, parent, config):
 
-        self.config = config
+        # TODO: create option for default json
+        # TODO: better arduino error handling
 
-        # Initiate each component Class
-        self.cameras = [
-            imaging.DEVICES[cfg['device']](cfg) for cfg in self.config["cameras"]
-        ]
-        self.arduino = Arduino(self.config["arduino"])
-        self.file = Writer(config=self.config["file"])
+        self._startup(config)
 
         print("Opening Viewing Frame...")
 
+        # General Application Settings
         self.root = parent
         self.root.resizable(width=False, height=False)
         self.root.bind("<Escape>", self.close)
-        self.set_icon()
         self.root.title("pywfom")
         self.root.protocol("WM_DELETE_WINDOW", self.close)
+        self.set_icon()
+
+
+        # Create Each Side of the Window
+        self.right_side = tk.Frame(self.root)
+        self.left_side = tk.Frame(self.root)
+        self.right_side.pack(side="right")
+        self.left_side.pack(side="left")
+
+        # Main viewing window to the left
+        self._create_main_window()
+        # Camera thumnails to the right
+        self._create_thumnnails()
+        # Widgets to do with Arduino control and monitoring
+        self._create_arduino_widgets()
+        # Control the file settings
+        self._create_file_widgets()
+        # Create Main Nav buttons
+        self._create_buttons()
+        # Begin Updating the Frame
+        self._update()
+
+    def _create_main_window(self):
+
         self.rect = None
         self.drawing = False
         self.selected_frame, self.ix, self.iy, self.x, self.y = 0,0,0,0,0
         self.offset_x, self.offset_y, self.scale = 0,0,0
 
-        # Create widgets
-        self.create_widgets()
-        # Establish event bindings
-        self.set_bindings()
-        # Set each item on the grid
-        self.set_grid()
-        # Begin Updating the images
-        self.update()
+        # Create Canvas and subcanvas to add buttons
+        self.canvas = tk.Canvas(    self.left_side,
+                                    cursor="cross",
+                                    width=1000,
+                                    height=800)
+        _sub_canvas = tk.Frame( self.canvas, cursor="arrow")
+        self.canvas.create_window(200,10, window=_sub_canvas)
+        self.canvas.pack()
+
+        # Add widgets to subcanvas
+        self.main_lbl = tk.Label(   _sub_canvas,
+                                    font=("Helvetica", 14))
+        self.main_lbl.pack(side='left')
+
+        tk.Button(  _sub_canvas,
+                    text='Edit',
+                    command=self.edit_camera).pack(side='left')
+
+        tk.Button(  _sub_canvas,
+                    text='Remove',
+                    command=self.delete_camera).pack(side='left')
+
+        # Set Canvas bindings
+        self.canvas.bind("<Button-1>", self.set_aoi_start)
+        self.canvas.bind("<ButtonRelease-1>", self.set_aoi_end)
+        self.canvas.bind("<B1-Motion>", self.draw_rectangle)
+        self.canvas.bind("<Button-3>", self.reset_aoi)
+        self.canvas.bind("<Button-2>", self.reset_aoi)
+
+    def _create_thumnnails(self):
+
+        # Create empty thumnails
+        self.thumbnails_frame = tk.Frame(self.right_side)
+        self.thumbnails_frame.pack()
+        self.thumbnails, self.thumbnail_labels = [], []
+
+        # Create thumbnails
+        for i, cam in enumerate(self.cameras):
+            self.add_thumnail(cam.name)
+
+        tk.Button()
+
+    def _create_arduino_widgets(self):
+
+        # Create frame
+        arduino_frm = tk.Frame(self.right_side)
+
+        # Create+pack Arduino Widgets
+        tk.Label(
+            arduino_frm,
+            text="Arduino: "
+        ).pack(side='left')
+
+        self.arduino_status = tk.Label(arduino_frm)
+        self.arduino_status.pack(side='left')
+
+        tk.Button(
+            arduino_frm,
+            text="Configure",
+            command=self._config_arduino
+        ).pack(side='left')
+
+        arduino_frm.pack()
+
+    def _create_file_widgets(self):
+
+        # Create File Directory
+        file_frame = tk.Frame(self.right_side)
+
+        tk.Label(
+            file_frame,
+            text="Save to:",
+            font=("Helvetica", 10, 'bold')
+        ).pack(side='left')
+
+        self.dir_name = tk.Label(file_frame)
+        self.dir_name.pack(side='left')
+
+        tk.Button(
+            file_frame,
+            text="Browse",
+            command=self._set_dir
+        )
+
+    def _create_buttons(self):
+
+        # Create frame for buttons
+        btn_frm = tk.Frame(self.right_side)
+
+        # Create buttons
+        tk.Button(
+            btn_frm,
+            text="Close",
+            command=self.close
+        ).pack(side='left')
+
+        tk.Button(
+            btn_frm,
+            text="Save",
+            command=self._save
+        ).pack(side='left')
+
+        tk.Button(
+            btn_frm,
+            text="Load",
+            command=self._load
+        ).pack(side='left')
+
+        tk.Button(
+            btn_frm,
+            text="Acquire",
+            command=self.acquire
+        ).pack(side='left')
+
+        btn_frm.pack()
 
     def set_icon(self, name="icon"):
         photo = tk.PhotoImage(
@@ -49,96 +176,38 @@ class Main(tk.Frame):
         )
         self.root.iconphoto(False, photo)
 
-    def set_bindings(self):
-        self.canvas.bind("<Button-1>", self.set_aoi_start)
-        self.canvas.bind("<ButtonRelease-1>", self.set_aoi_end)
-        self.canvas.bind("<B1-Motion>", self.draw_rectangle)
-        self.canvas.bind("<Button-3>", self.reset_aoi)
-        self.canvas.bind("<Button-2>", self.reset_aoi)
-
-    def create_widgets(self):
-        # Create Left Side of Frame
-        self.left_side = tk.Frame(self.root)
-        self.canvas = tk.Canvas(self.left_side, cursor="cross", width=1000, height=800)
-        self.main_label = tk.Label(self.left_side, font=("Helvetica", 14))
-        # Create Right Side of Frame
-        self.right_side = tk.Frame(self.root)
-        # Create empty thumnails
-        self.thumnails_frame = tk.Frame(self.right_side)
-        self.thumbnails, self.thumbnail_labels = [], []
-        # Create thumbnails
-        for cam in self.cameras:
-            self.add_thumnail(cam.name)
-        # Create Arduino Status
-        self.arduino_frame = tk.Frame(self.right_side)
-        self.arduino_status = tk.Label(self.arduino_frame, text="Arduino Status")
-        self.arduino_color = tk.Button(self.arduino_frame, height=1, width=1)
-        # Create File Directory
-        self.dir_frame = tk.Frame(self.right_side)
-        self.dir_label = tk.Label(self.dir_frame, text="Save to:", font=("Helvetica", 10, 'bold'))
-        self.dir_name = tk.Label(self.dir_frame)
-        self.dir_button = tk.Button(self.dir_frame, text="Browse", command=self.set_dir)
-        # Create buttons
-        self.btn_frame = tk.Frame(self.right_side)
-        self.settings_btn = tk.Button(      self.btn_frame,
-                                        text="Configure",
-                                        command=self.configure)
-        self.close_btn = tk.Button(     self.btn_frame,
-                                        text="Quit",
-                                        command=self.close)
-        self.acquire_btn = tk.Button(  self.btn_frame,
-                                        text="Acquire",
-                                        command=self.acquire)
-
     def add_thumnail(self, name):
-        self.thumbnails.append(tk.Label(self.thumnails_frame))
-        self.thumbnail_labels.append(tk.Label(self.thumnails_frame, text=name))
+        self.thumbnails.append(tk.Label(self.thumbnails_frame))
+        self.thumbnail_labels.append(tk.Label(self.thumbnails_frame, text=name))
 
-    def set_grid(self):
-        pad = 10
-        # pack left side
-        self.left_side.pack(side="left")
-        self.main_label.pack()
-        self.canvas.pack()
-        # pack right Side
-        self.right_side.pack(side="right")
-        self.thumnails_frame.pack()
-        # pack thumnails
-        for i, cam in enumerate(self.cameras):
-            self.thumbnail_labels[i].pack()
-            self.thumbnails[i].pack()
-        # pack arduino status
-        self.arduino_frame.pack(padx=pad, pady=pad)
-        self.arduino_status.pack(side="left",padx=pad, pady=pad)
-        self.arduino_color.pack(side="left",padx=pad, pady=pad)
-        # pack directory status
-        self.dir_frame.pack(padx=pad, pady=pad)
-        self.dir_label.pack(side="left",padx=pad, pady=pad)
-        self.dir_name.pack(side="left",padx=pad, pady=pad)
-        self.dir_button.pack(side="left",padx=pad, pady=pad)
-        # pack button
-        self.btn_frame.pack(padx=pad, pady=pad)
-        for i, btn in enumerate([self.acquire_btn, self.settings_btn, self.close_btn]):
-            btn.pack(side="right",padx=pad, pady=pad)
+    def _update(self):
 
-    def update(self):
+        self._draw_main_image()
 
-        t = time.time()
+        self._draw_thumnails()
 
+        msg = "Ready" if not self.arduino.ERROR else self.arduino.ERROR
+        self.arduino_status.config(text=msg)
+
+        self.dir_name.config(text=self.file.directory)
+
+        self.root.after(1, self._update)
+
+    def _draw_main_image(self):
+
+        # Draw main image
         cam = self.cameras[self.selected_frame]
-
-        # Create main viewing frame
         image = self.convert_frame(cam.frame, (800,1000), True)
 
-        h, w, fr = cam.Height, cam.Width, cam.AcquisitionFrameRate
+        h, w, fr = cam.height, cam.width, cam.framerate
 
-        self.main_label.config(
+        self.main_lbl.config(
             text="{0} ({1}): {2}x{3}, {4} fps".format(
                 cam.name,
                 cam.device.title(),
-                h,
                 w,
-                fr
+                h,
+                round(fr,2)
             )
         )
 
@@ -151,29 +220,90 @@ class Main(tk.Frame):
             self.rect = self.canvas.create_rectangle(self.ix, self.iy, self.x, self.y, fill="", outline="green")
         self.canvas.image = image
 
+    def _draw_thumnails(self):
+        # Draw thumnails
         thumbnail_size = (600/len(self.cameras), 150)
 
-        # Create subframes
         for i, cam in enumerate(self.cameras):
             img = self.convert_frame(cam.frame, thumbnail_size, False)
             self.thumbnails[i].img = img
             self.thumbnails[i].config(image=img, borderwidth=10, relief="flat", bg="white")
             self.thumbnails[i].bind("<Button-1>",lambda event, idx=i: self.change_main_frame(event, idx))
-
-        color = "green" if not self.arduino.ERROR else "red"
-        self.arduino_color.config(background=color)
-        self.dir_name.config(text=self.file.directory)
+            self.thumbnail_labels[i].pack()
+            self.thumbnails[i].pack()
 
         self.thumbnails[self.selected_frame].config(borderwidth=10,relief="ridge", bg="green")
 
-        self.root.after(1, self.update)
-
-    def set_dir(self):
+    def _set_dir(self):
         self.file.directory = tk.filedialog.askdirectory()
+
+    def _save(self):
+
+        _cameras = []
+
+        for cam in self.cameras:
+
+            _camera_settings = {}
+
+            for setting in imaging.DEFAULT:
+                _camera_settings[setting] = cam.get(setting)
+
+            _cameras.append(_camera_settings)
+
+
+        _config = {
+            'file':self.file.__dict__,
+            'arduino':self.arduino.__dict__,
+            'cameras':_cameras
+        }
+
+        fname = filedialog.asksaveasfile(mode="w", parent=self.root, defaultextension=".json")
+
+        if fname is None:
+            return
+        else:
+            json.dump(_config, fname)
+            fname.close()
+
+    def _load(self):
+
+        f = filedialog.askopenfile(parent=self.root)
+
+        if not f:
+            return
+
+        config = json.load(f)
+        f.close()
+
+        self._shutdown()
+        self._startup(config)
 
     def configure(self):
         self.set_icon("configure")
-        Configure(self, self.root)
+        Config(self, self.root)
+
+    def edit_camera(self, i=None):
+
+        if i:
+            self.selected_frame = i
+
+        self.set_icon("configure")
+        CameraConfig(self, self.root)
+
+    def delete_camera(self, i=None):
+
+        print('deleting camera {0}'.format(i))
+
+        if i:
+            self.selected_frame = i
+
+        self.cameras.pop(self.selected_frame).close()
+        self.parent.thumbnails.pop(idx).grid_forget()
+        self.parent.thumbnail_labels.pop(idx).grid_forget()
+        self.selected_frame = 0
+
+    def _config_arduino(self):
+        pass
 
     def acquire(self):
 
@@ -184,10 +314,22 @@ class Main(tk.Frame):
         else:
             pass
 
-    def close(self, event=""):
+    def _shutdown(self, event=""):
         print("Closing pywfom...")
         [cam.close() for cam in self.cameras]
         self.arduino.close()
+        self.file.close()
+
+    def _startup(self, config):
+        # Initiate each component's Class
+        self.cameras = [
+            imaging.DEVICES[cfg['device']](cfg) for cfg in config["cameras"]
+        ]
+        self.arduino = Arduino(config["arduino"])
+        self.file = Writer(config=config["file"])
+
+    def close(self):
+        self._shutdown()
         self.root.destroy()
 
     def set_aoi_start(self, event):
@@ -215,7 +357,7 @@ class Main(tk.Frame):
 
         cam = self.cameras[self.selected_frame]
 
-        x, y, he, wi = "OffsetX", "OffsetY", "Height", "Width"
+        x, y, he, wi = "offsetX", "offsetY", "height", "width"
 
         cam.set({
             he:int(h/self.scale),
@@ -232,10 +374,10 @@ class Main(tk.Frame):
     def reset_aoi(self, event):
         cam = self.cameras[self.selected_frame]
         cam.set({
-            "Height":cam.get_max("Height"),
-            "Width":cam.get_max("Width"),
-            "OffsetX":1,
-            "OffsetY":1
+            "height":cam.get_max("height"),
+            "width":cam.get_max("width"),
+            "offsetX":1,
+            "offsetY":1
         })
 
     def change_main_frame(self, event, idx):
@@ -266,67 +408,100 @@ class Main(tk.Frame):
 
         return img
 
-class Configure(tk.Toplevel):
+class Config(tk.Toplevel):
+
+    # TODO: Edit to have a different screen configuration
 
     def __init__(self, parent=None, master=None):
 
         super().__init__(master = master)
 
-        # Establish root + configuration
         self.parent = parent
-        self.root = parent.root
-        self.config = parent.config
-        self.title("Configure WFOM")
+
         self.focus_force()
 
-        self.buttons = [
-            {
-                "name":"LEDs",
-                "command":self._leds,
-                "widget":None
-            },
-            {
-                "name":"Stim",
-                "command":self._stim,
-                "widget":None
-            },
-            {
-                "name":"Edit Settings",
-                "command":self._settings,
-                "widget":None
-            },
-            {
-                "name":"Done",
-                "command":self._close,
-                "widget":None
-            },
+        self._create_camera_widgets()
+        self._create_arduino_widgets()
 
-        ]
+    def _create_camera_widgets(self):
 
-        # Populate and organize window
-        self._create_widgets()
-        self._pack_widgets()
+        camera_frame = tk.Frame(self)
 
-    def _create_widgets(self):
-        for btn in self.buttons:
-            btn['widget'] = tk.Button(self, text=btn['name'], command=btn['command'])
+        tk.Label(
+            camera_frame,
+            text="Camera Settings:"
+        ).grid(row=0, column=0, columnspan=3)
 
-    def _pack_widgets(self):
-        [btn['widget'].pack(pady=10) for btn in self.buttons]
+        for i, cam in enumerate(self.parent.cameras):
 
-    def _leds(self):
-        print(self.parent.arduino.ERROR)
-        LedConfig(self, self.root)
+            tk.Label(
+                camera_frame,
+                text="{0} ({1})".format(cam.name, cam.device)
+            ).grid(row=i+1, column=0)
 
-    def _stim(self):
-        StimConfig(self, self.root)
+            tk.Button(
+                camera_frame,
+                text='Edit',
+                command=lambda i=i:self.parent.edit_camera(i)
+            ).grid(row=i+1,column=1)
 
-    def _settings(self):
-        SettingsConfig(self, self.root)
+            tk.Button(
+                camera_frame,
+                text='Remove',
+                command=lambda i=i:self.parent.delete_camera(i)
+            ).grid(row=i+1,column=2)
 
-    def _close(self, event=None):
-        self.parent.set_icon()
-        self.destroy()
+        camera_frame.pack()
+
+    def _create_arduino_widgets(self):
+
+        arduino_frame = tk.Frame(self)
+
+        tk.Label(
+            arduino_frame,
+            text="Arduino Settings: "
+        ).grid(row=0, column=0, columnspan=4)
+
+
+        tk.Label(
+            arduino_frame,
+            text="Stim"
+        ).grid(row=1, column=0)
+
+
+        """
+        for i, stim in enumerate(self.parent.arduino.stim):
+
+            tk.Label(
+                arduino_frame,
+                text="{0} ({1})".format(stim['name'], stim['type']),
+            ).grid(row=i+2, column=1)
+
+            tk.Button(
+                arduino_frame,
+                text="Edit",
+                command=lambda i=i:self.parent.edit_stim(i)
+            ).grid(row=i+2, column=2)
+
+            tk.Button(
+                arduino_frame,
+                text="Remove",
+                command=lambda i=i:self.parent.remove_stim(i)
+            ).grid(row=i+2, column=3)
+        """
+
+        arduino_frame.pack()
+
+    def _create_file_widgets(self):
+        file_frame = tk.Frame(self)
+
+    def _edit_stim(self, i):
+        # TODO: Populate
+        pass
+
+    def _remove_stim(self, i):
+        # TODO: Populate
+        pass
 
 class SettingsConfig(tk.Toplevel):
 
@@ -438,26 +613,6 @@ class SettingsConfig(tk.Toplevel):
 
     def close(self):
         self.destroy()
-
-    def save(self):
-
-        f = filedialog.asksaveasfile(mode="w", parent=self, defaultextension=".json")
-        if f is None:
-            return
-        json.dump(self.settings, f)
-        f.close()
-
-    def load(self):
-
-        fname = filedialog.askopenfilename(parent=self)
-        if fname == "":
-            return
-        with open(fname) as f:
-            settings = json.load(f)
-        f.close()
-
-        self.settings = settings
-        self.populate_tree()
 
     def reset(self):
         [self.cameras[i].set(settings) for i, settings in enumerate(self.init_cameras)]
@@ -604,7 +759,7 @@ class SettingsConfig(tk.Toplevel):
                 "pin":pin
             })
 
-        self.parent.set_grid()
+        self.parent._pack_widgets()
         self.populate_tree()
 
     def delete_setting(self, item_iid, parent_iid):
@@ -628,6 +783,98 @@ class SettingsConfig(tk.Toplevel):
             strobing['leds'].pop(idx-1)
 
         self.populate_tree()
+
+class CameraConfig(tk.Toplevel):
+
+    def __init__(self, parent=None, master=None):
+
+        super().__init__(master = master)
+
+        self.camera = parent.cameras[parent.selected_frame]
+        self.root = parent.root
+        self.reset = self.camera.__dict__.copy()
+        self.parent = parent
+
+        self.title("({0}) Settings".format(self.camera.name))
+
+        self._create_widgets()
+
+    def _create_widgets(self):
+
+        for i, (k, v) in enumerate(self.camera.__dict__.items()):
+
+            if k[0] == '_' or k not in imaging.DEFAULT:
+                continue
+
+            bin = tk.Frame(self)
+
+            lbl = tk.Label(bin, text=k.title(), justify='left')
+
+
+            if k in imaging.OPTIONS:
+                entry = ttk.Combobox(
+                    bin,
+                    width=7,
+                    values=imaging.OPTIONS[k],
+                    justify='center'
+                )
+            elif k in ["framerate", 'name']:
+                entry = tk.Entry(
+                    bin,
+                    width=10,
+                    justify='center'
+                )
+            else:
+                entry = tk.Spinbox(
+                    bin,
+                    width=5,
+                    justify='center',
+                    from_= self.camera.get_min(k),
+                    to = self.camera.get_max(k)
+                )
+                entry.bind('<Button-1>', lambda event, k=k:self._callback(event,k))
+
+            entry.delete(0,'end')
+            entry.insert(0, str(v))
+
+            bin.pack()
+            lbl.pack(side='left',anchor=tk.W)
+            entry.pack(side='left', anchor=tk.E)
+            entry.bind('<FocusOut>', lambda event, k=k:self._callback(event,k))
+
+        bin = tk.Frame(self)
+        bin.pack(pady=10)
+        reset_btn = tk.Button(bin, text='Reset', command=self._reset)
+        reset_btn.pack(side='left', padx=10)
+        done_btn = tk.Button(bin, text='Done', command=self._close)
+        done_btn.pack(side='left')
+
+    def _callback(self, event, setting):
+        self.camera.set(setting, imaging.TYPES[setting](event.widget.get()))
+
+    def _reset(self):
+        self.camera.set(self.reset)
+
+    def _close(self):
+        self.parent.set_icon('icon')
+        self.destroy()
+
+class ArduinoConfig(tk.Toplevel):
+
+    def __init__(self, parent=None, master=None):
+
+        super().__init__(master = master)
+
+        self.reset = camera.__dict__.copy()
+        self.arduino = parent.arduino
+
+class FileConfig(tk.Toplevel):
+
+    def __init__(self, file, parent=None, master=None):
+
+        super().__init__(master = master)
+
+        self.reset = camera.__dict__.copy()
 
 class LedConfig(tk.Toplevel):
 
@@ -740,9 +987,9 @@ class ComboboxSelectionWindow(tk.Toplevel):
             ],
             "port":["COM{0}".format(i) for i in range(10)]
         }
-        self.create_widgets()
+        self._create_widgets()
 
-    def create_widgets(self):
+    def _create_widgets(self):
 
         self.combo = ttk.Combobox(master=self, values=self.options[self.setting])
         self.combo.current(1)

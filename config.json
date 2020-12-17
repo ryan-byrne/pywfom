@@ -54,15 +54,28 @@
     {
       "device":"webcam",
       "index":0,
-      "name":"default",
-      "Height":2000,
-      "Width":2000,
-      "Binning":"2x2",
-      "AcquisitionFrameRate":40.0,
       "master":true,
+      "name":"default",
       "dtype":"uint16",
-      "OffsetX":1,
-      "OffsetY":1
+      "height":2000,
+      "width":2000,
+      "offsetX":1,
+      "offsetY":1,
+      "binning":"2x2",
+      "framerate":40.0
+    },
+    {
+      "device":"test",
+      "index":0,
+      "master":true,
+      "name":"default",
+      "dtype":"uint16",
+      "height":2000,
+      "width":2000,
+      "offsetX":1,
+      "offsetY":1,
+      "binning":"2x2",
+      "framerate":40.0
     }
   ]
 }

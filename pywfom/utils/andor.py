@@ -5,6 +5,8 @@ _stdcall_libraries = {}
 
 arch, plat = platform.architecture()
 
+# TODO: Include Andor drivers in python package
+
 if platform.mac_ver()[0] != "":
     msg = "AndorSDK3 is not currently compatible with MacOS"
     raise OSError(msg)
