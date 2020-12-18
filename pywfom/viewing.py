@@ -292,6 +292,15 @@ class Main(tk.Frame):
         self.thumbnails.append(tk.Label(self.thumbnails_frame))
         self.thumbnail_labels.append(tk.Label(self.thumbnails_frame, text=name))
 
+    def _delete_camera(self):
+        if i:
+            frame.selected_frame = i
+
+        self.cameras.pop(frame.selected_frame).close()
+        frame.thumbnails.pop(frame.selected_frame).pack_forget()
+        frame.thumbnail_labels.pop(frame.selected_frame).pack_forget()
+        frame.selected_frame = 0
+
     def _update(self):
 
         self._draw_main_image()
@@ -363,7 +372,7 @@ class Main(tk.Frame):
 
         self.selected_frame = len(self.cameras)-1
         CameraConfig(self, self.root)
-        
+
     def acquire(self):
 
         for cam in self.cameras:
@@ -515,7 +524,6 @@ class Config(tk.Frame):
             lbl.bind('<Enter>', lambda event, msg=status:self._show_msg(event, msg))
         lbl.grid(row=1, column=9)
 
-
         tk.Label(self.root, text='Cameras').grid(row=0, column=3, columnspan=4)
 
         tk.Label(self.root, text='Name').grid(row=1, column=3)
@@ -545,6 +553,15 @@ class Config(tk.Frame):
         pass
 
     def _camera_config(self):
+        pass
+
+    def _delete_camera(self):
+        pass
+
+    def _add_camera(self):
+        pass
+
+    def _edit_camera(self):
         pass
 
     def _arduino_config(self):
