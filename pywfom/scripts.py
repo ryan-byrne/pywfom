@@ -87,9 +87,5 @@ def configure():
 
     args, config = _startup()
 
-    if args['test']:
-        pass
-    else:
-        frame = viewing.Main(root, config)
-        frame.configure()
-        frame.root.mainloop()
+    frame = viewing.Config(config, root)
+    frame.root.mainloop()

@@ -52,10 +52,36 @@
   },
   "cameras": [
     {
-      "device":"andor",
+      "device":"test",
       "index":0,
       "master":true,
       "name":"default",
+      "dtype":"uint16",
+      "height":2000,
+      "width":2000,
+      "offsetX":1,
+      "offsetY":1,
+      "binning":"2x2",
+      "framerate":40.0
+    },
+    {
+      "device":"spinnaker",
+      "index":0,
+      "master":true,
+      "name":"flir1",
+      "dtype":"uint16",
+      "height":2000,
+      "width":2000,
+      "offsetX":1,
+      "offsetY":1,
+      "binning":"2x2",
+      "framerate":40.0
+    },
+    {
+      "device":"andor",
+      "index":0,
+      "master":true,
+      "name":"zyla",
       "dtype":"uint16",
       "height":2000,
       "width":2000,

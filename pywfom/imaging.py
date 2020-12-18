@@ -35,9 +35,6 @@ class Test(object):
 
     def __init__(self, settings):
 
-        self.height, self.width = 500,500
-        self.frame = loading_frame(self.height, self.width)
-
         self.ERROR = None
 
         self.set(settings)
@@ -68,8 +65,6 @@ class Test(object):
     def set(self, setting, value=None):
 
         self._stop()
-
-        #self.frame = loading_frame(self.height, self.width)
 
         if type(setting).__name__ == 'dict':
             for k, v in setting.items():
@@ -121,9 +116,9 @@ class Spinnaker(object):
 
     def __init__(self, settings):
         # TODO: Grab images
-        self.height, self.width = 500, 500
 
-        self.frame = loading_frame(self.height, self.width)
+        self.ERROR = None
+
         try:
             print("Importing Spinnaker SDK Libraries...")
             global PySpin
@@ -150,6 +145,7 @@ class Spinnaker(object):
                 Follow the instructions at:\n\nhttps://github.com/ryan-byrne/pywfom/wiki/Cameras:-Spinnaker\n\n"
             else:
                 msg = str(e)
+            self.ERROR = msg
             self.frame = error_frame("({0}) {1}".format(self.name, msg))
             return
 
@@ -188,7 +184,6 @@ class Spinnaker(object):
         elif setting == 'index':
             self.camera = self.system.GetCameras().GetByIndex(value)
             self.camera.Init()
-            input()
             for node in self.camera.GetNodeMap().GetNodes():
                 pit = node.GetPrincipalInterfaceType()
                 name = node.GetName()
@@ -567,7 +562,7 @@ CONVERT = {
 
 DEFAULT = {
     "device":"test",
-    "name":"",
+    "name":"default",
     "index":0,
     "height":700,
     "width":1200,

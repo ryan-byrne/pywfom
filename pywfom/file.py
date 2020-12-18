@@ -5,6 +5,8 @@ class Writer(object):
 
     def __init__(self, config):
 
+        self.ERROR = None
+
         for k, v in config.items():
             self._set(k,v)
 

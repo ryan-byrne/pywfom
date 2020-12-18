@@ -8,12 +8,17 @@ from pywfom import imaging
 from pywfom.control import Arduino, list_ports
 from pywfom.file import Writer
 
+def set_icon(root, name="icon"):
+    photo = tk.PhotoImage(
+        file = os.path.dirname(imaging.__file__)+"/img/{0}.png".format(name)
+    )
+    root.iconphoto(False, photo)
+
 class Main(tk.Frame):
 
     def __init__(self, parent, config):
 
-        # TODO: create option for default json
-        # TODO: better arduino error handling
+        # TODO: Scale to window size
 
         self._startup(config)
 
@@ -25,7 +30,7 @@ class Main(tk.Frame):
         self.root.bind("<Escape>", self.close)
         self.root.title("pywfom")
         self.root.protocol("WM_DELETE_WINDOW", self.close)
-        self.set_icon()
+        set_icon(self.root)
 
 
         # Create Each Side of the Window
@@ -94,7 +99,11 @@ class Main(tk.Frame):
         for i, cam in enumerate(self.cameras):
             self.add_thumnail(cam.name)
 
-        tk.Button()
+        tk.Button(
+            self.right_side,
+            text='Add Camera',
+            command=self._add_camera
+        ).pack(pady=30)
 
     def _create_arduino_widgets(self):
 
@@ -121,7 +130,7 @@ class Main(tk.Frame):
 
         ttk.Combobox(
             port_frm,
-            values=list_ports()
+            values=['hello']
         ).pack(side='left')
 
         tk.Button(
@@ -164,6 +173,11 @@ class Main(tk.Frame):
             command=self._set_dir
         ).pack(side='left')
 
+        tk.Button(
+            file_frame,
+            text="Configure"
+        ).pack(side='left')
+
     def _create_buttons(self):
 
         # Create frame for buttons
@@ -188,19 +202,13 @@ class Main(tk.Frame):
             command=self._load
         ).pack(side='left')
 
-        tk.Button(
+        self.acquire_btn = tk.Button(
             btn_frm,
             text="Acquire",
             command=self.acquire
         ).pack(side='left')
 
         btn_frm.pack()
-
-    def set_icon(self, name="icon"):
-        photo = tk.PhotoImage(
-            file = os.path.dirname(imaging.__file__)+"/img/{0}.png".format(name)
-        )
-        self.root.iconphoto(False, photo)
 
     def add_thumnail(self, name):
         self.thumbnails.append(tk.Label(self.thumbnails_frame))
@@ -221,21 +229,25 @@ class Main(tk.Frame):
 
     def _draw_main_image(self):
 
-        # Draw main image
-        cam = self.cameras[self.selected_frame]
-        image = self.convert_frame(cam.frame, (800,1000), True)
+        if len(self.cameras) == 0:
+            frame = imaging.error_frame("No Cameras Configured")
+            image = self.convert_frame(frame, (800,1000), True)
+        else:
+            # Draw main image
+            cam = self.cameras[self.selected_frame]
+            image = self.convert_frame(cam.frame, (800,1000), True)
 
-        h, w, fr = cam.height, cam.width, cam.framerate
+            h, w, fr = cam.height, cam.width, cam.framerate
 
-        self.main_lbl.config(
-            text="{0} ({1}): {2}x{3}, {4} fps".format(
-                cam.name,
-                cam.device.title(),
-                w,
-                h,
-                round(fr,2)
+            self.main_lbl.config(
+                text="{0} ({1}): {2}x{3}, {4} fps".format(
+                    cam.name,
+                    cam.device.title(),
+                    w,
+                    h,
+                    round(fr,2)
+                )
             )
-        )
 
         self.canvas.config(height=image.height(), width=image.width())
         self.canvas.create_image(0,0,image=image,anchor="nw")
@@ -248,6 +260,9 @@ class Main(tk.Frame):
 
     def _draw_thumnails(self):
         # Draw thumnails
+        if len(self.cameras) == 0:
+            return
+
         thumbnail_size = (600/len(self.cameras), 150)
 
         for i, cam in enumerate(self.cameras):
@@ -304,34 +319,55 @@ class Main(tk.Frame):
         self._shutdown()
         self._startup(config)
 
-    def configure(self):
-        self.set_icon("configure")
-        Config(self, self.root)
+    def _add_camera(self):
+
+        cam = imaging.DEVICES['test'](imaging.DEFAULT)
+
+        self.cameras.append(cam)
+
+        self.add_thumnail(cam.name)
+
+        self.selected_frame = len(self.cameras)-1
+        CameraConfig(self, self.root)
 
     def edit_camera(self, i=None):
 
         if i:
             self.selected_frame = i
 
-        self.set_icon("configure")
+        set_icon(self.root, "configure")
         CameraConfig(self, self.root)
 
     def delete_camera(self, i=None):
-
-        print('deleting camera {0}'.format(i))
 
         if i:
             self.selected_frame = i
 
         self.cameras.pop(self.selected_frame).close()
-        self.parent.thumbnails.pop(idx).grid_forget()
-        self.parent.thumbnail_labels.pop(idx).grid_forget()
+        self.thumbnails.pop(self.selected_frame).pack_forget()
+        self.thumbnail_labels.pop(self.selected_frame).pack_forget()
         self.selected_frame = 0
 
     def _config_arduino(self):
         ArduinoConfig(self, self.root)
 
     def acquire(self):
+
+        for cam in self.cameras:
+            if cam.ERROR:
+                tk.messagebox.showerror(
+                    'Camera Error',
+                    message=cam.ERROR
+                )
+                return
+
+        if self.arduino.ERROR or self.file.ERROR:
+            tk.messagebox.showerror(
+                'Arduino Error',
+                message=self.arduino.ERROR
+            )
+            return
+
 
         result = tk.messagebox.askyesno("pywfom", message="Start acquistion?")
 
@@ -436,98 +472,78 @@ class Main(tk.Frame):
 
 class Config(tk.Frame):
 
-    # TODO: Edit to have a different screen configuration
+    # TODO: Build out
 
-    def __init__(self, parent=None, master=None):
+    def __init__(self, config, parent):
 
-        super().__init__(master = master)
+        # General Application Settings
+        self.root = parent
+        self.root.resizable(width=False, height=False)
+        self.root.bind("<Escape>", self._close)
+        self.root.title("WFOM Configuration")
+        self.root.protocol("WM_DELETE_WINDOW", self._close)
+        set_icon(self.root, 'configure')
 
-        self.parent = parent
+        self._startup(config)
 
-        self.focus_force()
+        self._create_widgets()
 
-        self._create_camera_widgets()
-        self._create_arduino_widgets()
+    def _startup(self, config):
 
-    def _create_camera_widgets(self):
+        # Initiate each component's Class
+        self.cameras = [
+            imaging.DEVICES[cfg['device']](cfg) for cfg in config["cameras"]
+        ]
+        self.arduino = Arduino(config["arduino"])
+        self.file = Writer(config=config["file"])
 
-        camera_frame = tk.Frame(self)
+    def _create_widgets(self):
 
-        tk.Label(
-            camera_frame,
-            text="Camera Settings:"
-        ).grid(row=0, column=0, columnspan=3)
+        tk.Label(self.root, text='Cameras').grid(row=0, column=0, columnspan=5)
 
-        for i, cam in enumerate(self.parent.cameras):
+        tk.Label(self.root, text='Name').grid(row=1, column=0)
+        tk.Label(self.root, text='Type').grid(row=1, column=1)
+        tk.Label(self.root, text='Status').grid(row=1, column=2)
 
-            tk.Label(
-                camera_frame,
-                text="{0} ({1})".format(cam.name, cam.device)
-            ).grid(row=i+1, column=0)
+        for i, cam in enumerate(self.cameras):
+            tk.Label(self.root, text=cam.name).grid(row=i+2, column=0)
+            tk.Label(self.root, text=cam.device).grid(row=i+2, column=1)
+            status = 'Ready' if not cam.ERROR else "ERROR"
+            lbl = tk.Label(self.root, text=status)
+            self.msg = tk.Label(self.root)
+            if cam.ERROR:
+                lbl.bind('<Enter>', lambda event, msg=status:self._show_msg(event, msg))
+            lbl.grid(row=i+2, column=2)
 
-            tk.Button(
-                camera_frame,
-                text='Edit',
-                command=lambda i=i:self.parent.edit_camera(i)
-            ).grid(row=i+1,column=1)
+        tk.Label(self.root, text='Arduino').grid(row=0, column=5, columnspan=2)
+        tk.Label(self.root, text='Status: ').grid(row=1, column=5)
+        status = 'Ready' if not self.arduino.ERROR else "ERROR"
+        lbl = tk.Label(self.root, text=status)
+        if self.arduino.ERROR:
+            lbl.bind('<Enter>', lambda event, msg=status:self._show_msg(event, msg))
+        lbl.grid(row=1, column=6)
 
-            tk.Button(
-                camera_frame,
-                text='Remove',
-                command=lambda i=i:self.parent.delete_camera(i)
-            ).grid(row=i+1,column=2)
-
-        camera_frame.pack()
-
-    def _create_arduino_widgets(self):
-
-        arduino_frame = tk.Frame(self)
-
-        tk.Label(
-            arduino_frame,
-            text="Arduino Settings: "
-        ).grid(row=0, column=0, columnspan=4)
-
-
-        tk.Label(
-            arduino_frame,
-            text="Stim"
-        ).grid(row=1, column=0)
+        tk.Label(self.root, text='File').grid(row=0, column=5, columnspan=2)
 
 
-        """
-        for i, stim in enumerate(self.parent.arduino.stim):
+    def _show_msg(self, event, msg):
+        # TODO: Add error popup
+        print(event.__dict__)
 
-            tk.Label(
-                arduino_frame,
-                text="{0} ({1})".format(stim['name'], stim['type']),
-            ).grid(row=i+2, column=1)
-
-            tk.Button(
-                arduino_frame,
-                text="Edit",
-                command=lambda i=i:self.parent.edit_stim(i)
-            ).grid(row=i+2, column=2)
-
-            tk.Button(
-                arduino_frame,
-                text="Remove",
-                command=lambda i=i:self.parent.remove_stim(i)
-            ).grid(row=i+2, column=3)
-        """
-
-        arduino_frame.pack()
-
-    def _create_file_widgets(self):
-        file_frame = tk.Frame(self)
-
-    def _edit_stim(self, i):
-        # TODO: Populate
+    def _hide_msg(self, event):
         pass
 
-    def _remove_stim(self, i):
-        # TODO: Populate
+    def _camera_config(self):
         pass
+
+    def _arduino_config(self):
+        pass
+
+    def _close(self, event=None):
+        self.arduino.close()
+        self.file.close()
+        [cam.close() for cam in self.cameras]
+        self.root.destroy()
 
 class CameraConfig(tk.Toplevel):
 
@@ -539,7 +555,7 @@ class CameraConfig(tk.Toplevel):
         self.root = parent.root
         self.reset = self.camera.__dict__.copy()
         self.parent = parent
-        self.parent.set_icon('configure')
+        set_icon(self.root, 'configure')
 
         self.title("({0}) Settings".format(self.camera.name))
 
@@ -547,52 +563,53 @@ class CameraConfig(tk.Toplevel):
 
     def _create_widgets(self):
 
+        setting_frm = tk.Frame(self)
+        setting_frm.pack()
+
         for i, (k, v) in enumerate(self.camera.__dict__.items()):
 
             if k[0] == '_' or k not in imaging.DEFAULT:
                 continue
 
-            bin = tk.Frame(self)
+            v = str(v)
 
-            lbl = tk.Label(bin, text=k.title(), justify='left')
-
+            lbl = tk.Label(setting_frm, text=k.title(), width=len(k))
+            lbl.grid(row=i, column=0, sticky='E', pady=5)
 
             if k in imaging.OPTIONS:
                 entry = ttk.Combobox(
-                    bin,
-                    width=7,
-                    values=imaging.OPTIONS[k],
-                    justify='center'
+                    setting_frm,
+                    width=len(v),
+                    values=imaging.OPTIONS[k]
                 )
+                entry.insert(0, v)
+                entry.config(state='readonly')
             elif k in ["framerate", 'name']:
                 entry = tk.Entry(
-                    bin,
-                    width=10,
-                    justify='center'
+                    setting_frm,
+                    width=len(v)
                 )
+                entry.insert(0, v)
             else:
                 entry = tk.Spinbox(
-                    bin,
-                    width=5,
-                    justify='center',
+                    setting_frm,
+                    width=len(v),
                     from_= self.camera.get_min(k),
                     to = self.camera.get_max(k)
                 )
+                entry.delete(0, 'end')
+                entry.insert(0, v)
                 entry.bind('<Button-1>', lambda event, k=k:self._callback(event,k))
 
-            entry.delete(0,'end')
-            entry.insert(0, str(v))
-
-            bin.pack()
-            lbl.pack(side='left',anchor=tk.W)
-            entry.pack(side='left', anchor=tk.E)
+            entry.grid(row=i, column=1, sticky='W', pady=5)
             entry.bind('<FocusOut>', lambda event, k=k:self._callback(event,k))
 
-        bin = tk.Frame(self)
-        bin.pack(pady=10)
-        reset_btn = tk.Button(bin, text='Reset', command=self._reset)
+        button_frm = tk.Frame(self)
+        button_frm.pack(pady=10)
+
+        reset_btn = tk.Button(button_frm, text='Reset', command=self._reset)
         reset_btn.pack(side='left', padx=10)
-        done_btn = tk.Button(bin, text='Done', command=self._close)
+        done_btn = tk.Button(button_frm, text='Done', command=self._close)
         done_btn.pack(side='left')
 
     def _callback(self, event, setting):
@@ -605,7 +622,10 @@ class CameraConfig(tk.Toplevel):
             _settings['device'] = event.widget.get()
 
             self.parent.cameras[self.parent.selected_frame].close()
+
             self.parent.cameras[self.parent.selected_frame] = imaging.DEVICES[event.widget.get()](_settings)
+
+            self.camera = self.parent.cameras[self.parent.selected_frame]
 
         else:
             self.camera.set(setting, imaging.TYPES[setting](event.widget.get()))
@@ -619,7 +639,7 @@ class CameraConfig(tk.Toplevel):
         self.parent.cameras[self.parent.selected_frame] = imaging.DEVICES[_settings['device']](_settings)
 
     def _close(self):
-        self.parent.set_icon('icon')
+        set_icon(self.root, 'icon')
         self.destroy()
 
 class ArduinoConfig(tk.Toplevel):
@@ -632,7 +652,7 @@ class ArduinoConfig(tk.Toplevel):
         self.root = self.parent.root
         self.arduino = parent.arduino
         self.reset = self.arduino.__dict__.copy()
-        self.parent.set_icon('configure')
+        set_icon(self.root, 'configure')
         self.title("Arduino Settings")
 
         self._create_strobe_widgets()
@@ -745,7 +765,12 @@ class FileConfig(tk.Toplevel):
 
         super().__init__(master = master)
 
-        self.reset = camera.__dict__.copy()
+        self.parent = parent
+        self.root = self.parent.root
+        self.file = parent.file
+        self.reset = self.file.__dict__.copy()
+        set_icon(self.root, 'configure')
+        self.title("Arduino Settings")
 
 class LedConfig(tk.Toplevel):
 
