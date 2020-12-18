@@ -52,10 +52,10 @@
   },
   "cameras": [
     {
-      "device":"test",
+      "device":"andor",
       "index":0,
       "master":true,
-      "name":"default",
+      "name":"zyla",
       "dtype":"uint16",
       "height":2000,
       "width":2000,
@@ -67,7 +67,7 @@
     {
       "device":"spinnaker",
       "index":0,
-      "master":true,
+      "master":false,
       "name":"flir1",
       "dtype":"uint16",
       "height":2000,
@@ -78,10 +78,10 @@
       "framerate":40.0
     },
     {
-      "device":"andor",
-      "index":0,
-      "master":true,
-      "name":"zyla",
+      "device":"spinnaker",
+      "index":1,
+      "master":false,
+      "name":"flir1",
       "dtype":"uint16",
       "height":2000,
       "width":2000,

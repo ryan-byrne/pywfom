@@ -14,13 +14,89 @@ def set_icon(root, name="icon"):
     )
     root.iconphoto(False, photo)
 
+def _config_arduino(frame):
+    ArduinoConfig(frame, frame.root)
+
+def _set_dir(parent):
+    parent.file.directory = tk.filedialog.askdirectory()
+
+def edit_camera(frame, i=None):
+
+    if i:
+        frame.selected_frame = i
+
+    set_icon(frame.root, "configure")
+    CameraConfig(frame, frame.root)
+
+def delete_camera(frame, i=None):
+
+    if i:
+        frame.selected_frame = i
+
+    frame.cameras.pop(frame.selected_frame).close()
+    frame.thumbnails.pop(frame.selected_frame).pack_forget()
+    frame.thumbnail_labels.pop(frame.selected_frame).pack_forget()
+    frame.selected_frame = 0
+
+def _load(frame):
+
+    f = filedialog.askopenfile(parent=frame.root)
+
+    if not f:
+        return
+
+    config = json.load(f)
+    f.close()
+
+    frame._shutdown()
+    frame._startup(config)
+
+def _save(frame):
+
+    _cameras = []
+
+    for cam in frame.cameras:
+
+        _camera_settings = {}
+
+        for setting in imaging.DEFAULT:
+            _camera_settings[setting] = cam.get(setting)
+
+        _cameras.append(_camera_settings)
+
+
+    _config = {
+        'file':frame.file.__dict__,
+        'arduino':frame.arduino.__dict__,
+        'cameras':_cameras
+    }
+
+    fname = filedialog.asksaveasfile(mode="w", parent=frame.root, defaultextension=".json")
+
+    if fname is None:
+        return
+    else:
+        json.dump(_config, fname)
+        fname.close()
+
+def _startup(config):
+    # Initiate each component's Class
+    c = [
+        imaging.DEVICES[cfg['device']](cfg) for cfg in config["cameras"]
+    ]
+    a = Arduino(config["arduino"])
+    f = Writer(config=config["file"])
+
+    return c, a, f
+
+
 class Main(tk.Frame):
 
     def __init__(self, parent, config):
 
         # TODO: Scale to window size
 
-        self._startup(config)
+        self.cameras, self.arduino, self.file = _startup(config)
 
         print("Opening Viewing Frame...")
 
@@ -75,11 +151,13 @@ class Main(tk.Frame):
 
         tk.Button(  _sub_canvas,
                     text='Edit',
-                    command=self.edit_camera).pack(side='left')
+                    command=lambda frm=self:edit_camera(frm)
+        ).pack(side='left')
 
         tk.Button(  _sub_canvas,
                     text='Remove',
-                    command=self.delete_camera).pack(side='left')
+                    command=lambda frm=self:delete_camera(frm)
+        ).pack(side='left')
 
         # Set Canvas bindings
         self.canvas.bind("<Button-1>", self.set_aoi_start)
@@ -141,7 +219,7 @@ class Main(tk.Frame):
         tk.Button(
             port_frm,
             text="Configure",
-            command=self._config_arduino
+            command=lambda frm=self:_config_arduino(frm)
         ).pack(side='left')
 
         self.arduino_status = tk.Label(arduino_frm)
@@ -170,7 +248,7 @@ class Main(tk.Frame):
         tk.Button(
             file_frame,
             text="Browse",
-            command=self._set_dir
+            command=lambda frm=self:_set_dir(self)
         ).pack(side='left')
 
         tk.Button(
@@ -193,13 +271,13 @@ class Main(tk.Frame):
         tk.Button(
             btn_frm,
             text="Save",
-            command=self._save
+            command=lambda frm=self:_save(self)
         ).pack(side='left')
 
         tk.Button(
             btn_frm,
             text="Load",
-            command=self._load
+            command=lambda frm=self:_load(self)
         ).pack(side='left')
 
         self.acquire_btn = tk.Button(
@@ -275,50 +353,6 @@ class Main(tk.Frame):
 
         self.thumbnails[self.selected_frame].config(borderwidth=10,relief="ridge", bg="green")
 
-    def _set_dir(self):
-        self.file.directory = tk.filedialog.askdirectory()
-
-    def _save(self):
-
-        _cameras = []
-
-        for cam in self.cameras:
-
-            _camera_settings = {}
-
-            for setting in imaging.DEFAULT:
-                _camera_settings[setting] = cam.get(setting)
-
-            _cameras.append(_camera_settings)
-
-
-        _config = {
-            'file':self.file.__dict__,
-            'arduino':self.arduino.__dict__,
-            'cameras':_cameras
-        }
-
-        fname = filedialog.asksaveasfile(mode="w", parent=self.root, defaultextension=".json")
-
-        if fname is None:
-            return
-        else:
-            json.dump(_config, fname)
-            fname.close()
-
-    def _load(self):
-
-        f = filedialog.askopenfile(parent=self.root)
-
-        if not f:
-            return
-
-        config = json.load(f)
-        f.close()
-
-        self._shutdown()
-        self._startup(config)
-
     def _add_camera(self):
 
         cam = imaging.DEVICES['test'](imaging.DEFAULT)
@@ -329,28 +363,7 @@ class Main(tk.Frame):
 
         self.selected_frame = len(self.cameras)-1
         CameraConfig(self, self.root)
-
-    def edit_camera(self, i=None):
-
-        if i:
-            self.selected_frame = i
-
-        set_icon(self.root, "configure")
-        CameraConfig(self, self.root)
-
-    def delete_camera(self, i=None):
-
-        if i:
-            self.selected_frame = i
-
-        self.cameras.pop(self.selected_frame).close()
-        self.thumbnails.pop(self.selected_frame).pack_forget()
-        self.thumbnail_labels.pop(self.selected_frame).pack_forget()
-        self.selected_frame = 0
-
-    def _config_arduino(self):
-        ArduinoConfig(self, self.root)
-
+        
     def acquire(self):
 
         for cam in self.cameras:
@@ -381,14 +394,6 @@ class Main(tk.Frame):
         [cam.close() for cam in self.cameras]
         self.arduino.close()
         self.file.close()
-
-    def _startup(self, config):
-        # Initiate each component's Class
-        self.cameras = [
-            imaging.DEVICES[cfg['device']](cfg) for cfg in config["cameras"]
-        ]
-        self.arduino = Arduino(config["arduino"])
-        self.file = Writer(config=config["file"])
 
     def close(self):
         self._shutdown()
@@ -499,38 +504,44 @@ class Config(tk.Frame):
 
     def _create_widgets(self):
 
-        tk.Label(self.root, text='Cameras').grid(row=0, column=0, columnspan=5)
+        tk.Label(self.root, text='File').grid(row=0, column=0, columnspan=3)
+        tk.Label(self.root)
 
-        tk.Label(self.root, text='Name').grid(row=1, column=0)
-        tk.Label(self.root, text='Type').grid(row=1, column=1)
-        tk.Label(self.root, text='Status').grid(row=1, column=2)
+        tk.Label(self.root, text='Arduino').grid(row=0, column=8, columnspan=2)
+        tk.Label(self.root, text='Status: ').grid(row=1, column=8)
+        status = 'Ready' if not self.arduino.ERROR else "ERROR"
+        lbl = tk.Label(self.root, text=status)
+        if self.arduino.ERROR:
+            lbl.bind('<Enter>', lambda event, msg=status:self._show_msg(event, msg))
+        lbl.grid(row=1, column=9)
+
+
+        tk.Label(self.root, text='Cameras').grid(row=0, column=3, columnspan=4)
+
+        tk.Label(self.root, text='Name').grid(row=1, column=3)
+        tk.Label(self.root, text='Type').grid(row=1, column=4)
+        tk.Label(self.root, text='Status').grid(row=1, column=5)
 
         for i, cam in enumerate(self.cameras):
-            tk.Label(self.root, text=cam.name).grid(row=i+2, column=0)
-            tk.Label(self.root, text=cam.device).grid(row=i+2, column=1)
+            tk.Label(self.root, text=cam.name).grid(row=i+2, column=3)
+            tk.Label(self.root, text=cam.device).grid(row=i+2, column=4)
             status = 'Ready' if not cam.ERROR else "ERROR"
             lbl = tk.Label(self.root, text=status)
             self.msg = tk.Label(self.root)
             if cam.ERROR:
                 lbl.bind('<Enter>', lambda event, msg=status:self._show_msg(event, msg))
-            lbl.grid(row=i+2, column=2)
-
-        tk.Label(self.root, text='Arduino').grid(row=0, column=5, columnspan=2)
-        tk.Label(self.root, text='Status: ').grid(row=1, column=5)
-        status = 'Ready' if not self.arduino.ERROR else "ERROR"
-        lbl = tk.Label(self.root, text=status)
-        if self.arduino.ERROR:
-            lbl.bind('<Enter>', lambda event, msg=status:self._show_msg(event, msg))
-        lbl.grid(row=1, column=6)
-
-        tk.Label(self.root, text='File').grid(row=0, column=5, columnspan=2)
-
+            lbl.grid(row=i+2, column=5)
+            tk.Button(  self.root,
+                        text='Remove').grid(row=i+2, column=6)
+            tk.Button(  self.root,
+                        text='Edit').grid(row=i+2, column=7)
 
     def _show_msg(self, event, msg):
         # TODO: Add error popup
         print(event.__dict__)
 
     def _hide_msg(self, event):
+        # TODO: Remove error popup
         pass
 
     def _camera_config(self):
@@ -547,11 +558,15 @@ class Config(tk.Frame):
 
 class CameraConfig(tk.Toplevel):
 
-    def __init__(self, parent=None, master=None):
+    def __init__(self, parent=None, master=None, camera=None):
 
         super().__init__(master = master)
 
-        self.camera = parent.cameras[parent.selected_frame]
+        if not camera:
+            self.camera = parent.cameras[parent.selected_frame]
+        else:
+            self.camera = camera
+
         self.root = parent.root
         self.reset = self.camera.__dict__.copy()
         self.parent = parent

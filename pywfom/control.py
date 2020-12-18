@@ -80,7 +80,6 @@ class Arduino():
 
     def _set_leds(self, leds):
         """ Set led pin strobe array (i.e. p6p7p8p) """
-
         msg = "p"
         for led in self.strobing['leds']:
             msg += "{0}p".format(led['pin'])

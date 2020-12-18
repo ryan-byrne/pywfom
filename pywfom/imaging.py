@@ -37,6 +37,8 @@ class Test(object):
 
         self.ERROR = None
 
+        self.frame = loading_frame(500,500)
+
         self.set(settings)
 
         threading.Thread(target=update_frame, args=(self,)).start()
