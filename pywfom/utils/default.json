@@ -1,0 +1,52 @@
+{
+  "file":{
+    "user":"rjb2202",
+    "mouse":"cm100",
+    "directory":"/Users/rbyrne/projects/pywfom/data",
+    "runs": 1,
+    "run_length": 5.0
+  },
+  "arduino": {
+    "port": "COM4",
+    "data_acquisition":[
+    ],
+    "strobing": {
+      "leds":[
+        {
+          "name":"blue",
+          "pin":7
+        },
+        {
+          "name":"green",
+          "pin":8
+        },
+        {
+          "name":"red",
+          "pin":10
+        },
+        {
+          "name":"orange",
+          "pin":12
+        }
+      ],
+      "trigger":5
+    },
+    "stim": [
+    ]
+  },
+  "cameras": [
+    {
+      "device":"test",
+      "index":0,
+      "master":true,
+      "name":"defaultCamera",
+      "dtype":"uint16",
+      "height":2000,
+      "width":2000,
+      "offsetX":1,
+      "offsetY":1,
+      "binning":"1x1",
+      "framerate":40.0
+    }
+  ]
+}

@@ -23,7 +23,8 @@ setup(
     entry_points={
         'console_scripts':[
             'wfom = pywfom.scripts:run',
-            'wfom-configure = pywfom.scripts:configure'
+            'wfom-configure = pywfom.scripts:configure',
+            'wfom-quickstart = pywfom.quickstart:main'
         ] },
     long_description=long_description,
     long_description_content_type='text/markdown',

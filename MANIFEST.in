@@ -1,2 +1,1 @@
-include pywfom/img/*
-include config.json
+recursive-include pywfom *
