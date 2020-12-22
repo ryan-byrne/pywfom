@@ -89,7 +89,6 @@ def _startup(config):
 
     return c, a, f
 
-
 class Main(tk.Frame):
 
     def __init__(self, parent, config):
@@ -462,7 +461,7 @@ class Main(tk.Frame):
     def convert_frame(self, frame, max_size, main):
 
         if frame.dtype == "uint16":
-            frame = np.sqrt(frame).astype(np.uint8)
+            frame = frame.astype(np.uint8)
         else:
             pass
 
@@ -488,7 +487,7 @@ class Config(tk.Frame):
 
     # TODO: Build out
 
-    def __init__(self, config, parent):
+    def __init__(self, parent, config):
 
         # General Application Settings
         self.root = parent
@@ -497,33 +496,60 @@ class Config(tk.Frame):
         self.root.title("WFOM Configuration")
         self.root.protocol("WM_DELETE_WINDOW", self._close)
         set_icon(self.root, 'configure')
-
-        self._startup(config)
-
-        self._create_widgets()
-
-    def _startup(self, config):
-
         # Initiate each component's Class
+        self.file = Writer(config=config["file"])
+        self._create_file_widgets()
+        self.arduino = Arduino(config["arduino"])
+        self._create_arduino_widgets()
         self.cameras = [
             imaging.DEVICES[cfg['device']](cfg) for cfg in config["cameras"]
         ]
-        self.arduino = Arduino(config["arduino"])
-        self.file = Writer(config=config["file"])
+        self._create_camera_widgets()
 
-    def _create_widgets(self):
-
+    def _create_file_widgets(self):
         tk.Label(self.root, text='File').grid(row=0, column=0, columnspan=3)
-        tk.Label(self.root)
+        for i, setting in enumerate(self.file.__dict__):
+            if setting == 'ERROR':
+                continue
+            elif setting == 'directory':
+                tk.Label(self.root, text=setting.title()).grid(row=i, column=0)
+                self.path = tk.Label(self.root)
+                self.path.grid(row=i, column=1)
+                tk.Button(self.root,text='Browse').grid(row=i, column=2)
+            else:
+                tk.Label(self.root,text=setting.title()).grid(row=i,column=0)
+                tk.Entry(self.root).grid(row=i,column=1)
 
+    def _create_arduino_widgets(self):
         tk.Label(self.root, text='Arduino').grid(row=0, column=8, columnspan=2)
-        tk.Label(self.root, text='Status: ').grid(row=1, column=8)
+
+        tk.Label(
+            self.root,
+            text="Port: "
+        ).grid(row=1, column=8)
+
+        self.ports = ttk.Combobox(
+            self.root
+        )
+        self.ports.insert(0,"Current Port ({0})".format(self.arduino.port))
+        self.ports.config(state='readonly')
+        self.ports.bind('<Button-1>', self._port_combo_select)
+        self.ports.bind("<<ComboboxSelected>>", self._port_combo_update)
+        self.ports.grid(row=1, column=9)
+
+        tk.Button(  self.root,
+                    text='Configure',
+                    command=lambda frm=self:_config_arduino(frm)
+        ).grid(row=2, column=8, columnspan=2)
+
+        tk.Label(self.root, text='Status: ').grid(row=3, column=8)
         status = 'Ready' if not self.arduino.ERROR else "ERROR"
         lbl = tk.Label(self.root, text=status)
         if self.arduino.ERROR:
             lbl.bind('<Enter>', lambda event, msg=status:self._show_msg(event, msg))
-        lbl.grid(row=1, column=9)
+        lbl.grid(row=4, column=9)
 
+    def _create_camera_widgets(self):
         tk.Label(self.root, text='Cameras').grid(row=0, column=3, columnspan=4)
 
         tk.Label(self.root, text='Name').grid(row=1, column=3)
@@ -543,6 +569,32 @@ class Config(tk.Frame):
                         text='Remove').grid(row=i+2, column=6)
             tk.Button(  self.root,
                         text='Edit').grid(row=i+2, column=7)
+
+    def _port_combo_select(self, event):
+
+        self.ports.config(values=['Loading Ports...'])
+
+        ports = list_ports()
+
+        if len(ports) == 0:
+            ports = ['No ports found']
+
+        ports = ["{0} - {1}".format(p.device, p.description) for p in ports]
+
+        self.ports.config(values=ports)
+
+    def _port_combo_update(self, event):
+
+        port = ''
+        for let in event.widget.get():
+
+            if let == '-':
+                break
+            else:
+                port += let
+
+
+        self.arduino.set('port', port[:-1])
 
     def _show_msg(self, event, msg):
         # TODO: Add error popup
@@ -705,12 +757,15 @@ class ArduinoConfig(tk.Toplevel):
             text='Trigger'
         ).grid(row=1, column=0)
 
-        tk.Spinbox(
+        trig = tk.Spinbox(
             strobe_frm,
             from_=0,
             to=40,
             width=2
-        ).grid(row=1, column=1)
+        )
+        trig.grid(row=1, column=1)
+        trig.delete(0, 'end')
+        trig.insert(0, self.arduino.strobing['trigger'])
 
         tk.Button(
             strobe_frm,
@@ -719,22 +774,33 @@ class ArduinoConfig(tk.Toplevel):
 
         for i, led in enumerate(self.arduino.strobing['leds']):
 
-            tk.Label(
+            name = tk.Entry(
                 strobe_frm,
-                text=led['name']
-            ).grid(row=i+2, column=0)
+                width=7
+            )
+            name.grid(row=i+2, column=0)
+            name.insert(0, led['name'])
 
-            tk.Spinbox(
+            pin = tk.Spinbox(
                 strobe_frm,
                 from_=0,
                 to=40,
                 width=2
-            ).grid(row=i+2, column=1)
+            )
+            pin.grid(row=i+2, column=1)
+            pin.delete(0, 'end')
+            pin.insert(0, led['pin'])
 
             tk.Button(
                 strobe_frm,
                 text='Test'
             ).grid(row=i+2, column=2)
+
+        tk.Button(
+            strobe_frm,
+            text='Add LED',
+            command=self._add_led
+        ).grid(row=i+3, column=0, columnspan=3)
 
     def _create_stim_widgets(self):
 
@@ -767,6 +833,12 @@ class ArduinoConfig(tk.Toplevel):
                 text = 'Test'
             ).grid(row=i+1, column=3)
 
+        tk.Button(
+            stim_frm,
+            text='Add Stim',
+            command=self._add_stim
+        ).grid(row=i+2, column=0, columnspan=4)
+
     def _create_daq_widgets(self):
 
         daq_frm = tk.Frame(self)
@@ -790,6 +862,21 @@ class ArduinoConfig(tk.Toplevel):
                 to=40,
                 width=2
             ).grid(row=i+1, column=1)
+
+        tk.Button(
+            daq_frm,
+            text='Add DAQ',
+            command=self._add_daq
+        ).grid(row=i+2, column=0, columnspan=2)
+
+    def _add_led(self):
+        pass
+
+    def _add_stim(self):
+        pass
+
+    def _add_daq(self):
+        pass
 
 class FileConfig(tk.Toplevel):
 

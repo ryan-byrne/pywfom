@@ -1,17 +1,31 @@
 int incomingByte;
-int trigPin;
-int ledPins[10];
-int numLeds = 0;
+int trigPin = 2;
+int ledPins[4] = {7,8,10,12};
+int numLeds = 4;
 int currentLed = 0;
 int stimPins[10];
 String msg;
 boolean strobing = false;
+String ledNames[4] = {
+  "blue",
+  "green",
+  "red",
+  "orange"
+};
 
 void setup() {
+  // ******
+  pinMode(trigPin, INPUT);
+  for (int i=0; i<4; i++){
+    pinMode(ledPins[i], OUTPUT);
+  }
+  // ******
   Serial.begin(115200);
   while (!Serial) {
     ;
   }
+  pinMode(10, OUTPUT);
+  pinMode(2, INPUT);
 }
 
 void loop() {
@@ -29,7 +43,7 @@ void loop() {
       else{
         msg += char(c);
       }
-      delay(1);
+      delay(10);
     }
     // Deciphering message from serial port
     switch (msg.charAt(0)) {
@@ -60,23 +74,22 @@ void loop() {
         break;
     }
   }
-  if (digitalRead(trigPin)){
-    digitalWrite(7, HIGH);
-  }
-  else{
-    digitalWrite(7, LOW);
+  Serial.flush();
+  if (strobing){
+    while(digitalRead(trigPin)){}
+    nextLed();
+    while(!digitalRead(trigPin)){} 
   }
   
 }
 
-void strobe(){
+void nextLed(){
   digitalWrite(ledPins[currentLed], LOW);
   currentLed++;
 
-  if (currentLed > numLeds){
+  if (currentLed > numLeds-1){
     currentLed = 0;
   }
-
   digitalWrite(ledPins[currentLed], HIGH);
 
 }

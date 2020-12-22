@@ -33,7 +33,7 @@
           "pin":12
         }
       ],
-      "trigger":5
+      "trigger":2
     },
     "stim": [
       {
@@ -61,33 +61,7 @@
       "offsetX":1,
       "offsetY":1,
       "binning":"2x2",
-      "framerate":40.0
-    },
-    {
-      "device":"spinnaker",
-      "index":0,
-      "master":false,
-      "name":"flir1",
-      "dtype":"uint16",
-      "height":2000,
-      "width":2000,
-      "offsetX":1,
-      "offsetY":1,
-      "binning":"2x2",
-      "framerate":40.0
-    },
-    {
-      "device":"spinnaker",
-      "index":1,
-      "master":false,
-      "name":"flir1",
-      "dtype":"uint16",
-      "height":2000,
-      "width":2000,
-      "offsetX":1,
-      "offsetY":1,
-      "binning":"2x2",
-      "framerate":40.0
+      "framerate":10.0
     }
   ]
 }

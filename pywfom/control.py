@@ -1,31 +1,8 @@
 import serial, os, time, sys, glob
+import serial.tools.list_ports
 
 def list_ports():
-
-    if sys.platform.startswith('win'):
-        _ports = ['COM%s' % (i + 1) for i in range(256)]
-    elif sys.platform.startswith('linux'):
-        _ports = glob.glob('/dev/tty[A-Za-z]*')
-    elif sys.platform.startswith('darwin'):
-        _ports = glob.glob('/dev/tty.*')
-    else:
-        raise EnvironmentError('Unsupported platform')
-
-    _available = []
-
-    for port in _ports:
-
-        if "Bluetooth" in port:
-            continue
-
-        try:
-            s = serial.Serial(port=port)
-            _available.append(port)
-            s.close()
-        except serial.SerialException:
-            continue
-
-    return _available
+    return serial.tools.list_ports.comports()
 
 class ArduinoError(Exception):
     pass
@@ -73,36 +50,43 @@ class Arduino():
             self._set_trigger()
 
         elif setting == "stim":
-            # TODO: Set stim
-            for stim in value['stim']:
+
+            for stim in value:
                 # Send command for setting stim pins (i.e. s5s6s)
                 pass
 
-    def _set_leds(self, leds):
+    def _set_leds(self):
         """ Set led pin strobe array (i.e. p6p7p8p) """
         msg = "p"
         for led in self.strobing['leds']:
+            print('setting led: {0}'.format(led['pin']))
             msg += "{0}p".format(led['pin'])
         self.ser.write(msg.encode())
+        time.sleep(0.1)
 
     def _set_trigger(self):
         """ Send command for setting trigger pin (i.e. t3) """
-        self.ser.write("t{0}".format(self.strobing['trigger']['pin']).encode())
+        pin = self.strobing['trigger']
+        print('setting trigger to: {0}'.format(pin))
+        self.ser.write("t{0}".format(pin).encode())
+        time.sleep(0.1)
 
     def toggle_led(self, pin):
         """ Turn on a specified LED """
         self.ser.write("T{0}".format(pin).encode())
+        time.sleep(0.1)
 
     def toggle_strobing(self):
         """ Toggles strobing on the connected LEDs"""
         self.ser.write("S".encode())
+        time.sleep(0.1)
+
 
     def connect_to_arduino(self, port):
         """ Connect to an Arduino at a specified COM Port"""
         try:
             print("Attempting to connect to Arduino at " + port)
             self.ser = serial.Serial(port=port , baudrate=115200)
-            time.sleep(2)
             print("Successfully connected to Arduino at {0}".format(port))
             self.port = port
         except serial.serialutil.SerialException as e:

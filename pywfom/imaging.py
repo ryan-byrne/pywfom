@@ -251,82 +251,83 @@ class Andor(object):
 
     def __init__(self, settings, test=False):
 
-        # TODO: Add binning
         # TODO: Add Mono12 Support
-        # TODO: fix stride
+        # TODO: Fix dark picture problem
+        # TODO: Set AOI
 
-        self.height, self.width = 500, 500
+        self.ERROR, self._handle = None, None
 
-        self.frame = loading_frame(self.height, self.width)
-
+        global andor
         try:
-            global andor
+
             from pywfom.utils import andor
-            self._buffers = queue.Queue()
             self.set(settings)
-            print("({0}) Successfully Initialized Andor:{1}".format(self.name, self.get("SerialNumber")))
-            self.ERROR = None
+
         except Exception as e:
-            for k,v in settings.items():
-                setattr(self, k, v)
-            name = e.__class__.__name__
-            if name == "OSError":
-                msg = str(e)
-            else:
-                msg = "{0} : Could not connect to Andor camera at idx:{1}".format(e.error, self.index)
-            self.ERROR = "({0}) {1}".format(self.name, msg)
-            self.frame = error_frame(self.ERROR)
+            self.ERROR = str(e)
 
         if not test:
             threading.Thread(target=update_frame, args=(self,)).start()
 
     def _start(self):
-        try:
-            self._img_size_bytes = self.get("ImageSizeBytes")
-            self._buffers = queue.Queue()
 
-            for i in range(10):
-                buf = np.zeros((self._img_size_bytes), 'uint8')
-                andor.QueueBuffer(
-                    self._handle,
-                    buf.ctypes.data_as(andor.POINTER(andor.AT_U8)),
-                    buf.nbytes
-                )
-                self._buffers.put(buf)
+        if not self._handle:
+            return
 
-            self._height, self._width = self.get("Height"), self.get("Width")
+        self.img_size_bytes = self.get("ImageSizeBytes")
+        andor.SetBool(self._handle, 'SensorCooling', True)
 
-            andor.Command(self._handle, "AcquisitionStart")
-        except:
-            pass
+        self._buffers = queue.Queue()
+
+        for i in range(10):
+            buf = np.zeros((self.img_size_bytes), 'uint8')
+            andor.QueueBuffer(
+                self._handle,
+                buf.ctypes.data_as(andor.POINTER(andor.AT_U8)),
+                buf.nbytes
+            )
+            self._buffers.put(buf)
+
+        self._img_stride = self.get('AOIStride')
+
+        andor.Command(self._handle, "AcquisitionStart")
 
     def _stop(self):
 
-        try:
-            andor.Command(self._handle, "AcquisitionStop")
-            andor.Flush(self._handle)
-        except:
-            pass
+        if not self._handle:
+            return
+
+        andor.Command(self._handle, "AcquisitionStop")
+        andor.Flush(self._handle)
 
     def read(self):
+        try:
+            buf = self._buffers.get()
+            ptr, length = andor.WaitBuffer(self._handle, 100)
+            img = np.empty((self._height, self._width), dtype="uint16")
+            andor.ConvertBuffer(
+                ptr,
+                img.ctypes.data_as(andor.POINTER(andor.AT_U8)),
+                self._width,
+                self._height,
+                self._img_stride,
+                'Mono16',
+                'Mono16',
+            )
+            andor.QueueBuffer(self._handle, buf.ctypes.data_as(andor.POINTER(andor.AT_U8)), buf.nbytes)
+            self._buffers.put(buf)
+        except Exception as e:
+            msg = 'Unable to read frame ({0})'.format(str(e)) if not self.ERROR else self.ERROR
+            img = error_frame(msg)
 
-        if self.ERROR:
-            time.sleep(0.1)
-            return error_frame(self.ERROR)
-
-        buf = self._buffers.get()
-        andor.WaitBuffer(self._handle, 100)
-        img = np.array(buf).view('uint16').reshape(self._height, self._width)
-        andor.QueueBuffer(self._handle, buf.ctypes.data_as(andor.POINTER(andor.AT_U8)), buf.nbytes)
-        self._buffers.put(buf)
         return img
 
     def set(self, setting, value=None):
-
+        # TODO: Fix issue of changing index and losing settings
         print("Adjusting Andor settings...")
 
         self._stop()
-        self.frame = loading_frame(self.height, self.width)
+
         if type(setting).__name__ == 'dict':
             for k, v in setting.items():
                 self._set(k, v)
@@ -336,100 +337,59 @@ class Andor(object):
         self._start()
 
     def _set(self, setting, value):
-
-        # TODO: Fix this mess
+        print('Setting {0} -> {1}'.format(setting, value))
+        """
+              "device":"andor",
+              "index":0,
+              "master":true,
+              "name":"zyla",
+              "dtype":"uint16",
+              "height":2000,
+              "width":2000,
+              "offsetX":1,
+              "offsetY":1,
+              "binning":"2x2",
+              "framerate":10.0
+        """
+        if not andor:
+            return
 
         if setting == 'index':
-            print("Starting Andor Camera at idx:{0}".format(value))
-            self.close()
-            try:
-                self._handle = andor.Open(value)
-                if self.get("SerialNumber")[:3] == "SFT":
-                    raise andor.AndorError('AT_Open', 7)
-                andor.Flush(self._handle)
-                self.ERROR = None
-            except Exception as e:
-                self.ERROR = "No Andor Camera found at idx:{0}".format(value)
-
-        elif self.ERROR or setting in ['name', 'device']:
+            self._handle = andor.Open(value)
+            if not self._handle:
+                raise ConnectionError('Unable to connect to Andor at idx:{0}'.format(value))
+        elif setting in ['device', 'name'] or not self._handle:
             pass
-
         elif setting == 'master':
-            if not value:
-                andor.SetEnumString(self._handle, "TriggerMode", "External")
-                andor.SetEnumString(self._handle, "CycleMode", "Fixed")
-                andor.SetEnumString(self._handle, "FrameCount", 1)
+            if value:
+                andor.SetEnumString(self._handle, 'TriggerMode', 'Internal')
+                andor.SetEnumString(self._handle, 'CycleMode', 'Continuous')
+                andor.SetEnumString(self._handle, 'AuxiliaryOutSource', 'FireRowN')
             else:
-                andor.SetEnumString(self._handle, "CycleMode", "Continuous")
-                andor.SetEnumString(self._handle, "AuxiliaryOutSource", "FireRow1")
-
-        elif setting == "dtype":
-            andor.SetEnumIndex(self._handle, "PixelEncoding", CONVERT[value])
-
-        elif setting == "binning":
-            andor.SetEnumString(self._handle, "AOIBinning", value)
-
-        else:
-            if setting == 'offsetY':
-                value = self.height-value
-            upper, lower = self.get_max(setting), self.get_min(setting)
-            value = min(max(lower, value), upper)
-            if setting == 'framerate':
-                andor.SetFloat(self._handle, 'FrameRate', value)
-            else:
-                andor.SetInt(self._handle, CONVERT[setting], value)
+                andor.SetEnumString(self._handle, 'TriggerMode', 'External')
+                andor.SetEnumString(self._handle, 'CycleMode', 'Fixed')
+                andor.SetInt(self._handle, 'FrameCount', 1)
+        elif setting == 'dtype':
+            andor.SetEnumString(self._handle, 'PixelEncoding', andor.CONVERT[value])
+        elif setting == 'binning':
+            andor.SetEnumString(self._handle, 'AOIBinning', value)
+        elif setting == 'framerate':
+            andor.SetFloat(self._handle, 'FrameRate', value)
+        elif setting == 'height':
+            andor.SetInt(self._handle, 'AOIHeight', value)
+        elif setting == 'width':
+            andor.SetInt(self._handle, 'AOIWidth', value)
+        elif setting == 'offsetY':
+            value += self.height
+            andor.SetInt(self._handle, 'AOITop', value)
+        elif setting == 'offsetX':
+            andor.SetInt(self._handle, 'AOILeft', value)
 
         setattr(self, setting, value)
 
-    def get(self, setting):
-
-        if self.ERROR:
-            return getattr(self, setting)
-
-        if setting in self._stg_conv.keys():
-            setting = self._stg_conv[setting]
-
-        try:
-            value = andor.GetInt(self._handle, setting).value
-        except:
-            try:
-                value = andor.GetFloat(self._handle, setting).value
-            except:
-                try:
-                    value = andor.GetString(self._handle, setting, 255).value
-                except:
-                    idx = andor.GetEnumIndex(self._handle, setting).value
-                    value = andor.GetEnumStringByIndex(self._handle, setting, idx, 255).value
-
-        return value
-
-    def get_max(self, setting):
-
-        if self.ERROR:
-            return
-
-        elif setting == 'FrameRate':
-            return andor.GetFloatMax(self._handle, setting).value
-        elif setting in CONVERT:
-            setting = CONVERT[setting]
-
-        return andor.GetIntMax(self._handle, setting).value
-
-    def get_min(self, setting):
-
-        if self.ERROR:
-            return
-
-        if setting == 'FrameRate':
-            return andor.GetFloatMin(self._handle, setting).value
-        elif setting in CONVERT:
-            setting = CONVERT[setting]
-
-        return andor.GetIntMin(self._handle, setting).value
-
     def close(self):
         try:
-            self.stop()
+            self._stop()
         except:
             pass
         self.active = False
@@ -532,7 +492,7 @@ class Webcam(object):
         self.active = False
 
 OPTIONS = {
-    'dtype':['uint8','uint16','uint32'],
+    'dtype':['uint8','uint16'],
     'device':['andor', 'spinnaker', 'webcam', 'test'],
     'binning':['1x1','2x2','4x4','8x8'],
     'master':[True, False]
@@ -549,17 +509,8 @@ TYPES = {
     "dtype":str,
     "offsetX":int,
     "offsetY":int,
-    'binning':str
-}
-
-CONVERT = {
-    'uint12':0,
-    'uint12p':1,
-    "uint16":2,
-    "uint32":3,
-    "offsetX":"AOILeft",
-    'height':'AOIHeight',
-    'width':'AOIWidth'
+    'binning':str,
+    'exposure_time':float
 }
 
 DEFAULT = {
@@ -573,7 +524,8 @@ DEFAULT = {
     "dtype":"uint8",
     "offsetX":0,
     "offsetY":0,
-    'binning':'1x1'
+    'binning':'1x1',
+    'exposure_time':0.01
 }
 
 DEVICES = {

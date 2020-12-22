@@ -59,18 +59,19 @@ def _startup():
     return args, config
 
 def test(config):
-    from pywfom.imaging import Andor
-    from pywfom.control import Arduino
 
-    ard = Arduino(config['arduino'])
-    cam = Andor(config['cameras'][0], True)
+    from pywfom.imaging import Andor
+    
+    zyla = Andor(config['cameras'][0], True)
 
     while True:
-        img = cam.read()
-        cv2.imshow("", img)
-        print(img)
+
+        frame = zyla.read()
+        cv2.imshow( 'zyla' , frame.astype(np.uint8) )
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
+
+    zyla.close()
 
 
 def run():
@@ -87,5 +88,5 @@ def configure():
 
     args, config = _startup()
 
-    frame = viewing.Config(config, root)
+    frame = viewing.Config(root, config)
     frame.root.mainloop()

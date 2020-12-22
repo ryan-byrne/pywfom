@@ -273,3 +273,34 @@ dllFunc('AT_ConvertBufferUsingMetadata', [POINTER(AT_U8), POINTER(AT_U8), AT_64,
 print("Initializing Andor Library...")
 InitialiseUtilityLibrary()
 InitialiseLibrary()
+
+MAXIMUM = {
+    int:GetIntMax,
+    float:GetFloatMax
+}
+
+MINIMUM = {
+    int:GetIntMin,
+    float:GetFloatMin
+}
+
+SET = {
+    int:SetInt,
+    float:SetFloat
+}
+
+CONVERT = {
+    'dtype':'PixelEncoding',
+    'uint12':'Mono12',
+    'uint12p':'Mono12Packed',
+    "uint16":'Mono16',
+    "uint32":'Mono32',
+    "offsetX":"AOILeft",
+    "offsetY":"AOITop",
+    'height':'AOIHeight',
+    'width':'AOIWidth',
+    'framerate':'FrameRate',
+    'binning':'AOIBinning',
+    'exposure_time':'ExposureTime',
+    'img_size_bytes':'ImageSizeBytes'
+}
