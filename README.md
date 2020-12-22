@@ -11,10 +11,10 @@
 
 ## Installation
 
-To install ```pywfom``` and test your installation run:
+To install ```pywfom``` and run a quick acqusition:
 
 ```bash
-pip install pywfom; wfom --test
+pip install pywfom; wfom-quickstart
 ```
 
 ## Hardware Configuration
