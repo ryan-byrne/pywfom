@@ -2,7 +2,7 @@ import time, argparse, sys, os, json
 import tkinter as tk
 import numpy as np
 import cv2
-from pywfom import viewing
+import pywfom
 
 root = tk.Tk()
 
@@ -61,7 +61,7 @@ def _startup():
 def test(config):
 
     from pywfom.imaging import Andor
-    
+
     zyla = Andor(config['cameras'][0], True)
 
     while True:
@@ -73,6 +73,8 @@ def test(config):
 
     zyla.close()
 
+def quickstart():
+    wfom = pywfom.System()
 
 def run():
 
@@ -80,6 +82,8 @@ def run():
 
     if args['test']:
         test(config)
+    elif not args['verbose']:
+        sys.stdout = open(os.devnull, 'w')
     else:
         frame = viewing.Main(root, config)
         frame.root.mainloop()

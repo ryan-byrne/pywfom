@@ -23,14 +23,6 @@ def loading_frame(height, width):
     draw.text((height, width), "Loading Frame...", 255)
     return np.asarray(img)
 
-def update_frame(camera):
-
-    camera.active = True
-
-    while camera.active:
-
-        camera.frame = camera.read()
-
 class Test(object):
 
     def __init__(self, settings):
@@ -40,8 +32,6 @@ class Test(object):
         self.frame = loading_frame(500,500)
 
         self.set(settings)
-
-        threading.Thread(target=update_frame, args=(self,)).start()
 
     def _start(self):
         pass
@@ -150,8 +140,6 @@ class Spinnaker(object):
             self.ERROR = msg
             self.frame = error_frame("({0}) {1}".format(self.name, msg))
             return
-
-        threading.Thread(target=update_frame, args=(self,)).start()
 
     def start(self):
         self.camera.BeginAcquisition()
@@ -265,9 +253,6 @@ class Andor(object):
 
         except Exception as e:
             self.ERROR = str(e)
-
-        if not test:
-            threading.Thread(target=update_frame, args=(self,)).start()
 
     def _start(self):
 
@@ -408,8 +393,6 @@ class Webcam(object):
         self.ERROR = None
 
         self.set(settings)
-
-        threading.Thread(target=update_frame, args=(self,)).start()
 
     def read(self):
         ret, img = self._camera.read()

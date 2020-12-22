@@ -24,7 +24,7 @@ setup(
         'console_scripts':[
             'wfom = pywfom.scripts:run',
             'wfom-configure = pywfom.scripts:configure',
-            'wfom-quickstart = pywfom.quickstart:main'
+            'wfom-quickstart = pywfom.scripts:quickstart'
         ] },
     long_description=long_description,
     long_description_content_type='text/markdown',

@@ -18,7 +18,4 @@ class System(object):
             config = json.load(open(config, 'r'))
 
         self.cameras = [imaging.DEVICES[cfg['device']](cfg) for cfg in config['cameras']]
-
         self.arduino = control.Arduino(config['arduino'])
-
-    def view(self):
