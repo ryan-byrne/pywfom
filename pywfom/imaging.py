@@ -488,17 +488,52 @@ class Camera(object):
 
     def __init__(self, settings):
 
+        # Establish the Camera handler
         self._handle = None
 
-        self.ERROR = None
+        # Create a to store any errors that may occur
+        self.ERROR = []
 
-    def set(self, setting, value):
+        # Deploy specified settings
+        self.set(settings)
 
-        if type(setting).__name__ == 'dict':
-            for k, v in setting.items():
-                self._set(k, v)
-        else:
-            self._set(setting, value)
+    def set(self, config=None, **kwargs):
+
+        """
+        :param config: Dictionary containing multiple settings
+        :param device: Device type for the new :class:`Camera` object.
+        :param name: (optional) Names the :class:`Camera` object.
+        :param index: Sets the index :class:`Camera` will connect to.
+        :param height: Sets the height of the :class:`Camera` frame.
+        :param width: Sets the width of the :class:`Camera` frame.
+        :param offset_x: Sets the width of the :class:`Camera` frame.
+        :param offset_y: Sets the width of the :class:`Camera` frame.
+        :param binning: Sets the binning of the :class:`Camera` frame.
+        :param dtype: Sets the datatype of the :class:`Camera` frame.
+        :param master: Establishes whether :class:`Camera` is self-triggered.
+        :param framerate: Sets the framerate the :class:`Camera` read at.
+
+        """
+
+        settings = kwargs if not config else config
+
+        for k, v in settings.items():
+            self._set(k,v)
+
+
+    def _set(self, setting, value):
+
+        if setting == 'device':
+            self._set_device_type(value)
+        elif setting == 'name':
+            setattr(self, 'name', value)
+        elif setting == 'index':
+            pass
+
+
+    def _set_device_type(self, device_type):
+        pass
+
 
     def get(self, setting):
         return None
@@ -527,26 +562,4 @@ TYPES = {
     "offsetY":int,
     'binning':str,
     'exposure_time':float
-}
-
-DEFAULT = {
-    "device":"test",
-    "name":"default",
-    "index":0,
-    "height":700,
-    "width":1200,
-    "framerate":50.0,
-    "master":True,
-    "dtype":"uint8",
-    "offsetX":0,
-    "offsetY":0,
-    'binning':'1x1',
-    'exposure_time':0.01
-}
-
-DEVICES = {
-    'andor':Andor,
-    'webcam':Webcam,
-    'test':Test,
-    'spinnaker':Spinnaker
 }

@@ -60,7 +60,6 @@ def _startup():
 
 def _test():
     wfom = pywfom.System()
-    wfom.view()
 
 
 def quickstart():
