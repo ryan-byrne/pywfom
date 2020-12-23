@@ -34,9 +34,7 @@
 
     
     <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Quickstart" href="quickstart.html" />
-    <link rel="prev" title="Installing PyWFOM" href="install.html" /> 
+    <link rel="search" title="Search" href="../search.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -87,16 +85,6 @@
               <p class="caption"><span class="caption-text">Background:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../background/wfom.html">About WFOM</a></li>
-</ul>
-<p class="caption"><span class="caption-text">Getting Started:</span></p>
-<ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="install.html">Installing PyWFOM</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Arduino Setup</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#installing-the-arduino-ide-drivers">Installing the Arduino IDE &amp; Drivers</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#deploying-to-the-arduino">Deploying to the Arduino</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
 </ul>
 
             
@@ -203,6 +191,37 @@ and follow the instructions on your screen.</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">PyWFOM</span></code> is now able to send settings to your <strong>Arduino</strong></p></li>
 </ol>
 </div>
+<div class="section" id="attaching-devices">
+<h2>Attaching Devices<a class="headerlink" href="#attaching-devices" title="Permalink to this headline">¶</a></h2>
+<p>Adding devices to your <code class="docutils literal notranslate"><span class="pre">PyWFOM</span></code> system is as simple as attaching them to the
+pins of your <strong>Arduino</strong>.</p>
+<p>The example below shows 3 separate BNC connectors attached to an exposure
+trigger from a <strong>sCMOS camera</strong> and <strong>two LED drivers</strong>.</p>
+<div class="figure align-center" id="id3">
+<a class="reference internal image-reference" href="../_images/simple_arduino.png"><img alt="../_images/simple_arduino.png" src="../_images/simple_arduino.png" style="width: 500px;" /></a>
+<p class="caption"><span class="caption-text">Simple wiring diagram including a single sCMOS Camera and 2 LEDs</span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">PyWFOM</span></code> would send this information to the <strong>Arduino</strong> using the <code class="docutils literal notranslate"><span class="pre">strobing</span></code>
+setting in <code class="docutils literal notranslate"><span class="pre">config.json</span></code>.</p>
+<p>Take a look at the section on <a href="#id5"><span class="problematic" id="id6">`Configuring Your System &lt;configuration_&gt;`_</span></a></p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="nt">&quot;strobing&quot;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nt">&quot;leds&quot;</span><span class="p">:[</span>
+      <span class="p">{</span>
+        <span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="s2">&quot;led1&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;pin&quot;</span><span class="p">:</span><span class="mi">2</span>
+      <span class="p">},</span>
+      <span class="p">{</span>
+        <span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="s2">&quot;led2&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;pin&quot;</span><span class="p">:</span><span class="mi">5</span>
+      <span class="p">}</span>
+    <span class="p">],</span>
+    <span class="nt">&quot;trigger&quot;</span><span class="p">:</span><span class="mi">11</span>
+  <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
 </div>
 
 
@@ -210,15 +229,6 @@ and follow the instructions on your screen.</p>
            
           </div>
           <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="quickstart.html" class="btn btn-neutral float-right" title="Quickstart" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="install.html" class="btn btn-neutral float-left" title="Installing PyWFOM" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
-    </div>
   
 
   <hr/>

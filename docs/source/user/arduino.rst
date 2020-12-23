@@ -28,7 +28,7 @@ Deploying to the Arduino
 
 4. Verify the correct device and port are selected
 
-.. figure:: correctport.png
+.. figure:: img/correctport.png
   :align: center
   :width: 500
 
@@ -36,10 +36,48 @@ Deploying to the Arduino
 
 5. Deploy the code to the Arduino
 
-.. figure:: deploy.png
+.. figure:: img/deploy.png
   :align: center
   :width: 500
 
   Wait until the code successfully deploys
 
 6. ``PyWFOM`` is now able to send settings to your **Arduino**
+
+Attaching Devices
+-----------------
+
+Adding devices to your ``PyWFOM`` system is as simple as attaching them to the
+pins of your **Arduino**.
+
+The example below shows 3 separate BNC connectors attached to an exposure
+trigger from a **sCMOS camera** and **two LED drivers**.
+
+.. figure:: img/simple_arduino.png
+  :align: center
+  :width: 500
+
+  Simple wiring diagram including a single sCMOS Camera and 2 LEDs
+
+``PyWFOM`` would send this information to the **Arduino** using the ``strobing``
+setting in ``config.json``.
+
+Take a look at the section on `Configuring Your System <configuration_>`_
+
+.. code-block:: json
+
+  {
+    "strobing": {
+      "leds":[
+        {
+          "name":"led1",
+          "pin":2
+        },
+        {
+          "name":"led2",
+          "pin":5
+        }
+      ],
+      "trigger":11
+    ]
+  }

@@ -1,17 +1,19 @@
 import numpy as np
-import time, cv2, json, os
+import time, cv2, json, os, pkgutil
 import tkinter as tk
 from tkinter import ttk, simpledialog, filedialog, messagebox
 from PIL import Image, ImageTk, ImageDraw
 
-from pywfom import imaging
-from pywfom.control import Arduino, list_ports
-from pywfom.file import Writer
+import pywfom
 
 def set_icon(root, name="icon"):
+    path = "{0}/img/{1}.png".format(os.path.dirname(pywfom.__file__), name)
     photo = tk.PhotoImage(
-        file = os.path.dirname(imaging.__file__)+"/img/{0}.png".format(name)
+        master = root,
+        file = path
     )
+    print(type(photo))
+    root.iconbitmap(path)
     root.iconphoto(False, photo)
 
 def _config_arduino(frame):
@@ -91,11 +93,11 @@ def _startup(config):
 
 class Main(tk.Frame):
 
-    def __init__(self, parent, config):
+    def __init__(self, parent, system):
 
         # TODO: Scale to window size
 
-        self.cameras, self.arduino, self.file = _startup(config)
+        self.cameras, self.arduino, self.file = system.cameras, system.arduino, system.file
 
         print("Opening Viewing Frame...")
 

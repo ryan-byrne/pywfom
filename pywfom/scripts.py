@@ -1,4 +1,4 @@
-import time, argparse, sys, os, json
+import time, argparse, sys, os, json, pkgutil
 import tkinter as tk
 import numpy as np
 import cv2
@@ -58,32 +58,23 @@ def _startup():
 
     return args, config
 
-def test(config):
+def _test():
+    wfom = pywfom.System()
+    wfom.view()
 
-    from pywfom.imaging import Andor
-
-    zyla = Andor(config['cameras'][0], True)
-
-    while True:
-
-        frame = zyla.read()
-        cv2.imshow( 'zyla' , frame.astype(np.uint8) )
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-
-    zyla.close()
 
 def quickstart():
     wfom = pywfom.System()
 
 def run():
 
-    args, config = _startup()
+    args = _get_args()
+
+    if not args['verbose']:
+        sys.stdout = open(os.devnull, 'w')
 
     if args['test']:
-        test(config)
-    elif not args['verbose']:
-        sys.stdout = open(os.devnull, 'w')
+        _test()
     else:
         frame = viewing.Main(root, config)
         frame.root.mainloop()

@@ -1,8 +1,9 @@
 import pkgutil, json
-import pywfom.imaging
-import pywfom.control
-import pywfom.file
-import pywfom.viewing
+import tkinter as tk
+from .imaging import Andor, Spinnaker, Webcam, Test
+from .control import Arduino
+from .viewing import Main
+from .file import Writer
 
 class System(object):
 
@@ -11,11 +12,24 @@ class System(object):
     def __init__(self, config=None):
         super(System, self).__init__()
 
-        # Create a SimpleNamespace to store the configuration settings
         if not config:
             config = json.loads(pkgutil.get_data(__name__, 'utils/default.json'))
         else:
             config = json.load(open(config, 'r'))
 
-        self.cameras = [imaging.DEVICES[cfg['device']](cfg) for cfg in config['cameras']]
-        self.arduino = control.Arduino(config['arduino'])
+        self.cameras = [DEVICES[cam['device']](cam) for cam in config['cameras']]
+        self.arduino = Arduino(config['arduino'])
+        self.file = Writer(config['file'])
+
+    def view(self):
+        """Module for launching the PyWFOM Viewing Frame"""
+        root = tk.Tk()
+        frame = Main(root, self)
+        frame.root.mainloop()
+
+DEVICES = {
+    'andor':Andor,
+    'spinnaker':Spinnaker,
+    'webcam':Webcam,
+    'test':Test
+}

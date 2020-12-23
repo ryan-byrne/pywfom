@@ -8,7 +8,7 @@ About WFOM
 run by
 `Elizabeth Hillman <https://hillmanlab.zuckermaninstitute.columbia.edu/people/elizabeth-m-c-hillman-phd/>`_
 
-.. image:: mouse_brain_sq.jpg
+.. image:: img/mouse_brain_sq.jpg
   :height: 200
   :align: center
 
@@ -18,7 +18,7 @@ Technique
 WFOM works by utilizing a high-speed CCD camera's exposure signal to trigger
 arrays of high-powered LEDs, set to specified wavelengths.
 
-.. image:: wfom_strobe.gif
+.. image:: img/wfom_strobe.gif
   :height: 300
   :align: center
 
@@ -33,7 +33,7 @@ WFOM is currently being used in a **wide** (•͡˘㇁•͡˘) range of applicat
 `Neurovascular Coupling <https://hillmanlab.zuckermaninstitute.columbia.edu/content/neurovascular-coupling/>`_
 **************************************************************************************************************
 
-.. figure:: seizure.gif
+.. figure:: img/seizure.gif
   :height: 200
   :align: center
 
@@ -42,7 +42,7 @@ WFOM is currently being used in a **wide** (•͡˘㇁•͡˘) range of applicat
 `Resting State Dynamics <https://hillmanlab.zuckermaninstitute.columbia.edu/content/resting-state-dynamics/>`_
 **************************************************************************************************************
 
-.. figure:: neurovascular.gif
+.. figure:: img/neurovascular.gif
   :height: 200
   :align: center
 

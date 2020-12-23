@@ -106,6 +106,10 @@ class Test(object):
 
 class Spinnaker(object):
 
+    """
+    Class object for control of a Spinnaker Camera
+    """
+
     def __init__(self, settings):
         # TODO: Grab images
 
@@ -154,6 +158,10 @@ class Spinnaker(object):
         return self.camera.GetNextImage(1000).GetNDArray()
 
     def set(self, setting, value=None):
+
+        """
+        Method for changing setting(s) on the camera
+        """
 
         self.stop()
         self.frame = loading_frame()

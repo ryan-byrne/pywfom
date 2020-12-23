@@ -5,7 +5,7 @@
 
 Welcome to...
 =============
-.. image:: banner.png
+.. image:: img/banner.png
 
 Wide-Field Optical Mapping (but Python)
 ---------------------------------------
@@ -17,17 +17,19 @@ Wide-Field Optical Mapping (but Python)
   background/wfom
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Getting Started:
+  :maxdepth: 2
+  :caption: Getting Started:
 
-   user/install
-   user/arduino
-   user/quickstart
+  user/install
+  user/arduino
+  user/quickstart
 
 .. toctree::
   :maxdepth: 2
-  :caption: Useful Links:
+  :caption: Usage:
 
+  usage/api
+  usage/configuration
 
 
 Indices and tables
@@ -36,9 +38,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
-.. automodule:: pywfom
-    :members:
-    :undoc-members:
-    :inherited-members:
-    :show-inheritance:
