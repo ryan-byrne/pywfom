@@ -81,7 +81,10 @@ def run():
 
 def configure():
 
-    args, config = _startup()
+    args = _get_args()
+
+    if not args['verbose']:
+        sys.stdout = open(os.devnull, 'w')
 
     frame = viewing.Config(root, config)
     frame.root.mainloop()

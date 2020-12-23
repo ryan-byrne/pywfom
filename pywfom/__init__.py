@@ -1,6 +1,6 @@
 import pkgutil, json
 import tkinter as tk
-from .imaging import Andor, Spinnaker, Webcam, Test
+from .imaging import Camera
 from .control import Arduino
 from .viewing import Main
 from .file import Writer
@@ -17,7 +17,7 @@ class System(object):
         else:
             config = json.load(open(config, 'r'))
 
-        self.cameras = [DEVICES[cam['device']](cam) for cam in config['cameras']]
+        self.cameras = [Camera(cfg) for cfg in config['cameras']]
         self.arduino = Arduino(config['arduino'])
         self.file = Writer(config['file'])
 
@@ -26,10 +26,3 @@ class System(object):
         root = tk.Tk()
         frame = Main(root, self)
         frame.root.mainloop()
-
-DEVICES = {
-    'andor':Andor,
-    'spinnaker':Spinnaker,
-    'webcam':Webcam,
-    'test':Test
-}

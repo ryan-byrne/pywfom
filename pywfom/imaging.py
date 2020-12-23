@@ -482,8 +482,33 @@ class Webcam(object):
     def close(self):
         self.active = False
 
+class Camera(object):
+
+    """ Class object for a camera """
+
+    def __init__(self, settings):
+
+        self._handle = None
+
+        self.ERROR = None
+
+    def set(self, setting, value):
+
+        if type(setting).__name__ == 'dict':
+            for k, v in setting.items():
+                self._set(k, v)
+        else:
+            self._set(setting, value)
+
+    def get(self, setting):
+        return None
+
+    def read(self):
+        return None
+
+
 OPTIONS = {
-    'dtype':['uint8','uint16'],
+    'dtype':['uint8','uint12', 'uin12p', 'uint16'],
     'device':['andor', 'spinnaker', 'webcam', 'test'],
     'binning':['1x1','2x2','4x4','8x8'],
     'master':[True, False]

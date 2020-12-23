@@ -36,7 +36,7 @@
   },
   "cameras": [
     {
-      "device":"andor",
+      "device":"webcam",
       "index":0,
       "master":true,
       "name":"defaultCamera",

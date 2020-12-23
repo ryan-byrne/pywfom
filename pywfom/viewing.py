@@ -40,6 +40,9 @@ def delete_camera(frame, i=None):
     frame.thumbnail_labels.pop(frame.selected_frame).pack_forget()
     frame.selected_frame = 0
 
+def add_camera(frame):
+    pass
+
 def _load(frame):
 
     f = filedialog.askopenfile(parent=frame.root)
