@@ -1,0 +1,264 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="Markup" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Arduino Setup &mdash; pywfom 0.0.1-beta documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Quickstart" href="quickstart.html" />
+    <link rel="prev" title="Installing PyWFOM" href="install.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html">
+          
+
+          
+            
+            <img src="../_static/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Background:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../background/wfom.html">About WFOM</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Getting Started:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installing PyWFOM</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Arduino Setup</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#installing-the-arduino-ide-drivers">Installing the Arduino IDE &amp; Drivers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#deploying-to-the-arduino">Deploying to the Arduino</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">pywfom</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Arduino Setup</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/user/arduino.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="arduino-setup">
+<span id="arduino"></span><h1>Arduino Setup<a class="headerlink" href="#arduino-setup" title="Permalink to this headline">¶</a></h1>
+<p>Running <code class="docutils literal notranslate"><span class="pre">PyWFOM</span></code> requires first setting up an
+<a class="reference external" href="https://arduino.cc/">Arduino Microcontroller</a>
+to be used with the system.</p>
+<div class="section" id="installing-the-arduino-ide-drivers">
+<h2>Installing the Arduino IDE &amp; Drivers<a class="headerlink" href="#installing-the-arduino-ide-drivers" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="https://www.arduino.cc/en/software/">Download the IDE for your Operating System</a>
+and follow the instructions on your screen.</p>
+<p>Any required USB Drivers will be installed alongside the IDE.</p>
+</div>
+<div class="section" id="deploying-to-the-arduino">
+<h2>Deploying to the Arduino<a class="headerlink" href="#deploying-to-the-arduino" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li><p>Attach the Arduino you wish to use with your <code class="docutils literal notranslate"><span class="pre">PyWFOM</span></code> system to your machine via USB.</p></li>
+</ol>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>NOTE:</strong> <a class="reference external" href="https://store.arduino.cc/usa/mega-2560-r3/">Arduino MEGA</a> is suggested</p></li>
+</ul>
+</div></blockquote>
+<ol class="arabic simple" start="2">
+<li><p>Download the <a class="reference external" href="https://raw.githubusercontent.com/ryan-byrne/pywfom/master/files/pywfomArduino/pywfomArduino.ino">pywfomArduino.ino</a> file.</p></li>
+<li><p>Start the <strong>Arduino IDE</strong>, and open the downloaded <code class="docutils literal notranslate"><span class="pre">pywfomArduino.ino</span></code> file</p></li>
+<li><p>Verify the correct device and port are selected</p></li>
+</ol>
+<div class="figure align-center" id="id1">
+<a class="reference internal image-reference" href="../_images/correctport.png"><img alt="../_images/correctport.png" src="../_images/correctport.png" style="width: 500px;" /></a>
+<p class="caption"><span class="caption-text">These can be changed from the <cite>Tools</cite> Menu</span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
+</div>
+<ol class="arabic simple" start="5">
+<li><p>Deploy the code to the Arduino</p></li>
+</ol>
+<div class="figure align-center" id="id2">
+<a class="reference internal image-reference" href="../_images/deploy.png"><img alt="../_images/deploy.png" src="../_images/deploy.png" style="width: 500px;" /></a>
+<p class="caption"><span class="caption-text">Wait until the code successfully deploys</span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
+</div>
+<ol class="arabic simple" start="6">
+<li><p><code class="docutils literal notranslate"><span class="pre">PyWFOM</span></code> is now able to send settings to your <strong>Arduino</strong></p></li>
+</ol>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="quickstart.html" class="btn btn-neutral float-right" title="Quickstart" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="install.html" class="btn btn-neutral float-left" title="Installing PyWFOM" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Ryan Byrne
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,269 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="Markup" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>About WFOM &mdash; pywfom 0.0.1-beta documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Installing PyWFOM" href="../user/install.html" />
+    <link rel="prev" title="Welcome to..." href="../index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html">
+          
+
+          
+            
+            <img src="../_static/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Background:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">About WFOM</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#technique">Technique</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#applications">Applications</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id1">Neurovascular Coupling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id2">Resting State Dynamics</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#why-pywfom">Why PyWFOM?</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">Getting Started:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user/install.html">Installing PyWFOM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user/arduino.html">Arduino Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user/quickstart.html">Quickstart</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">pywfom</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>About WFOM</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/background/wfom.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="about-wfom">
+<span id="wfom"></span><h1>About WFOM<a class="headerlink" href="#about-wfom" title="Permalink to this headline">¶</a></h1>
+<p><strong>Wide-Field Optical Mapping (WFOM)</strong> is the product of the Columbia University's
+<a class="reference external" href="https://hillmanlab.zuckermaninstitute.columbia.edu//">Laboratory for Functional Optical Imaging</a>,
+run by
+<a class="reference external" href="https://hillmanlab.zuckermaninstitute.columbia.edu/people/elizabeth-m-c-hillman-phd/">Elizabeth Hillman</a></p>
+<a class="reference internal image-reference" href="../_images/mouse_brain_sq.jpg"><img alt="../_images/mouse_brain_sq.jpg" class="align-center" src="../_images/mouse_brain_sq.jpg" style="height: 200px;" /></a>
+<div class="section" id="technique">
+<h2>Technique<a class="headerlink" href="#technique" title="Permalink to this headline">¶</a></h2>
+<p>WFOM works by utilizing a high-speed CCD camera's exposure signal to trigger
+arrays of high-powered LEDs, set to specified wavelengths.</p>
+<a class="reference internal image-reference" href="../_images/wfom_strobe.gif"><img alt="../_images/wfom_strobe.gif" class="align-center" src="../_images/wfom_strobe.gif" style="height: 300px;" /></a>
+<p>A paper describing the technique further can be found
+<a class="reference external" href="https://pubmed.ncbi.nlm.nih.gov/27574312/">here</a>.</p>
+</div>
+<div class="section" id="applications">
+<h2>Applications<a class="headerlink" href="#applications" title="Permalink to this headline">¶</a></h2>
+<p>WFOM is currently being used in a <strong>wide</strong> (•͡˘㇁•͡˘) range of applications, such as:</p>
+<div class="section" id="id1">
+<h3><a class="reference external" href="https://hillmanlab.zuckermaninstitute.columbia.edu/content/neurovascular-coupling/">Neurovascular Coupling</a><a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<div class="figure align-center" id="id3">
+<a class="reference internal image-reference" href="../_images/seizure.gif"><img alt="../_images/seizure.gif" src="../_images/seizure.gif" style="height: 200px;" /></a>
+<p class="caption"><span class="caption-text">Seizure caused by tumor growth imaged using WFOM</span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
+</div>
+</div>
+<div class="section" id="id2">
+<h3><a class="reference external" href="https://hillmanlab.zuckermaninstitute.columbia.edu/content/resting-state-dynamics/">Resting State Dynamics</a><a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<div class="figure align-center" id="id4">
+<a class="reference internal image-reference" href="../_images/neurovascular.gif"><img alt="../_images/neurovascular.gif" src="../_images/neurovascular.gif" style="height: 200px;" /></a>
+<p class="caption"><span class="caption-text">Resting state neural and hemodynamic activity in the awake mouse brain</span><a class="headerlink" href="#id4" title="Permalink to this image">¶</a></p>
+</div>
+<p>For a comprehensive list of WFOM applications,</p>
+</div>
+</div>
+<div class="section" id="why-pywfom">
+<h2>Why PyWFOM?<a class="headerlink" href="#why-pywfom" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">PyWFOM</span></code> combines code previously spread across numerous platforms, devices,
+and languages into a single, user-friendly Python Package.</p>
+<p>Users are able to set camera parameters, stim functions, and data acquisition all
+in one place.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../user/install.html" class="btn btn-neutral float-right" title="Installing PyWFOM" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="../index.html" class="btn btn-neutral float-left" title="Welcome to..." accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Ryan Byrne
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
