@@ -15,7 +15,7 @@ def set_icon(root, name="icon"):
     root.iconphoto(False, photo)
 
 def _config_arduino(frame):
-    ArduinoConfig(frame, frame.root)
+    _ArduinoConfig(frame, frame.root)
 
 def _set_dir(parent):
     parent.file.directory = tk.filedialog.askdirectory()
@@ -26,7 +26,7 @@ def edit_camera(frame, i=None):
         frame.selected_frame = i
 
     set_icon(frame.root, "configure")
-    CameraConfig(frame, frame.root)
+    _CameraConfig(frame, frame.root)
 
 def delete_camera(frame, i=None):
 
@@ -370,7 +370,7 @@ class Main(tk.Frame):
         self.add_thumnail(cam.name)
 
         self.selected_frame = len(self.cameras)-1
-        CameraConfig(self, self.root)
+        _CameraConfig(self, self.root)
 
     def acquire(self):
 
@@ -625,7 +625,7 @@ class Config(tk.Frame):
         [cam.close() for cam in self.cameras]
         self.root.destroy()
 
-class CameraConfig(tk.Toplevel):
+class _CameraConfig(tk.Toplevel):
 
     def __init__(self, parent=None, master=None, camera=None):
 
@@ -726,7 +726,7 @@ class CameraConfig(tk.Toplevel):
         set_icon(self.root, 'icon')
         self.destroy()
 
-class ArduinoConfig(tk.Toplevel):
+class _ArduinoConfig(tk.Toplevel):
 
     def __init__(self, parent=None, master=None):
 
@@ -877,141 +877,3 @@ class ArduinoConfig(tk.Toplevel):
 
     def _add_daq(self):
         pass
-
-class FileConfig(tk.Toplevel):
-
-    def __init__(self, file, parent=None, master=None):
-
-        super().__init__(master = master)
-
-        self.parent = parent
-        self.root = self.parent.root
-        self.file = parent.file
-        self.reset = self.file.__dict__.copy()
-        set_icon(self.root, 'configure')
-        self.title("Arduino Settings")
-
-class LedConfig(tk.Toplevel):
-
-    def __init__(self, parent=None, master=None):
-
-        super().__init__(master = master)
-
-        self.resizable(width=False, height=False)
-        self.root = parent.root
-        self.arduino = parent.parent.arduino
-        self.title("LED Configuration")
-
-        self.make_notice()
-        self.make_buttons()
-
-    def make_notice(self):
-        lbl = tk.Label(
-            master=self,
-            text="1. Switch your LED drivers to\n'Constant Current (CM)' Mode"
-        )
-        pic = os.path.dirname(imaging.__file__)+"/img/driverDemo.png"
-        img = ImageTk.PhotoImage(Image.open(pic))
-        panel = tk.Label(master=self, image=img)
-        panel.image = img
-
-        lbl.pack()
-        panel.pack()
-
-    def make_buttons(self):
-        lbl = tk.Label(
-            master=self,
-            text="2. Select an LED"
-        )
-        lbl.pack()
-        for i, led in enumerate(self.arduino.strobing['leds']):
-            btn = tk.Button(
-                master=self,
-                text=led['name'],
-                command=lambda p=led['pin'] :self.arduino.toggle_led(p),
-                height=3,
-                width=20
-            )
-            btn.pack(pady=10)
-
-class StimConfig(tk.Toplevel):
-
-    def __init__(self, parent=None, master=None):
-
-        super().__init__(master = master)
-        self.resizable(width=False, height=False)
-        self.root = parent.root
-        self.arduino = parent.arduino
-        self.title("Stim Configuration")
-
-        self.make_notice()
-        self.make_buttons()
-
-    def make_notice(self):
-        lbl = tk.Label(
-            master=self,
-            text="1. Switch your LED drivers to\n'Constant Current (CM)' Mode"
-        )
-        pic = os.path.dirname(pywfom.__file__)+"/img/driverDemo.png"
-        img = ImageTk.PhotoImage(Image.open(pic))
-        panel = tk.Label(master=self, image=img)
-        panel.image = img
-
-        lbl.pack()
-        panel.pack()
-
-    def make_buttons(self):
-        lbl = tk.Label(
-            master=self,
-            text="2. Select an LED"
-        )
-        lbl.pack()
-        for i, led in enumerate(self.arduino.strobing['leds']):
-            btn = tk.Button(
-                master=self,
-                text=led['name'],
-                command=lambda p=led['pin'] :self.arduino.toggle_led(p),
-                height=3,
-                width=20
-            )
-            btn.pack(pady=10)
-
-class ComboboxSelectionWindow(tk.Toplevel):
-
-    def __init__(self, parent=None, master=None, setting=None):
-
-        super().__init__(master = master)
-        self.root = parent.root
-        self.title(setting.title())
-        self.resizable(width=False, height=False)
-        self.setting = setting
-        self.options = {
-            "device":[
-                "spinnaker",
-                "andor",
-                "test",
-                "webcam"
-            ],
-            "master":[
-                True,
-                False
-            ],
-            "dtype":[
-                "uint16",
-                "uint8"
-            ],
-            "port":["COM{0}".format(i) for i in range(10)]
-        }
-        self._create_widgets()
-
-    def _create_widgets(self):
-
-        self.combo = ttk.Combobox(master=self, values=self.options[self.setting])
-        self.combo.current(1)
-        self.combo.pack()
-        self.done_btn = tk.Button(master=self, text="Done", command=self.callback)
-        self.done_btn.pack()
-
-    def callback(self):
-        self.value = self.combo.get()
-        self.destroy()
