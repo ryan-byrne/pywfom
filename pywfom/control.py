@@ -16,25 +16,23 @@ class Arduino():
         # TODO:  test stim
         # # TODO: add encoder monitoring
         # TODO: Test data acquisition
-        # TODO: Rename ser to be Internal
-
-        self._ser = self.connect_to_arduino(port)
 
         self.ERROR = None
 
-    def set(self, config=None, **kwargs):
+        config = kwargs if 'config' not in kwargs else kwargs['config']
 
-        self._disconnect()
+        self.set(config=config)
 
-        settings = kwargs if not config else config
+    def set(self, **kwargs):
 
-        if type(setting).__name__ == "dict":
-            for k, v in setting.items():
+        settings = kwargs if 'config' not in kwargs else kwargs['config']
+
+        for k, v in settings.items():
+
+            if not hasattr(self, k) or v != getattr(self, k):
                 self._set(k,v)
-        else:
-            self._set(setting,value)
-
-        self.start()
+            else:
+                continue
 
     def _set(self, setting, value):
 
@@ -43,10 +41,9 @@ class Arduino():
         if setting == "port":
             self._connect(value)
 
-        elif setting != "port" and not self._ser:
-            # TODO: Remove this when things are working
-            #return
-            pass
+        elif setting != 'port' and not self._ser:
+            # Can't change settings to none port
+            return
 
         elif setting == "strobing":
             self._set_leds()

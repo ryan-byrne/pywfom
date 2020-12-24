@@ -10,6 +10,7 @@ class System(object):
     """Class Wrapper for the OpenWFOM System"""
 
     def __init__(self, config=None):
+
         super(System, self).__init__()
 
         if not config:
@@ -17,12 +18,6 @@ class System(object):
         else:
             config = json.load(open(config, 'r'))
 
-        self.cameras = [Camera(cfg) for cfg in config['cameras']]
-        self.arduino = Arduino(config['arduino'])
+        self.cameras = [Camera(config=cfg) for cfg in config['cameras']]
+        self.arduino = Arduino(config=config['arduino'])
         self.file = Writer(config['file'])
-
-    def view(self):
-        """Module for launching the PyWFOM Viewing Frame"""
-        root = tk.Tk()
-        frame = Main(root, self)
-        frame.root.mainloop()

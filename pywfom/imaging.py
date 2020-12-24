@@ -16,11 +16,11 @@ def error_frame(msg):
     draw.text((10,225), msg, 255)
     return np.asarray(img)
 
-def loading_frame(height, width):
+def loading_frame(height=500, width=500):
     # Create a frame announcing the error
     img = Image.fromarray(np.zeros((height,width), "uint8"))
     draw = ImageDraw.Draw(img)
-    draw.text((height, width), "Loading Frame...", 255)
+    draw.text((int(height/2)-50, int(width/2)), "Loading Frame...", 255)
     return np.asarray(img)
 
 class Test(object):
@@ -387,101 +387,6 @@ class Andor(object):
             pass
         self.active = False
 
-class Webcam(object):
-
-    def __init__(self, settings):
-
-        print("Importing Webcam Libraries...")
-        global cv2
-        import cv2
-
-        self.height, self.width = 500, 500
-
-        self.frame = loading_frame(self.height, self.width)
-        self.ERROR = None
-
-        self.set(settings)
-
-    def read(self):
-        ret, img = self._camera.read()
-        img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        x, y, w, h = self.offsetX, self.offsetY, self.width, self.height
-        return img_gray[y:h+y, x:w+x]
-
-    def set(self, setting, value=None):
-
-        print("Adjusting webcam settings...")
-
-        #self.frame = loading_frame(self.height, self.width)
-
-        if type(setting).__name__ == 'dict':
-            for k, v in setting.items():
-                self._set(k, v)
-        else:
-            self._set(setting, value)
-
-        if not self._camera.isOpened():
-            self.frame = error_frame("({0}) no Webcam found at index:{1}".format(self.name, self.index))
-            return
-
-    def _set(self, setting, value):
-
-        if setting == "index":
-            self._camera = cv2.VideoCapture(value)
-            if not self._camera.isOpened():
-                self.ERROR = "No Webcam found at index {0}".format(value)
-            else:
-                self.ERROR = None
-
-        elif self.ERROR:
-            pass
-
-        elif setting in self.__dict__ and getattr(self, setting) == value:
-            return
-
-        elif setting in ['framerate', 'height', 'width']:
-            value = min(self.get_max(setting), max(self.get_min(setting), value))
-
-        setattr(self, setting, value)
-
-    def get(self, setting):
-        return getattr(self, setting)
-
-    def get_max(self, setting):
-
-        _max = {
-            "framerate":cv2.CAP_PROP_FPS,
-            "height":cv2.CAP_PROP_FRAME_HEIGHT,
-            "width":cv2.CAP_PROP_FRAME_WIDTH,
-        }
-
-        if setting == 'framerate':
-            return float(self._camera.get(_max['framerate']))
-        elif setting == 'index':
-            return 10
-        elif setting == 'offsetX':
-            return self.width - 10
-        elif setting == 'offsetY':
-            return self.height - 10
-        else:
-            return int(self._camera.get(_max[setting]))
-
-    def get_min(self, setting):
-
-        _mins = {
-            'index':0,
-            'framerate':1.0,
-            'height':10,
-            'width':10,
-            'offsetY':1,
-            'offsetX':1
-        }
-
-        return _mins[setting]
-
-    def close(self):
-        self.active = False
-
 class Camera(object):
 
     """
@@ -490,16 +395,108 @@ class Camera(object):
 
     def __init__(self, device='webcam', index=0, **kwargs):
 
-        # Establish the Camera handler
-        self._handler = None
-
         # Create a to store any errors that may occur
-        self.ERROR = []
+        self.ERRORS, self.WARNINGS = [], []
 
-        # Initialize Camera Interface
+        # Create a temporary loading frame
+        self.frame = loading_frame()
+
+        # Establish the Camera handler
         self._handler = self._startup(device, index)
 
-        self.set(config=kwargs)
+        # Check for configuration in keyword arguments
+        config = kwargs['config'] if 'config' in kwargs else kwargs
+
+        self.set(config=config)
+
+    def get(self, setting=None):
+        return None
+
+    def get_min(self, setting):
+        if self.device == 'webcam':
+            return self._get_webcam_min(setting)
+
+    def get_max(self, setting):
+
+        if self.device == 'webcam':
+            return self._get_webcam_max(setting)
+
+    def _get_webcam_max(self, setting):
+
+        settings = {
+            'height':int(self._handler.get(4)),
+            'width':int(self._handler.get(3)),
+            'framerate':30.0,
+            'offset_x':int(self._handler.get(3))-self.width,
+            'offset_y':int(self._handler.get(4))-self.height,
+            'index':10
+        }
+
+        return settings[setting]
+
+    def _get_webcam_min(self, setting):
+
+        settings = {
+            'height':10,
+            'width':10,
+            'framerate':1.0,
+            'offset_x':1,
+            'offset_y':1,
+            'index':0
+        }
+
+        return settings[setting]
+
+    def read(self):
+
+        """
+        Read and return current frame read from Camera Interface
+        """
+
+        if self.device == 'webcam':
+            return self._read_webcam_frame()
+
+    def set(self, **kwargs):
+
+        """
+        :param dict config: Dictionary containing multiple settings
+        :param string device: Device type for the new :class:`Camera` object.
+        :param string name: (optional) Names the :class:`Camera` object.
+        :param int index: Sets the index :class:`Camera` will connect to.
+        :param int height: Sets the height of the :class:`Camera` frame.
+        :param int width: Sets the width of the :class:`Camera` frame.
+        :param int offset_x: Sets the width of the :class:`Camera` frame.
+        :param int offset_y: Sets the width of the :class:`Camera` frame.
+        :param string binning: Sets the binning of the :class:`Camera` frame.
+        :param string dtype: Sets the datatype of the :class:`Camera` frame.
+        :param bool master: Establishes whether :class:`Camera` is self-triggered.
+        :param float framerate: Sets the framerate the :class:`Camera` read at
+        """
+
+        self.ERRORS, self.WARNINGS = [], []
+
+        self.frame = loading_frame(self.height, self.width)
+
+        self._stop_acquiring()
+
+        settings = kwargs['config'] if 'config' in kwargs else kwargs
+
+        for k, v in settings.items():
+
+            if not hasattr(self, k) or v != getattr(self, k):
+
+                try:
+                    self._set(k,v)
+                except Exception as e:
+                    self.ERRORS.append(str(e))
+
+            else:
+                continue
+
+        self._start_acquiring()
+
+    def close(self):
+        self._stop_acquiring()
 
     def _startup(self, device, index):
 
@@ -527,14 +524,20 @@ class Camera(object):
         _guide = {
             'framerate':cam.get(5),
             'height':int(cam.get(4)),
-            'width':int(cam.get(3))
+            'width':int(cam.get(3)),
+            'offset_x':1,
+            'offset_y':1,
+            'master':True,
+            'name':'NewWebcam',
+            'dtype':'uint8',
+            'binning':'2x2',
         }
 
         if not cam.isOpened():
-            self.ERROR = 'No webcam found at index:{0}'.format(index)
+            self.ERRORS.append('No webcam found at index:{0}'.format(index))
             return None
         else:
-            for attr in ['height', 'width', 'framerate', 'offset_x', 'offset_y']:
+            for attr in _guide.keys():
                 if hasattr(self, attr):
                     continue
                 elif attr in _guide:
@@ -553,7 +556,7 @@ class Camera(object):
         try:
             return self._system.GetCameras().GetByIndex(index)
         except:
-            self.ERROR = 'No spinnaker camera found at index:{0}'.format(index)
+            self.ERRORS.append('No spinnaker camera found at index:{0}'.format(index))
             return None
 
     def _start_andor(self, index):
@@ -564,36 +567,7 @@ class Camera(object):
         try:
             return andor.Open(0)
         except:
-            self.ERROR = 'No Andor camera found at index:{0}'.format(index)
-
-    def set(self, config=None, **kwargs):
-
-        """
-        :param dict config: Dictionary containing multiple settings
-        :param string device: Device type for the new :class:`Camera` object.
-        :param string name: (optional) Names the :class:`Camera` object.
-        :param int index: Sets the index :class:`Camera` will connect to.
-        :param int height: Sets the height of the :class:`Camera` frame.
-        :param int width: Sets the width of the :class:`Camera` frame.
-        :param int offset_x: Sets the width of the :class:`Camera` frame.
-        :param int offset_y: Sets the width of the :class:`Camera` frame.
-        :param string binning: Sets the binning of the :class:`Camera` frame.
-        :param string dtype: Sets the datatype of the :class:`Camera` frame.
-        :param bool master: Establishes whether :class:`Camera` is self-triggered.
-        :param float framerate: Sets the framerate the :class:`Camera` read at
-        """
-
-        self._stop_acquiring()
-
-        settings = kwargs if not config else config
-
-        for k, v in settings.items():
-            if v == getattr(self, k):
-                continue
-            else:
-                self._set(k,v)
-
-        self._start_acquiring()
+            self.ERRORS.append('No Andor camera found at index:{0}'.format(index))
 
     def _set(self, setting, value):
 
@@ -608,8 +582,23 @@ class Camera(object):
             self._shutdown()
             self._startup(self.device, value)
 
-        else:
+        elif setting == 'master':
+            # TODO: COmplete
+            setattr(self, 'master', value)
+            pass
 
+        elif setting == 'binning':
+            # TODO: Complete
+            setattr(self, 'binning', value)
+            pass
+
+        elif setting == 'dtype':
+            # TODO: Complete
+            setattr(self, 'dtype', value)
+            pass
+
+        else:
+            value = max(min(value, self.get_max(setting)), self.get_min(setting))
             if self.device == 'webcam':
                 self._set_webcam(setting, value)
 
@@ -617,10 +606,13 @@ class Camera(object):
 
         if setting == 'framerate':
             self._handler.set(5, value)
-            
+
         setattr(self, setting, value)
 
     def _stop_acquiring(self):
+
+
+        self._acquiring = False
 
         if self.device == 'andor':
             pass
@@ -632,27 +624,29 @@ class Camera(object):
             self._handler = None
 
     def _start_acquiring(self):
-        pass
 
-    def get(self, setting=None):
-        return None
+        self._acquiring = True
 
-    def read(self):
-
-        """
-        Read and return current frame read by Camera Interface
-        """
-
-        if self.device == 'webcam':
-            frame = self._read_webcam_frame()
-
-        return frame
+        threading.Thread(target=self._update_frame).start()
 
     def _read_webcam_frame(self):
         ret, img = self._handler.read()
         img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         x, y, w, h = self.offset_x, self.offset_y, self.width, self.height
         return img_gray[y:h+y, x:w+x]
+
+    def _update_frame(self):
+
+        while self._acquiring:
+
+            try:
+
+                self.frame = self.read()
+
+            except Exception as e:
+
+                self.frame = error_frame(str(e))
+
 
 OPTIONS = {
     'dtype':['uint8','uint12', 'uin12p', 'uint16'],
@@ -672,6 +666,5 @@ TYPES = {
     "dtype":str,
     "offsetX":int,
     "offsetY":int,
-    'binning':str,
-    'exposure_time':float
+    'binning':str
 }

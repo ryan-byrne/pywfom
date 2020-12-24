@@ -39,12 +39,12 @@
       "name":"defaultCamera",
       "index":0,
       "device":"webcam",
-      "height":2000,
-      "width":2000,
-      "offsetX":1,
-      "offsetY":1,
+      "height":500,
+      "width":500,
+      "offset_x":1,
+      "offset_y":1,
       "binning":"1x1",
-      "dtype":"uint16",
+      "dtype":"uint8",
       "master":true,
       "framerate":40.0
     }

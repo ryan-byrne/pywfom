@@ -12,7 +12,6 @@ def set_icon(root, name="icon"):
         master = root,
         file = path
     )
-    print(type(photo))
     root.iconbitmap(path)
     root.iconphoto(False, photo)
 
@@ -64,7 +63,7 @@ def _save(frame):
 
         _camera_settings = {}
 
-        for setting in imaging.DEFAULT:
+        for setting in pywfom.imaging.TYPES:
             _camera_settings[setting] = cam.get(setting)
 
         _cameras.append(_camera_settings)
@@ -87,7 +86,7 @@ def _save(frame):
 def _startup(config):
     # Initiate each component's Class
     c = [
-        imaging.DEVICES[cfg['device']](cfg) for cfg in config["cameras"]
+        pywfom.imaging.DEVICES[cfg['device']](cfg) for cfg in config["cameras"]
     ]
     a = Arduino(config["arduino"])
     f = Writer(config=config["file"])
@@ -321,7 +320,7 @@ class Main(tk.Frame):
     def _draw_main_image(self):
 
         if len(self.cameras) == 0:
-            frame = imaging.error_frame("No Cameras Configured")
+            frame = pywfom.imaging.error_frame("No Cameras Configured")
             image = self.convert_frame(frame, (800,1000), True)
         else:
             # Draw main image
@@ -367,13 +366,9 @@ class Main(tk.Frame):
         self.thumbnails[self.selected_frame].config(borderwidth=10,relief="ridge", bg="green")
 
     def _add_camera(self):
-
-        cam = imaging.DEVICES['test'](imaging.DEFAULT)
-
+        cam = pywfom.imaging.Camera(name='NewCamera')
         self.cameras.append(cam)
-
         self.add_thumnail(cam.name)
-
         self.selected_frame = len(self.cameras)-1
         _CameraConfig(self, self.root)
 
@@ -402,13 +397,13 @@ class Main(tk.Frame):
         else:
             pass
 
-    def _shutdown(self, event=""):
+    def _shutdown(self):
         print("Closing pywfom...")
         [cam.close() for cam in self.cameras]
         self.arduino.close()
         self.file.close()
 
-    def close(self):
+    def close(self, event=None):
         self._shutdown()
         self.root.destroy()
 
@@ -437,14 +432,14 @@ class Main(tk.Frame):
 
         cam = self.cameras[self.selected_frame]
 
-        x, y, he, wi = "offsetX", "offsetY", "height", "width"
+        x, y, he, wi = "offset_x", "offset_y", "height", "width"
 
-        cam.set({
-            he:int(h/self.scale),
-            wi:int(w/self.scale),
-            x:int(getattr(cam,x)+self.ix/self.scale),
-            y:int(getattr(cam,y)+self.iy/self.scale)
-        })
+        cam.set(
+            height=int(h/self.scale),
+            width=int(w/self.scale),
+            offset_x=int(getattr(cam,x)+self.ix/self.scale),
+            offset_y=int(getattr(cam,y)+self.iy/self.scale)
+        )
 
         self.ix, self.iy, self.x, self.y = 0,0,0,0
 
@@ -453,12 +448,12 @@ class Main(tk.Frame):
 
     def reset_aoi(self, event):
         cam = self.cameras[self.selected_frame]
-        cam.set({
-            "height":cam.get_max("height"),
-            "width":cam.get_max("width"),
-            "offsetX":1,
-            "offsetY":1
-        })
+        cam.set(
+            height=cam.get_max("height"),
+            width=cam.get_max("width"),
+            offset_x=1,
+            offset_y=1
+        )
 
     def change_main_frame(self, event, idx):
         self.selected_frame = idx
@@ -507,7 +502,7 @@ class Config(tk.Frame):
         self.arduino = Arduino(config["arduino"])
         self._create_arduino_widgets()
         self.cameras = [
-            imaging.DEVICES[cfg['device']](cfg) for cfg in config["cameras"]
+            pywfom.imaging.DEVICES[cfg['device']](cfg) for cfg in config["cameras"]
         ]
         self._create_camera_widgets()
 
@@ -657,7 +652,7 @@ class _CameraConfig(tk.Toplevel):
 
         for i, (k, v) in enumerate(self.camera.__dict__.items()):
 
-            if k[0] == '_' or k not in imaging.DEFAULT:
+            if k[0] == '_' or k not in pywfom.imaging.TYPES:
                 continue
 
             v = str(v)
@@ -665,11 +660,11 @@ class _CameraConfig(tk.Toplevel):
             lbl = tk.Label(setting_frm, text=k.title(), width=len(k))
             lbl.grid(row=i, column=0, sticky='E', pady=5)
 
-            if k in imaging.OPTIONS:
+            if k in pywfom.imaging.OPTIONS:
                 entry = ttk.Combobox(
                     setting_frm,
                     width=len(v),
-                    values=imaging.OPTIONS[k]
+                    values=pywfom.imaging.OPTIONS[k]
                 )
                 entry.insert(0, v)
                 entry.config(state='readonly')
@@ -703,26 +698,16 @@ class _CameraConfig(tk.Toplevel):
 
     def _callback(self, event, setting):
 
-        if setting == 'device' and self.camera.device != event.widget.get():
-
-            _settings = {}
-            for setting in imaging.DEFAULT:
-                _settings[setting] = self.camera.get(setting)
-            _settings['device'] = event.widget.get()
-
-            self.parent.cameras[self.parent.selected_frame].close()
-
-            self.parent.cameras[self.parent.selected_frame] = imaging.DEVICES[event.widget.get()](_settings)
-
-            self.camera = self.parent.cameras[self.parent.selected_frame]
-
-        else:
-            self.camera.set(setting, imaging.TYPES[setting](event.widget.get()))
+        self.camera.set(
+            config={
+                setting:pywfom.imaging.TYPES[setting](event.widget.get())
+            }
+        )
 
     def _reset(self):
         # TODO: Reset settings in window
         _settings = {}
-        for setting in imaging.DEFAULT:
+        for setting in pywfom.imaging.TYPES:
             _settings[setting] = self.reset[setting]
         self.parent.cameras[self.parent.selected_frame].close()
         self.parent.cameras[self.parent.selected_frame] = imaging.DEVICES[_settings['device']](_settings)
