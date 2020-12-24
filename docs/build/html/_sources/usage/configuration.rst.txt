@@ -1,4 +1,66 @@
 .. _configuration:
 
-Configuring Your System
+JSON Configuration File
 =======================
+
+.. code-block:: JSON
+
+  {
+    "file":{
+      "user":"rjb2202",
+      "mouse":"cm100",
+      "directory":"C:/data",
+      "runs": 5,
+      "run_length": 2.0
+    },
+    "arduino": {
+      "port": "COM4",
+      "data_acquisition":[
+        {
+          "name":"encoder",
+          "pin":20
+        }
+      ],
+      "strobing": {
+        "leds":[
+          {
+            "name":"blue",
+            "pin":7
+          },
+          {
+            "name":"green",
+            "pin":8
+          }
+        ],
+        "trigger":2
+      },
+      "stim": [
+        {
+          "name":"default",
+          "type":"2PinStepper",
+          "pins":{
+            "step":5,
+            "dim":6
+          },
+          "pre_stim":4.0,
+          "stim":7.0,
+          "post_stim":8.0
+        }
+      ]
+    },
+    "cameras": [
+      {
+        "device":"andor",
+        "index":0,
+        "master":true,
+        "name":"zyla",
+        "dtype":"uint16",
+        "height":2000,
+        "width":2000,
+        "offset_x":1,
+        "offset_y":1,
+        "binning":"2x2",
+        "framerate":10.0
+      }
+    ]
+  }

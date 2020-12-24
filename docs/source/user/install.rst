@@ -4,6 +4,12 @@
 Installing PyWFOM
 =================
 
+System Requirements
+-------------------
+
+* Windows 10 or Linux
+* Python 3.5+
+
 w/ PIP
 --------
 

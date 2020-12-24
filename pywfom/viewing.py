@@ -21,7 +21,7 @@ def _config_arduino(frame):
 def _set_dir(parent):
     parent.file.directory = tk.filedialog.askdirectory()
 
-def edit_camera(frame, i=None):
+def _edit_camera(frame, i=None):
 
     if i:
         frame.selected_frame = i
@@ -29,7 +29,7 @@ def edit_camera(frame, i=None):
     _set_icon(frame.root, "configure")
     _CameraConfig(frame, frame.root)
 
-def delete_camera(frame, i=None):
+def _delete_camera(frame, i=None):
 
     if i:
         frame.selected_frame = i
@@ -153,12 +153,12 @@ class Main(tk.Frame):
 
         tk.Button(  _sub_canvas,
                     text='Edit',
-                    command=lambda frm=self:edit_camera(frm)
+                    command=lambda frm=self:_edit_camera(frm)
         ).pack(side='left')
 
         tk.Button(  _sub_canvas,
                     text='Remove',
-                    command=lambda frm=self:delete_camera(frm)
+                    command=lambda frm=self:_delete_camera(frm)
         ).pack(side='left')
 
         # Set Canvas bindings

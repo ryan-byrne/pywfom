@@ -10,7 +10,7 @@ Camera Interface
   :inherited-members:
 
 Arduino Interface
-=================
+-----------------
 
 .. autoclass:: pywfom.control.Arduino
   :inherited-members:

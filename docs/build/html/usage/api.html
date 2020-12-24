@@ -98,9 +98,9 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">API Documentation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#camera-interface">Camera Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#arduino-interface">Arduino Interface</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="#arduino-interface">Arduino Interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuring Your System</a></li>
 </ul>
 
@@ -174,16 +174,16 @@
 <dl class="py class">
 <dt id="pywfom.imaging.Camera">
 <em class="property">class </em><code class="sig-prename descclassname">pywfom.imaging.</code><code class="sig-name descname">Camera</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">device</span><span class="o">=</span><span class="default_value">'webcam'</span></em>, <em class="sig-param"><span class="n">index</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.Camera" title="Permalink to this definition">¶</a></dt>
-<dd><p>A Camera Object</p>
+<dd><p>A Camera Interface for the PyWFOM System</p>
 <dl class="py method">
 <dt id="pywfom.imaging.Camera.read">
 <code class="sig-name descname">read</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.Camera.read" title="Permalink to this definition">¶</a></dt>
-<dd><p>Read and return current frame read by Camera Interface</p>
+<dd><p>Read and return current frame read from Camera Interface</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="pywfom.imaging.Camera.set">
-<code class="sig-name descname">set</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.Camera.set" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">set</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.Camera.set" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -207,19 +207,12 @@
 </dd></dl>
 
 </div>
-</div>
 <div class="section" id="arduino-interface">
-<h1>Arduino Interface<a class="headerlink" href="#arduino-interface" title="Permalink to this headline">¶</a></h1>
+<h2>Arduino Interface<a class="headerlink" href="#arduino-interface" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="pywfom.control.Arduino">
-<em class="property">class </em><code class="sig-prename descclassname">pywfom.control.</code><code class="sig-name descname">Arduino</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">settings</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.control.Arduino" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pywfom.control.</code><code class="sig-name descname">Arduino</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">port</span><span class="o">=</span><span class="default_value">'COM1'</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.control.Arduino" title="Permalink to this definition">¶</a></dt>
 <dd><p>Methods pertaining to Communication with the Arduino</p>
-<dl class="py method">
-<dt id="pywfom.control.Arduino.connect_to_arduino">
-<code class="sig-name descname">connect_to_arduino</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">port</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.control.Arduino.connect_to_arduino" title="Permalink to this definition">¶</a></dt>
-<dd><p>Connect to an Arduino at a specified COM Port</p>
-</dd></dl>
-
 <dl class="py method">
 <dt id="pywfom.control.Arduino.toggle_led">
 <code class="sig-name descname">toggle_led</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pin</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.control.Arduino.toggle_led" title="Permalink to this definition">¶</a></dt>
@@ -234,6 +227,7 @@
 
 </dd></dl>
 
+</div>
 </div>
 
 

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Configuring Your System &mdash; pywfom 0.0.1-beta documentation</title>
+  <title>JSON Configuration File &mdash; pywfom 0.0.1-beta documentation</title>
   
 
   
@@ -96,7 +96,7 @@
 <p class="caption"><span class="caption-text">Usage:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="api.html">API Documentation</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Configuring Your System</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">JSON Configuration File</a></li>
 </ul>
 
             
@@ -143,7 +143,7 @@
     
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
-      <li>Configuring Your System</li>
+      <li>JSON Configuration File</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -162,8 +162,69 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="configuring-your-system">
-<span id="configuration"></span><h1>Configuring Your System<a class="headerlink" href="#configuring-your-system" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="json-configuration-file">
+<span id="configuration"></span><h1>JSON Configuration File<a class="headerlink" href="#json-configuration-file" title="Permalink to this headline">¶</a></h1>
+<div class="highlight-JSON notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="nt">&quot;file&quot;</span><span class="p">:{</span>
+    <span class="nt">&quot;user&quot;</span><span class="p">:</span><span class="s2">&quot;rjb2202&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;mouse&quot;</span><span class="p">:</span><span class="s2">&quot;cm100&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;directory&quot;</span><span class="p">:</span><span class="s2">&quot;C:/data&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;runs&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+    <span class="nt">&quot;run_length&quot;</span><span class="p">:</span> <span class="mf">2.0</span>
+  <span class="p">},</span>
+  <span class="nt">&quot;arduino&quot;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nt">&quot;port&quot;</span><span class="p">:</span> <span class="s2">&quot;COM4&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;data_acquisition&quot;</span><span class="p">:[</span>
+      <span class="p">{</span>
+        <span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="s2">&quot;encoder&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;pin&quot;</span><span class="p">:</span><span class="mi">20</span>
+      <span class="p">}</span>
+    <span class="p">],</span>
+    <span class="nt">&quot;strobing&quot;</span><span class="p">:</span> <span class="p">{</span>
+      <span class="nt">&quot;leds&quot;</span><span class="p">:[</span>
+        <span class="p">{</span>
+          <span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="s2">&quot;blue&quot;</span><span class="p">,</span>
+          <span class="nt">&quot;pin&quot;</span><span class="p">:</span><span class="mi">7</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+          <span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="s2">&quot;green&quot;</span><span class="p">,</span>
+          <span class="nt">&quot;pin&quot;</span><span class="p">:</span><span class="mi">8</span>
+        <span class="p">}</span>
+      <span class="p">],</span>
+      <span class="nt">&quot;trigger&quot;</span><span class="p">:</span><span class="mi">2</span>
+    <span class="p">},</span>
+    <span class="nt">&quot;stim&quot;</span><span class="p">:</span> <span class="p">[</span>
+      <span class="p">{</span>
+        <span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="s2">&quot;default&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="s2">&quot;2PinStepper&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;pins&quot;</span><span class="p">:{</span>
+          <span class="nt">&quot;step&quot;</span><span class="p">:</span><span class="mi">5</span><span class="p">,</span>
+          <span class="nt">&quot;dim&quot;</span><span class="p">:</span><span class="mi">6</span>
+        <span class="p">},</span>
+        <span class="nt">&quot;pre_stim&quot;</span><span class="p">:</span><span class="mf">4.0</span><span class="p">,</span>
+        <span class="nt">&quot;stim&quot;</span><span class="p">:</span><span class="mf">7.0</span><span class="p">,</span>
+        <span class="nt">&quot;post_stim&quot;</span><span class="p">:</span><span class="mf">8.0</span>
+      <span class="p">}</span>
+    <span class="p">]</span>
+  <span class="p">},</span>
+  <span class="nt">&quot;cameras&quot;</span><span class="p">:</span> <span class="p">[</span>
+    <span class="p">{</span>
+      <span class="nt">&quot;device&quot;</span><span class="p">:</span><span class="s2">&quot;andor&quot;</span><span class="p">,</span>
+      <span class="nt">&quot;index&quot;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span>
+      <span class="nt">&quot;master&quot;</span><span class="p">:</span><span class="kc">true</span><span class="p">,</span>
+      <span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="s2">&quot;zyla&quot;</span><span class="p">,</span>
+      <span class="nt">&quot;dtype&quot;</span><span class="p">:</span><span class="s2">&quot;uint16&quot;</span><span class="p">,</span>
+      <span class="nt">&quot;height&quot;</span><span class="p">:</span><span class="mi">2000</span><span class="p">,</span>
+      <span class="nt">&quot;width&quot;</span><span class="p">:</span><span class="mi">2000</span><span class="p">,</span>
+      <span class="nt">&quot;offset_x&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span>
+      <span class="nt">&quot;offset_y&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span>
+      <span class="nt">&quot;binning&quot;</span><span class="p">:</span><span class="s2">&quot;2x2&quot;</span><span class="p">,</span>
+      <span class="nt">&quot;framerate&quot;</span><span class="p">:</span><span class="mf">10.0</span>
+    <span class="p">}</span>
+  <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
 </div>
 
 
