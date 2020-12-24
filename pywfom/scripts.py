@@ -59,7 +59,15 @@ def _startup():
     return args, config
 
 def _test():
-    wfom = pywfom.System()
+
+    cam = pywfom.imaging.Camera(height=500, width=500)
+    #ard = pywfom.control.Arduino()
+
+    while True:
+        frame = cam.read()
+        cv2.imshow('frame', frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
 
 
 def quickstart():

@@ -36,16 +36,16 @@
   },
   "cameras": [
     {
-      "device":"webcam",
-      "index":0,
-      "master":true,
       "name":"defaultCamera",
-      "dtype":"uint16",
+      "index":0,
+      "device":"webcam",
       "height":2000,
       "width":2000,
       "offsetX":1,
       "offsetY":1,
       "binning":"1x1",
+      "dtype":"uint16",
+      "master":true,
       "framerate":40.0
     }
   ]

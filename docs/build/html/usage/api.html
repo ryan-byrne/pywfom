@@ -96,7 +96,11 @@
 </ul>
 <p class="caption"><span class="caption-text">Usage:</span></p>
 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">API Documentation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#camera-interface">Camera Interface</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#arduino-interface">Arduino Interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuring Your System</a></li>
 </ul>
 
@@ -163,162 +167,72 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="module-pywfom.imaging">
-<span id="api-documentation"></span><span id="api"></span><h1>API Documentation<a class="headerlink" href="#module-pywfom.imaging" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="api-documentation">
+<span id="api"></span><h1>API Documentation<a class="headerlink" href="#api-documentation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="camera-interface">
+<h2>Camera Interface<a class="headerlink" href="#camera-interface" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt id="pywfom.imaging.Andor">
-<em class="property">class </em><code class="sig-prename descclassname">pywfom.imaging.</code><code class="sig-name descname">Andor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">settings</span></em>, <em class="sig-param"><span class="n">test</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.Andor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dt id="pywfom.imaging.Camera">
+<em class="property">class </em><code class="sig-prename descclassname">pywfom.imaging.</code><code class="sig-name descname">Camera</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">device</span><span class="o">=</span><span class="default_value">'webcam'</span></em>, <em class="sig-param"><span class="n">index</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.Camera" title="Permalink to this definition">¶</a></dt>
+<dd><p>A Camera Object</p>
 <dl class="py method">
-<dt id="pywfom.imaging.Andor.close">
-<code class="sig-name descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.Andor.close" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt id="pywfom.imaging.Camera.read">
+<code class="sig-name descname">read</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.Camera.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read and return current frame read by Camera Interface</p>
+</dd></dl>
 
 <dl class="py method">
-<dt id="pywfom.imaging.Andor.read">
-<code class="sig-name descname">read</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.Andor.read" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="pywfom.imaging.Andor.set">
-<code class="sig-name descname">set</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">setting</span></em>, <em class="sig-param"><span class="n">value</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.Andor.set" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt id="pywfom.imaging.Camera.set">
+<code class="sig-name descname">set</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.Camera.set" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> (<em>dict</em>) -- Dictionary containing multiple settings</p></li>
+<li><p><strong>device</strong> (<em>string</em>) -- Device type for the new <a class="reference internal" href="#pywfom.imaging.Camera" title="pywfom.imaging.Camera"><code class="xref py py-class docutils literal notranslate"><span class="pre">Camera</span></code></a> object.</p></li>
+<li><p><strong>name</strong> (<em>string</em>) -- (optional) Names the <a class="reference internal" href="#pywfom.imaging.Camera" title="pywfom.imaging.Camera"><code class="xref py py-class docutils literal notranslate"><span class="pre">Camera</span></code></a> object.</p></li>
+<li><p><strong>index</strong> (<em>int</em>) -- Sets the index <a class="reference internal" href="#pywfom.imaging.Camera" title="pywfom.imaging.Camera"><code class="xref py py-class docutils literal notranslate"><span class="pre">Camera</span></code></a> will connect to.</p></li>
+<li><p><strong>height</strong> (<em>int</em>) -- Sets the height of the <a class="reference internal" href="#pywfom.imaging.Camera" title="pywfom.imaging.Camera"><code class="xref py py-class docutils literal notranslate"><span class="pre">Camera</span></code></a> frame.</p></li>
+<li><p><strong>width</strong> (<em>int</em>) -- Sets the width of the <a class="reference internal" href="#pywfom.imaging.Camera" title="pywfom.imaging.Camera"><code class="xref py py-class docutils literal notranslate"><span class="pre">Camera</span></code></a> frame.</p></li>
+<li><p><strong>offset_x</strong> (<em>int</em>) -- Sets the width of the <a class="reference internal" href="#pywfom.imaging.Camera" title="pywfom.imaging.Camera"><code class="xref py py-class docutils literal notranslate"><span class="pre">Camera</span></code></a> frame.</p></li>
+<li><p><strong>offset_y</strong> (<em>int</em>) -- Sets the width of the <a class="reference internal" href="#pywfom.imaging.Camera" title="pywfom.imaging.Camera"><code class="xref py py-class docutils literal notranslate"><span class="pre">Camera</span></code></a> frame.</p></li>
+<li><p><strong>binning</strong> (<em>string</em>) -- Sets the binning of the <a class="reference internal" href="#pywfom.imaging.Camera" title="pywfom.imaging.Camera"><code class="xref py py-class docutils literal notranslate"><span class="pre">Camera</span></code></a> frame.</p></li>
+<li><p><strong>dtype</strong> (<em>string</em>) -- Sets the datatype of the <a class="reference internal" href="#pywfom.imaging.Camera" title="pywfom.imaging.Camera"><code class="xref py py-class docutils literal notranslate"><span class="pre">Camera</span></code></a> frame.</p></li>
+<li><p><strong>master</strong> (<em>bool</em>) -- Establishes whether <a class="reference internal" href="#pywfom.imaging.Camera" title="pywfom.imaging.Camera"><code class="xref py py-class docutils literal notranslate"><span class="pre">Camera</span></code></a> is self-triggered.</p></li>
+<li><p><strong>framerate</strong> (<em>float</em>) -- Sets the framerate the <a class="reference internal" href="#pywfom.imaging.Camera" title="pywfom.imaging.Camera"><code class="xref py py-class docutils literal notranslate"><span class="pre">Camera</span></code></a> read at</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 </dd></dl>
 
+</div>
+</div>
+<div class="section" id="arduino-interface">
+<h1>Arduino Interface<a class="headerlink" href="#arduino-interface" title="Permalink to this headline">¶</a></h1>
 <dl class="py class">
-<dt id="pywfom.imaging.Spinnaker">
-<em class="property">class </em><code class="sig-prename descclassname">pywfom.imaging.</code><code class="sig-name descname">Spinnaker</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">settings</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.Spinnaker" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Class object for control of a Spinnaker Camera</p>
+<dt id="pywfom.control.Arduino">
+<em class="property">class </em><code class="sig-prename descclassname">pywfom.control.</code><code class="sig-name descname">Arduino</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">settings</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.control.Arduino" title="Permalink to this definition">¶</a></dt>
+<dd><p>Methods pertaining to Communication with the Arduino</p>
 <dl class="py method">
-<dt id="pywfom.imaging.Spinnaker.close">
-<code class="sig-name descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.Spinnaker.close" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="pywfom.imaging.Spinnaker.get">
-<code class="sig-name descname">get</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">setting</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.Spinnaker.get" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="pywfom.imaging.Spinnaker.get_inc">
-<code class="sig-name descname">get_inc</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">setting</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.Spinnaker.get_inc" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="pywfom.imaging.Spinnaker.get_max">
-<code class="sig-name descname">get_max</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">setting</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.Spinnaker.get_max" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="pywfom.imaging.Spinnaker.get_min">
-<code class="sig-name descname">get_min</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">setting</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.Spinnaker.get_min" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="pywfom.imaging.Spinnaker.read">
-<code class="sig-name descname">read</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.Spinnaker.read" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="pywfom.imaging.Spinnaker.set">
-<code class="sig-name descname">set</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">setting</span></em>, <em class="sig-param"><span class="n">value</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.Spinnaker.set" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="pywfom.imaging.Spinnaker.start">
-<code class="sig-name descname">start</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.Spinnaker.start" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="pywfom.imaging.Spinnaker.stop">
-<code class="sig-name descname">stop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.Spinnaker.stop" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
+<dt id="pywfom.control.Arduino.connect_to_arduino">
+<code class="sig-name descname">connect_to_arduino</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">port</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.control.Arduino.connect_to_arduino" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connect to an Arduino at a specified COM Port</p>
 </dd></dl>
 
-<dl class="py class">
-<dt id="pywfom.imaging.Test">
-<em class="property">class </em><code class="sig-prename descclassname">pywfom.imaging.</code><code class="sig-name descname">Test</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">settings</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.Test" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="py method">
-<dt id="pywfom.imaging.Test.close">
-<code class="sig-name descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.Test.close" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="pywfom.imaging.Test.get">
-<code class="sig-name descname">get</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">setting</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.Test.get" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="pywfom.imaging.Test.get_max">
-<code class="sig-name descname">get_max</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">setting</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.Test.get_max" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="pywfom.imaging.Test.get_min">
-<code class="sig-name descname">get_min</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">setting</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.Test.get_min" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="pywfom.imaging.Test.read">
-<code class="sig-name descname">read</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.Test.read" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="pywfom.imaging.Test.set">
-<code class="sig-name descname">set</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">setting</span></em>, <em class="sig-param"><span class="n">value</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.Test.set" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
+<dt id="pywfom.control.Arduino.toggle_led">
+<code class="sig-name descname">toggle_led</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pin</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.control.Arduino.toggle_led" title="Permalink to this definition">¶</a></dt>
+<dd><p>Turn on a specified LED</p>
 </dd></dl>
 
-<dl class="py class">
-<dt id="pywfom.imaging.Webcam">
-<em class="property">class </em><code class="sig-prename descclassname">pywfom.imaging.</code><code class="sig-name descname">Webcam</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">settings</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.Webcam" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="py method">
-<dt id="pywfom.imaging.Webcam.close">
-<code class="sig-name descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.Webcam.close" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="pywfom.imaging.Webcam.get">
-<code class="sig-name descname">get</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">setting</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.Webcam.get" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="pywfom.imaging.Webcam.get_max">
-<code class="sig-name descname">get_max</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">setting</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.Webcam.get_max" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="pywfom.imaging.Webcam.get_min">
-<code class="sig-name descname">get_min</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">setting</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.Webcam.get_min" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="pywfom.imaging.Webcam.read">
-<code class="sig-name descname">read</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.Webcam.read" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="pywfom.imaging.Webcam.set">
-<code class="sig-name descname">set</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">setting</span></em>, <em class="sig-param"><span class="n">value</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.Webcam.set" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
+<dt id="pywfom.control.Arduino.toggle_strobing">
+<code class="sig-name descname">toggle_strobing</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.control.Arduino.toggle_strobing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Toggles strobing on the connected LEDs</p>
 </dd></dl>
 
-<dl class="py function">
-<dt id="pywfom.imaging.error_frame">
-<code class="sig-prename descclassname">pywfom.imaging.</code><code class="sig-name descname">error_frame</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msg</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.error_frame" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt id="pywfom.imaging.loading_frame">
-<code class="sig-prename descclassname">pywfom.imaging.</code><code class="sig-name descname">loading_frame</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">height</span></em>, <em class="sig-param"><span class="n">width</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.loading_frame" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+</dd></dl>
 
 </div>
 

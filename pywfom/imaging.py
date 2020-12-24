@@ -484,63 +484,175 @@ class Webcam(object):
 
 class Camera(object):
 
-    """ Class object for a camera """
+    """
+    A Camera Interface for the PyWFOM System
+    """
 
-    def __init__(self, settings):
+    def __init__(self, device='webcam', index=0, **kwargs):
 
         # Establish the Camera handler
-        self._handle = None
+        self._handler = None
 
         # Create a to store any errors that may occur
         self.ERROR = []
 
-        # Deploy specified settings
-        self.set(settings)
+        # Initialize Camera Interface
+        self._handler = self._startup(device, index)
+
+        self.set(config=kwargs)
+
+    def _startup(self, device, index):
+
+        self.device, self.index = device, index
+
+        if device == 'webcam':
+            return self._start_webcam(index)
+        elif device == 'spinnaker':
+            return self._start_spinnaker(index)
+        elif device == 'andor':
+            return self._start_andor(index)
+        else:
+            return None
+
+    def _shutdown(self):
+        pass
+
+    def _start_webcam(self, index):
+
+        global cv2
+        import cv2
+
+        cam = cv2.VideoCapture(index)
+
+        _guide = {
+            'framerate':cam.get(5),
+            'height':int(cam.get(4)),
+            'width':int(cam.get(3))
+        }
+
+        if not cam.isOpened():
+            self.ERROR = 'No webcam found at index:{0}'.format(index)
+            return None
+        else:
+            for attr in ['height', 'width', 'framerate', 'offset_x', 'offset_y']:
+                if hasattr(self, attr):
+                    continue
+                elif attr in _guide:
+                    setattr(self, attr, _guide[attr])
+                else:
+                    setattr(self, attr, 1)
+            return cam
+
+    def _start_spinnaker(self, index):
+
+        global PySpin
+        import PySpin
+
+        self._system = PySpin.System.GetInstance()
+
+        try:
+            return self._system.GetCameras().GetByIndex(index)
+        except:
+            self.ERROR = 'No spinnaker camera found at index:{0}'.format(index)
+            return None
+
+    def _start_andor(self, index):
+
+        global andor
+        from .utils import andor
+
+        try:
+            return andor.Open(0)
+        except:
+            self.ERROR = 'No Andor camera found at index:{0}'.format(index)
 
     def set(self, config=None, **kwargs):
 
         """
-        :param config: Dictionary containing multiple settings
-        :param device: Device type for the new :class:`Camera` object.
-        :param name: (optional) Names the :class:`Camera` object.
-        :param index: Sets the index :class:`Camera` will connect to.
-        :param height: Sets the height of the :class:`Camera` frame.
-        :param width: Sets the width of the :class:`Camera` frame.
-        :param offset_x: Sets the width of the :class:`Camera` frame.
-        :param offset_y: Sets the width of the :class:`Camera` frame.
-        :param binning: Sets the binning of the :class:`Camera` frame.
-        :param dtype: Sets the datatype of the :class:`Camera` frame.
-        :param master: Establishes whether :class:`Camera` is self-triggered.
-        :param framerate: Sets the framerate the :class:`Camera` read at.
-
+        :param dict config: Dictionary containing multiple settings
+        :param string device: Device type for the new :class:`Camera` object.
+        :param string name: (optional) Names the :class:`Camera` object.
+        :param int index: Sets the index :class:`Camera` will connect to.
+        :param int height: Sets the height of the :class:`Camera` frame.
+        :param int width: Sets the width of the :class:`Camera` frame.
+        :param int offset_x: Sets the width of the :class:`Camera` frame.
+        :param int offset_y: Sets the width of the :class:`Camera` frame.
+        :param string binning: Sets the binning of the :class:`Camera` frame.
+        :param string dtype: Sets the datatype of the :class:`Camera` frame.
+        :param bool master: Establishes whether :class:`Camera` is self-triggered.
+        :param float framerate: Sets the framerate the :class:`Camera` read at
         """
+
+        self._stop_acquiring()
 
         settings = kwargs if not config else config
 
         for k, v in settings.items():
-            self._set(k,v)
+            if v == getattr(self, k):
+                continue
+            else:
+                self._set(k,v)
 
+        self._start_acquiring()
 
     def _set(self, setting, value):
 
         if setting == 'device':
-            self._set_device_type(value)
+            self._shutdown()
+            self._startup(value, self.index)
+
         elif setting == 'name':
             setattr(self, 'name', value)
+
         elif setting == 'index':
+            self._shutdown()
+            self._startup(self.device, value)
+
+        else:
+
+            if self.device == 'webcam':
+                self._set_webcam(setting, value)
+
+    def _set_webcam(self, setting, value):
+
+        if setting == 'framerate':
+            self._handler.set(5, value)
+            
+        setattr(self, setting, value)
+
+    def _stop_acquiring(self):
+
+        if self.device == 'andor':
             pass
+        elif self.device == 'spinnaker':
+            pass
+        elif self.device == 'webcam':
+            pass
+        else:
+            self._handler = None
 
-
-    def _set_device_type(self, device_type):
+    def _start_acquiring(self):
         pass
 
-
-    def get(self, setting):
+    def get(self, setting=None):
         return None
 
     def read(self):
-        return None
 
+        """
+        Read and return current frame read by Camera Interface
+        """
+
+        if self.device == 'webcam':
+            frame = self._read_webcam_frame()
+
+        return frame
+
+    def _read_webcam_frame(self):
+        ret, img = self._handler.read()
+        img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        x, y, w, h = self.offset_x, self.offset_y, self.width, self.height
+        return img_gray[y:h+y, x:w+x]
 
 OPTIONS = {
     'dtype':['uint8','uint12', 'uin12p', 'uint16'],
