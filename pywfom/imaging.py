@@ -413,39 +413,80 @@ class Camera(object):
         return None
 
     def get_min(self, setting):
-        if self.device == 'webcam':
+
+        if setting == 'index':
+            return 0
+        elif setting == 'offset_x':
+            return 1
+        elif setting == 'offset_y':
+            return 1
+        elif self.device == 'webcam':
             return self._get_webcam_min(setting)
+        else:
+            return self._get_test_min(setting)
 
     def get_max(self, setting):
 
-        if self.device == 'webcam':
+        if setting == 'index':
+            return 10
+        elif setting == 'offset_x':
+            return self.get_max('width') - self.width
+        elif setting == 'offset_y':
+            return self.get_max('height') - self.height
+        elif self.device == 'webcam':
             return self._get_webcam_max(setting)
+        elif self.device == 'andor':
+            return self._get_andor_max(setting)
+        else:
+            return self._get_test_max(setting)
 
     def _get_webcam_max(self, setting):
 
-        settings = {
+        _guide = {
             'height':int(self._handler.get(4)),
             'width':int(self._handler.get(3)),
-            'framerate':30.0,
-            'offset_x':int(self._handler.get(3))-self.width,
-            'offset_y':int(self._handler.get(4))-self.height,
-            'index':10
+            'framerate':30.0
         }
 
-        return settings[setting]
+        return _guide[setting]
 
     def _get_webcam_min(self, setting):
 
-        settings = {
+        _guide = {
             'height':10,
             'width':10,
-            'framerate':1.0,
-            'offset_x':1,
-            'offset_y':1,
-            'index':0
+            'framerate':1.0
         }
 
-        return settings[setting]
+        return _guide[setting]
+
+    def _get_andor_max(self, setting):
+        # TODO:
+        return None
+
+    def _get_andor_min(self, setting):
+        # TODO:
+        return None
+
+    def _get_test_max(self, setting):
+
+        _guide = {
+            'height':2400,
+            'width':2400,
+            'framerate':100.0
+        }
+
+        return _guide[setting]
+
+    def _get_test_min(self, setting):
+
+        _guide = {
+            'height':50,
+            'width':50,
+            'framerate':5.0
+        }
+
+        return _guide[setting]
 
     def read(self):
 
@@ -455,6 +496,16 @@ class Camera(object):
 
         if self.device == 'webcam':
             return self._read_webcam_frame()
+
+        elif self.device == 'andor':
+            return self._read_andor_frame()
+
+        elif self.device == 'spinnaker':
+            return self._read_spinnaker_frame()
+
+        else:
+            time.sleep(1/self.framerate)
+            return np.random.randint(0,255,size=(self.height, self.width)).astype(self.dtype)
 
     def set(self, **kwargs):
 
@@ -475,7 +526,7 @@ class Camera(object):
 
         self.ERRORS, self.WARNINGS = [], []
 
-        self.frame = loading_frame(self.height, self.width)
+        #self.frame = loading_frame(self.height, self.width)
 
         self._stop_acquiring()
 
@@ -484,12 +535,7 @@ class Camera(object):
         for k, v in settings.items():
 
             if not hasattr(self, k) or v != getattr(self, k):
-
-                try:
-                    self._set(k,v)
-                except Exception as e:
-                    self.ERRORS.append(str(e))
-
+                self._set(k,v)
             else:
                 continue
 
@@ -573,34 +619,35 @@ class Camera(object):
 
         if setting == 'device':
             self._shutdown()
-            self._startup(value, self.index)
+            self._handler = self._startup(value, self.index)
 
         elif setting == 'name':
-            setattr(self, 'name', value)
+            pass
 
         elif setting == 'index':
             self._shutdown()
-            self._startup(self.device, value)
+            self._handler = self._startup(self.device, value)
 
         elif setting == 'master':
             # TODO: COmplete
-            setattr(self, 'master', value)
             pass
 
         elif setting == 'binning':
             # TODO: Complete
-            setattr(self, 'binning', value)
             pass
 
         elif setting == 'dtype':
             # TODO: Complete
-            setattr(self, 'dtype', value)
             pass
 
         else:
             value = max(min(value, self.get_max(setting)), self.get_min(setting))
             if self.device == 'webcam':
                 self._set_webcam(setting, value)
+            else:
+                pass
+
+        setattr(self, setting, value)
 
     def _set_webcam(self, setting, value):
 
