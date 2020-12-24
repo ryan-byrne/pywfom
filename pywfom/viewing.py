@@ -110,7 +110,7 @@ class Main(tk.Frame):
         # Create Each Side of the Window
         self.right_side = tk.Frame(self.root)
         self.left_side = tk.Frame(self.root)
-        self.right_side.pack(side='right')
+        self.right_side.pack(side='right', padx=20, pady=20)
         self.left_side.pack(side='right', expand=True, fill=tk.X)
 
         # Main viewing window to the left
@@ -143,12 +143,16 @@ class Main(tk.Frame):
 
         tk.Button(  _lbl_frame,
                     text='Edit',
-                    command=lambda frm=self:_edit_camera(frm)
+                    command=lambda frm=self:_edit_camera(frm),
+                    padx=10,
+                    pady=5
         ).pack(side='left')
 
         tk.Button(  _lbl_frame,
                     text='Remove',
-                    command=lambda frm=self:_delete_camera(frm)
+                    command=lambda frm=self:_delete_camera(frm),
+                    padx=10,
+                    pady=5
         ).pack(side='left')
 
         _lbl_frame.pack()
@@ -170,7 +174,7 @@ class Main(tk.Frame):
 
         # Create empty thumnails
         self.thumbnails_frame = tk.Frame(self.right_side)
-        self.thumbnails_frame.pack()
+        self.thumbnails_frame.pack(pady=10)
         self.thumbnails, self.thumbnail_labels = [], []
 
         # Create thumbnails
@@ -180,14 +184,16 @@ class Main(tk.Frame):
         tk.Button(
             self.right_side,
             text='Add Camera',
-            command=self._add_camera
+            command=self._add_camera,
+            padx=10,
+            pady=5
         ).pack(pady=10)
 
     def _create_arduino_widgets(self):
 
         # Create frame
         arduino_frm = tk.Frame(self.right_side)
-        arduino_frm.pack()
+        arduino_frm.pack(pady=20)
 
         # Create+pack Arduino Widgets
         tk.Label(
@@ -213,13 +219,17 @@ class Main(tk.Frame):
 
         tk.Button(
             port_frm,
-            text="Connect"
+            text="Connect",
+            padx=10,
+            pady=5
         ).pack(side='left')
 
         tk.Button(
             port_frm,
             text="Configure",
-            command=lambda frm=self:_config_arduino(frm)
+            command=lambda frm=self:_config_arduino(frm),
+            padx=10,
+            pady=5
         ).pack(side='left')
 
         self.arduino_status = tk.Label(arduino_frm)
@@ -248,12 +258,16 @@ class Main(tk.Frame):
         tk.Button(
             file_frame,
             text="Browse",
-            command=lambda frm=self:_set_dir(self)
+            command=lambda frm=self:_set_dir(self),
+            padx=10,
+            pady=5
         ).pack(side='left')
 
         tk.Button(
             file_frame,
-            text="Configure"
+            text="Configure",
+            padx=10,
+            pady=5
         ).pack(side='left')
 
     def _create_buttons(self):
@@ -265,28 +279,36 @@ class Main(tk.Frame):
         tk.Button(
             btn_frm,
             text="Close",
-            command=self.close
-        ).pack(side='left')
+            command=self.close,
+            padx=10,
+            pady=5
+        ).pack(side='left', padx=10)
 
         tk.Button(
             btn_frm,
             text="Save",
-            command=lambda frm=self:_save(self)
-        ).pack(side='left')
+            command=lambda frm=self:_save(self),
+            padx=10,
+            pady=5
+        ).pack(side='left', padx=10)
 
         tk.Button(
             btn_frm,
             text="Load",
-            command=lambda frm=self:_load(self)
-        ).pack(side='left')
+            command=lambda frm=self:_load(self),
+            padx=10,
+            pady=5
+        ).pack(side='left', padx=10)
 
         self.acquire_btn = tk.Button(
             btn_frm,
             text="Acquire",
-            command=self.acquire
-        ).pack(side='left')
+            command=self.acquire,
+            padx=10,
+            pady=5
+        ).pack(side='left', padx=10)
 
-        btn_frm.pack()
+        btn_frm.pack(pady=30)
 
     def add_thumnail(self, name):
         self.thumbnails.append(tk.Label(self.thumbnails_frame))
