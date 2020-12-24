@@ -133,28 +133,29 @@ class Main(tk.Frame):
         self.selected_frame, self.ix, self.iy, self.x, self.y = 0,0,0,0,0
         self.offset_x, self.offset_y, self.scale = 0,0,0
 
+        _lbl_frame = tk.Frame(self.left_side)
+
         # Create Canvas and subcanvas to add buttons
         self.canvas = tk.Canvas(    self.left_side,
                                     cursor="cross"
                                 )
-        _sub_canvas = tk.Frame( self.canvas, cursor="arrow")
-        self.canvas.create_window(200,10, window=_sub_canvas)
-        self.canvas.pack(pady=10,padx=0)
-
         # Add widgets to subcanvas
-        self.main_lbl = tk.Label(   _sub_canvas,
+        self.main_lbl = tk.Label(   _lbl_frame,
                                     font=("Helvetica", 14))
-        self.main_lbl.pack(side='left')
+        self.main_lbl.pack()
 
-        tk.Button(  _sub_canvas,
+        tk.Button(  _lbl_frame,
                     text='Edit',
                     command=lambda frm=self:_edit_camera(frm)
         ).pack(side='left')
 
-        tk.Button(  _sub_canvas,
+        tk.Button(  _lbl_frame,
                     text='Remove',
                     command=lambda frm=self:_delete_camera(frm)
         ).pack(side='left')
+
+        _lbl_frame.pack()
+        self.canvas.pack(pady=10,padx=10)
 
         # Set Canvas bindings
         self.canvas.bind("<Button-1>", self.set_aoi_start)
