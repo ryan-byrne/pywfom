@@ -366,7 +366,7 @@ class Main(tk.Frame):
         self.thumbnails[self.selected_frame].config(borderwidth=10,relief="ridge", bg="green")
 
     def _add_camera(self):
-        cam = pywfom.imaging.Camera(name='NewCamera')
+        cam = pywfom.imaging.Camera()
         self.cameras.append(cam)
         self.add_thumnail(cam.name)
         self.selected_frame = len(self.cameras)-1
@@ -698,9 +698,14 @@ class _CameraConfig(tk.Toplevel):
 
     def _callback(self, event, setting):
 
+        value = pywfom.imaging.TYPES[setting](event.widget.get())
+
+        if setting == 'name':
+            self.parent.thumbnail_labels[self.parent.selected_frame].config(text=value) 
+
         self.camera.set(
             config={
-                setting:pywfom.imaging.TYPES[setting](event.widget.get())
+                setting:value
             }
         )
 
