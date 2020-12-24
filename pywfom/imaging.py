@@ -430,9 +430,9 @@ class Camera(object):
         if setting == 'index':
             return 10
         elif setting == 'offset_x':
-            return self.get_max('width') - self.width
+            return self.get_max('width') - self.width+1
         elif setting == 'offset_y':
-            return self.get_max('height') - self.height
+            return self.get_max('height') - self.height+1
         elif self.device == 'webcam':
             return self._get_webcam_max(setting)
         elif self.device == 'andor':
@@ -616,8 +616,6 @@ class Camera(object):
             self.ERRORS.append('No Andor camera found at index:{0}'.format(index))
 
     def _set(self, setting, value):
-
-        # TODO: Change camera type
 
         if setting == 'device':
             self.frame = loading_frame()

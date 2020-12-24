@@ -39,9 +39,6 @@ def _delete_camera(frame, i=None):
     frame.thumbnail_labels.pop(frame.selected_frame).pack_forget()
     frame.selected_frame = 0
 
-def add_camera(frame):
-    pass
-
 def _load(frame):
 
     f = filedialog.askopenfile(parent=frame.root)
@@ -104,7 +101,6 @@ class Main(tk.Frame):
         # General Application Settings
         self.root = parent
         self.root.attributes('-fullscreen', True)
-        print(self.root.winfo_screenwidth())
         self.root.bind("<Escape>", self.close)
         self.root.title("pywfom")
         self.root.protocol("WM_DELETE_WINDOW", self.close)
@@ -139,12 +135,11 @@ class Main(tk.Frame):
 
         # Create Canvas and subcanvas to add buttons
         self.canvas = tk.Canvas(    self.left_side,
-                                    cursor="cross",
-                                    width=1000,
-                                    height=800)
+                                    cursor="cross"
+                                )
         _sub_canvas = tk.Frame( self.canvas, cursor="arrow")
         self.canvas.create_window(200,10, window=_sub_canvas)
-        self.canvas.pack()
+        self.canvas.pack(pady=10,padx=0)
 
         # Add widgets to subcanvas
         self.main_lbl = tk.Label(   _sub_canvas,
