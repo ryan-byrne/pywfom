@@ -701,7 +701,7 @@ class _CameraConfig(tk.Toplevel):
         value = pywfom.imaging.TYPES[setting](event.widget.get())
 
         if setting == 'name':
-            self.parent.thumbnail_labels[self.parent.selected_frame].config(text=value) 
+            self.parent.thumbnail_labels[self.parent.selected_frame].config(text=value)
 
         self.camera.set(
             config={
@@ -806,6 +806,8 @@ class _ArduinoConfig(tk.Toplevel):
             stim_frm,
             text='Stim Settings:').grid(row=0,column=0,columnspan=4)
 
+        count = 0
+
         for i, stim in enumerate(self.arduino.stim):
 
             tk.Label(
@@ -828,11 +830,13 @@ class _ArduinoConfig(tk.Toplevel):
                 text = 'Test'
             ).grid(row=i+1, column=3)
 
+            count += 1
+
         tk.Button(
             stim_frm,
             text='Add Stim',
             command=self._add_stim
-        ).grid(row=i+2, column=0, columnspan=4)
+        ).grid(row=count+2, column=0, columnspan=4)
 
     def _create_daq_widgets(self):
 
@@ -843,6 +847,8 @@ class _ArduinoConfig(tk.Toplevel):
             daq_frm,
             text='Data Acquisition'
         ).grid(row=0, column=0, columnspan=2)
+
+        count = 0
 
         for i, daq in enumerate(self.arduino.data_acquisition):
 
@@ -858,11 +864,13 @@ class _ArduinoConfig(tk.Toplevel):
                 width=2
             ).grid(row=i+1, column=1)
 
+            count+=1
+
         tk.Button(
             daq_frm,
             text='Add DAQ',
             command=self._add_daq
-        ).grid(row=i+2, column=0, columnspan=2)
+        ).grid(row=count+2, column=0, columnspan=2)
 
     def _add_led(self):
         pass
