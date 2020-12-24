@@ -47,6 +47,19 @@
       "dtype":"uint8",
       "master":true,
       "framerate":40.0
+    },
+    {
+      "name":"defaultCamera",
+      "index":0,
+      "device":"test",
+      "height":500,
+      "width":500,
+      "offset_x":1,
+      "offset_y":1,
+      "binning":"1x1",
+      "dtype":"uint8",
+      "master":true,
+      "framerate":40.0
     }
   ]
 }

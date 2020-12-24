@@ -637,7 +637,11 @@ class _CameraConfig(tk.Toplevel):
             self.camera = camera
 
         self.root = parent.root
-        self.reset = self.camera.__dict__.copy()
+
+        self._init_settings = {}
+        for setting in pywfom.imaging.TYPES:
+            self._init_settings[setting] = getattr(self.camera, setting)
+
         self.parent = parent
         set_icon(self.root, 'configure')
 
@@ -711,11 +715,8 @@ class _CameraConfig(tk.Toplevel):
 
     def _reset(self):
         # TODO: Reset settings in window
-        _settings = {}
-        for setting in pywfom.imaging.TYPES:
-            _settings[setting] = self.reset[setting]
-        self.parent.cameras[self.parent.selected_frame].close()
-        self.parent.cameras[self.parent.selected_frame] = imaging.DEVICES[_settings['device']](_settings)
+        self.camera.set(config=self._init_settings)
+
 
     def _close(self):
         set_icon(self.root, 'icon')

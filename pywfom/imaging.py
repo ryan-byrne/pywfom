@@ -534,7 +534,7 @@ class Camera(object):
 
         for k, v in settings.items():
 
-            if not hasattr(self, k) or v != getattr(self, k):
+            if not hasattr(self, k) or v != getattr(self, k) or k in TYPES:
                 self._set(k,v)
             else:
                 continue
@@ -617,7 +617,10 @@ class Camera(object):
 
     def _set(self, setting, value):
 
+        # TODO: Change camera type
+
         if setting == 'device':
+            self.frame = loading_frame()
             self._shutdown()
             self._handler = self._startup(value, self.index)
 
@@ -625,6 +628,7 @@ class Camera(object):
             pass
 
         elif setting == 'index':
+            self.frame = loading_frame()
             self._shutdown()
             self._handler = self._startup(self.device, value)
 
@@ -682,6 +686,9 @@ class Camera(object):
         x, y, w, h = self.offset_x, self.offset_y, self.width, self.height
         return img_gray[y:h+y, x:w+x]
 
+    def _read_andor_frame(self):
+        pass
+
     def _update_frame(self):
 
         while self._acquiring:
@@ -692,7 +699,9 @@ class Camera(object):
 
             except Exception as e:
 
-                self.frame = error_frame(str(e))
+                msg = self.ERRORS[0] if self.ERRORS else str(e)
+
+                self.frame = error_frame(msg)
 
 
 OPTIONS = {
@@ -703,15 +712,15 @@ OPTIONS = {
 }
 
 TYPES = {
-    "device":str,
-    "name":str,
-    "index":int,
-    "height":int,
-    "width":int,
-    "framerate":float,
-    "master":bool,
-    "dtype":str,
-    "offsetX":int,
-    "offsetY":int,
-    'binning':str
+  "name":str,
+  "index":int,
+  "device":str,
+  "height":int,
+  "width":int,
+  "offset_x":int,
+  "offset_y":int,
+  "binning":str,
+  "dtype":str,
+  "master":bool,
+  "framerate":float
 }
