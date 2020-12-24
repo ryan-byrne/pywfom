@@ -174,7 +174,7 @@ class Main(tk.Frame):
 
         # Create empty thumnails
         self.thumbnails_frame = tk.Frame(self.right_side)
-        self.thumbnails_frame.pack(pady=10)
+        self.thumbnails_frame.pack()
         self.thumbnails, self.thumbnail_labels = [], []
 
         # Create thumbnails
@@ -372,12 +372,14 @@ class Main(tk.Frame):
         if len(self.cameras) == 0:
             return
 
-        thumbnail_size = (600/len(self.cameras), 150)
+        tn_height = self.root.winfo_height()/len(self.cameras)/3
+
+        thumbnail_size = (tn_height, tn_height)
 
         for i, cam in enumerate(self.cameras):
             img = self.convert_frame(cam.frame, thumbnail_size, False)
             self.thumbnails[i].img = img
-            self.thumbnails[i].config(image=img, borderwidth=10, relief="flat", bg="white")
+            self.thumbnails[i].config(image=img, borderwidth=3, relief="flat", bg="white")
             self.thumbnails[i].bind("<Button-1>",lambda event, idx=i: self.change_main_frame(event, idx))
             self.thumbnail_labels[i].pack()
             self.thumbnails[i].pack()
