@@ -110,8 +110,8 @@ class Main(tk.Frame):
         # Create Each Side of the Window
         self.right_side = tk.Frame(self.root)
         self.left_side = tk.Frame(self.root)
-        self.right_side.pack(side="right")
-        self.left_side.pack(side="left")
+        self.right_side.pack(side='right')
+        self.left_side.pack(side='right', expand=True, fill=tk.X)
 
         # Main viewing window to the left
         self._create_main_window()
@@ -133,16 +133,13 @@ class Main(tk.Frame):
         self.selected_frame, self.ix, self.iy, self.x, self.y = 0,0,0,0,0
         self.offset_x, self.offset_y, self.scale = 0,0,0
 
+
+        # Add widgets to label
         _lbl_frame = tk.Frame(self.left_side)
 
-        # Create Canvas and subcanvas to add buttons
-        self.canvas = tk.Canvas(    self.left_side,
-                                    cursor="cross"
-                                )
-        # Add widgets to subcanvas
         self.main_lbl = tk.Label(   _lbl_frame,
                                     font=("Helvetica", 14))
-        self.main_lbl.pack()
+        self.main_lbl.pack(side='left')
 
         tk.Button(  _lbl_frame,
                     text='Edit',
@@ -155,7 +152,12 @@ class Main(tk.Frame):
         ).pack(side='left')
 
         _lbl_frame.pack()
-        self.canvas.pack(pady=10,padx=10)
+
+        # Create Canvas and subcanvas to add buttons
+        self.canvas = tk.Canvas(    self.left_side,
+                                    cursor="cross"
+                                )
+        self.canvas.pack(padx=10)
 
         # Set Canvas bindings
         self.canvas.bind("<Button-1>", self.set_aoi_start)
@@ -179,7 +181,7 @@ class Main(tk.Frame):
             self.right_side,
             text='Add Camera',
             command=self._add_camera
-        ).pack(pady=30)
+        ).pack(pady=10)
 
     def _create_arduino_widgets(self):
 
