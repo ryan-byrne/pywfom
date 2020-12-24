@@ -6,7 +6,7 @@ from PIL import Image, ImageTk, ImageDraw
 
 import pywfom
 
-def set_icon(root, name="icon"):
+def _set_icon(root, name="icon"):
     path = "{0}/img/{1}.png".format(os.path.dirname(pywfom.__file__), name)
     photo = tk.PhotoImage(
         master = root,
@@ -26,7 +26,7 @@ def edit_camera(frame, i=None):
     if i:
         frame.selected_frame = i
 
-    set_icon(frame.root, "configure")
+    _set_icon(frame.root, "configure")
     _CameraConfig(frame, frame.root)
 
 def delete_camera(frame, i=None):
@@ -97,19 +97,18 @@ class Main(tk.Frame):
 
     def __init__(self, parent, system):
 
-        # TODO: Scale to window size
-
         self.cameras, self.arduino, self.file = system.cameras, system.arduino, system.file
 
         print("Opening Viewing Frame...")
 
         # General Application Settings
         self.root = parent
-        self.root.resizable(width=False, height=False)
+        self.root.attributes('-fullscreen', True)
+        print(self.root.winfo_screenwidth())
         self.root.bind("<Escape>", self.close)
         self.root.title("pywfom")
         self.root.protocol("WM_DELETE_WINDOW", self.close)
-        set_icon(self.root)
+        _set_icon(self.root)
 
 
         # Create Each Side of the Window
@@ -495,7 +494,7 @@ class Config(tk.Frame):
         self.root.bind("<Escape>", self._close)
         self.root.title("WFOM Configuration")
         self.root.protocol("WM_DELETE_WINDOW", self._close)
-        set_icon(self.root, 'configure')
+        _set_icon(self.root, 'configure')
         # Initiate each component's Class
         self.file = Writer(config=config["file"])
         self._create_file_widgets()
@@ -643,7 +642,7 @@ class _CameraConfig(tk.Toplevel):
             self._init_settings[setting] = getattr(self.camera, setting)
 
         self.parent = parent
-        set_icon(self.root, 'configure')
+        _set_icon(self.root, 'configure')
 
         self.title("({0}) Settings".format(self.camera.name))
 
@@ -707,19 +706,14 @@ class _CameraConfig(tk.Toplevel):
         if setting == 'name':
             self.parent.thumbnail_labels[self.parent.selected_frame].config(text=value)
 
-        self.camera.set(
-            config={
-                setting:value
-            }
-        )
+        self.camera.set( config = {setting:value} )
 
     def _reset(self):
-        # TODO: Reset settings in window
         self.camera.set(config=self._init_settings)
 
 
     def _close(self):
-        set_icon(self.root, 'icon')
+        _set_icon(self.root, 'icon')
         self.destroy()
 
 class _ArduinoConfig(tk.Toplevel):
@@ -732,7 +726,7 @@ class _ArduinoConfig(tk.Toplevel):
         self.root = self.parent.root
         self.arduino = parent.arduino
         self.reset = self.arduino.__dict__.copy()
-        set_icon(self.root, 'configure')
+        _set_icon(self.root, 'configure')
         self.title("Arduino Settings")
 
         self._create_strobe_widgets()
