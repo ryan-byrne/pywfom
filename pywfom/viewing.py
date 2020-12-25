@@ -212,10 +212,15 @@ class Main(tk.Frame):
 
         # TODO: Add refresh button
 
-        ttk.Combobox(
+        self._port_combo = ttk.Combobox(
             port_frm,
-            values=['hello']
-        ).pack(side='left')
+            values=[self.arduino.port],
+            state='readonly'
+        )
+        self._port_combo.pack(side='left')
+        self._port_combo.current(0)
+        self._port_combo.bind('<Button-1>', lambda e: self._get_ports(e))
+        self._port_combo.bind('<<ComboboxSelected>>', lambda e: self._change_port(e))
 
         tk.Button(
             port_frm,
@@ -313,6 +318,17 @@ class Main(tk.Frame):
     def add_thumnail(self, name):
         self.thumbnails.append(tk.Label(self.thumbnails_frame))
         self.thumbnail_labels.append(tk.Label(self.thumbnails_frame, text=name))
+
+    def _get_ports(self, event):
+        self._port_combo.config(values=['Loading Ports...'])
+        ports = pywfom.control.list_ports()
+        ports.insert(0, self.arduino.port)
+        self._port_combo.config(values=ports)
+
+    def _change_port(self, event):
+        self.arduino.set(
+            port=event.widget.get()
+        )
 
     def _delete_camera(self):
         if i:
