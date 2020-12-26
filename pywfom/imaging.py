@@ -3,6 +3,8 @@ import threading, time, traceback, os, ctypes, platform, queue
 import sys
 from PIL import Image, ImageDraw, ImageFont
 
+PySpin, andor = None, None
+
 # TODO: Synchronize trigger of andor with spinnakers
 # TODO: Make sure every class has a get_max/get_min
 
@@ -393,7 +395,7 @@ class Camera(object):
     A Camera Interface for the PyWFOM System
     """
 
-    def __init__(self, device='webcam', index=0, **kwargs):
+    def __init__(self, device='test', index=0, **kwargs):
 
         # TODO: Build out andor
         # TODO: build out spinnaker
@@ -411,123 +413,6 @@ class Camera(object):
         config = kwargs['config'] if 'config' in kwargs else kwargs
 
         self.set(config=config)
-
-    def get(self, setting=None):
-        return None
-
-    def get_min(self, setting):
-
-        if setting == 'index':
-            return 0
-        elif setting == 'offset_x':
-            return 1
-        elif setting == 'offset_y':
-            return 1
-        elif self.device == 'webcam':
-            return self._get_webcam_min(setting)
-        elif self.device == 'andor':
-            return self._get_andor_min(setting)
-        elif self.device == 'spinnaker':
-            return self._get_spinnaker_min(setting)
-        else:
-            return self._get_test_min(setting)
-
-    def get_max(self, setting):
-
-        if setting == 'index':
-            return 10
-        elif setting == 'offset_x':
-            return self.get_max('width') - self.width+1
-        elif setting == 'offset_y':
-            return self.get_max('height') - self.height+1
-        elif self.device == 'webcam':
-            return self._get_webcam_max(setting)
-        elif self.device == 'andor':
-            return self._get_andor_max(setting)
-        elif self.device == 'spinnaker':
-            return self._get_spinnaker_max(setting)
-        else:
-            return self._get_test_max(setting)
-
-    def _get_webcam_max(self, setting):
-
-        _guide = {
-            'height':int(self._handler.get(4)),
-            'width':int(self._handler.get(3)),
-            'framerate':30.0
-        }
-
-        return _guide[setting]
-
-    def _get_webcam_min(self, setting):
-
-        _guide = {
-            'height':10,
-            'width':10,
-            'framerate':1.0
-        }
-
-        return _guide[setting]
-
-    def _get_andor_max(self, setting):
-        # TODO:
-        _guide = {
-            'height':2400,
-            'width':2400,
-            'index':10,
-            'framerate':100.0
-        }
-        return _guide[setting]
-
-    def _get_andor_min(self, setting):
-        # TODO:
-        _guide = {
-            'height':50,
-            'width':50,
-            'index':0,
-            'framerate':5.0
-        }
-        return _guide[setting]
-
-    def _get_spinnaker_max(self, setting):
-        # TODO:
-        _guide = {
-            'height':2400,
-            'width':2400,
-            'index':10,
-            'framerate':100.0
-        }
-        return _guide[setting]
-
-    def _get_spinnaker_min(self, setting):
-        # TODO:
-        _guide = {
-            'height':50,
-            'width':50,
-            'index':0,
-            'framerate':5.0
-        }
-        return _guide[setting]
-
-    def _get_test_max(self, setting):
-
-        _guide = {
-            'height':2400,
-            'width':2400,
-            'framerate':100.0
-        }
-
-        return _guide[setting]
-
-    def _get_test_min(self, setting):
-
-        _guide = {
-            'height':50,
-            'width':50,
-            'framerate':5.0
-        }
-
-        return _guide[setting]
 
     def read(self):
 
@@ -581,9 +466,54 @@ class Camera(object):
     def close(self):
         self._stop_acquiring()
 
+    def get(self, setting=None):
+        return None
+
+    def get_min(self, setting):
+
+        FUNCTIONS = {
+            'webcam':self._get_webcam_min,
+            'andor':self._get_andor_min,
+            'spinnaker':self._get_spinnaker_min
+        }
+
+        if setting == 'offset_x':
+            return 1
+        elif setting == 'offset_y':
+            return 1
+        elif setting == 'index':
+            return 0
+        if not self._handler:
+            return DEFAULT_MINIMUMS[setting]
+        else:
+            return FUNCTIONS[self.device](setting)
+
+    def get_max(self, setting):
+
+        FUNCTIONS = {
+            'webcam':self._get_webcam_max,
+            'andor':self._get_andor_max,
+            'spinnaker':self._get_spinnaker_max
+        }
+
+        if setting == 'offset_x':
+            return self.get_max('width') - self.width+1
+        elif setting == 'offset_y':
+            return self.get_max('height') - self.height+1
+        elif setting == 'index':
+            return 10
+        elif not self._handler:
+            return DEFAULT_MAXIMUMS[setting]
+        else:
+            return FUNCTIONS[self.device](setting)
+
     def _startup(self, device, index):
 
+        self.ERRORS, self.WARNINGS = [], []
+
         self.device, self.index = device, index
+
+        self.frame = loading_frame()
 
         if device == 'webcam':
             return self._start_webcam(index)
@@ -594,40 +524,20 @@ class Camera(object):
         else:
             return None
 
-    def _shutdown(self):
-        pass
-
     def _start_webcam(self, index):
 
         global cv2
         import cv2
 
-        cam = cv2.VideoCapture(index)
-
-        _guide = {
-            'framerate':cam.get(5),
-            'height':int(cam.get(4)),
-            'width':int(cam.get(3)),
-            'offset_x':1,
-            'offset_y':1,
-            'master':True,
-            'name':'NewWebcam',
-            'dtype':'uint8',
-            'binning':'2x2',
-        }
-
-        if not cam.isOpened():
-            self.ERRORS.append('No webcam found at index:{0}'.format(index))
-            return None
-        else:
-            for attr in _guide.keys():
-                if hasattr(self, attr):
-                    continue
-                elif attr in _guide:
-                    setattr(self, attr, _guide[attr])
-                else:
-                    setattr(self, attr, 1)
+        try:
+            cam = cv2.VideoCapture(index)
+            if not cam.isOpened():
+                raise ConnectionError('No webcam found at index:{0}'.format(index))
             return cam
+        except Exception as e:
+            self.frame = error_frame(str(e))
+            self.ERRORS.append(str(e))
+            return None
 
     def _start_spinnaker(self, index):
 
@@ -653,15 +563,91 @@ class Camera(object):
             self.ERRORS.append(str(e))
             return None
 
+    def _start_acquiring(self):
+
+        if not self._handler and self.device != 'test':
+            return
+
+        self._acquiring = True
+
+        if self.device == 'andor':
+            andor.Command(self._handler, 'AcquisitionStop')
+
+        threading.Thread(target=self._update_frame).start()
+
+    def _read_webcam_frame(self):
+        ret, img = self._handler.read()
+        img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        x, y, w, h = self.offset_x, self.offset_y, self.width, self.height
+        return img_gray[y:h+y, x:w+x]
+
+    def _read_andor_frame(self):
+        # TODO:
+        pass
+
+    def _stop_acquiring(self):
+
+        if not self._handler and self.device != 'test':
+            return
+
+        self._acquiring = False
+
+        if self.device == 'andor':
+            andor.Command(self._handler, 'AcquisitionStop')
+        elif self.device == 'spinnaker':
+            pass
+        elif self.device == 'webcam':
+            pass
+        else:
+            self._handler = None
+
+    def _shutdown(self):
+        pass
+
+    def _get_webcam_max(self, setting):
+
+        _guide = {
+            'height':int(self._handler.get(4)),
+            'width':int(self._handler.get(3)),
+            'framerate':30.0
+        }
+
+        return _guide[setting]
+
+    def _get_webcam_min(self, setting):
+
+        _guide = {
+            'height':10,
+            'width':10,
+            'framerate':1.0,
+            'offset_x':1
+        }
+
+        return _guide[setting]
+
+    def _get_andor_max(self, setting):
+        # TODO:
+        pass
+
+    def _get_andor_min(self, setting):
+        # TODO:
+        pass
+
+    def _get_spinnaker_max(self, setting):
+        # TODO:
+        pass
+
+    def _get_spinnaker_min(self, setting):
+        # TODO:
+        pass
+
     def _set(self, setting, value):
 
         if setting == 'device':
-            self.frame = loading_frame()
             self._shutdown()
             self._handler = self._startup(value, self.index)
 
         elif setting == 'index':
-            self.frame = loading_frame()
             self._shutdown()
             self._handler = self._startup(self.device, value)
 
@@ -696,43 +682,6 @@ class Camera(object):
 
         setattr(self, setting, value)
 
-    def _stop_acquiring(self):
-
-        if not self._handler and self.device != 'test':
-            return
-
-        self._acquiring = False
-
-        if self.device == 'andor':
-            andor.Command(self._handler, 'AcquisitionStop')
-        elif self.device == 'spinnaker':
-            pass
-        elif self.device == 'webcam':
-            pass
-        else:
-            self._handler = None
-
-    def _start_acquiring(self):
-
-        if not self._handler and self.device != 'test':
-            return
-
-        self._acquiring = True
-
-        if self.device == 'andor':
-            andor.Command(self._handler, 'AcquisitionStop')
-
-        threading.Thread(target=self._update_frame).start()
-
-    def _read_webcam_frame(self):
-        ret, img = self._handler.read()
-        img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        x, y, w, h = self.offset_x, self.offset_y, self.width, self.height
-        return img_gray[y:h+y, x:w+x]
-
-    def _read_andor_frame(self):
-        pass
-
     def _update_frame(self):
 
         while self._acquiring:
@@ -753,6 +702,18 @@ OPTIONS = {
     'device':['andor', 'spinnaker', 'webcam', 'test'],
     'binning':['1x1','2x2','4x4','8x8'],
     'master':[True, False]
+}
+
+DEFAULT_MAXIMUMS = {
+    'height':2400,
+    'width':2400,
+    'framerate':100.0
+}
+
+DEFAULT_MINIMUMS = {
+    'height':50,
+    'width':50,
+    'framerate':5.0
 }
 
 TYPES = {
