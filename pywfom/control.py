@@ -88,6 +88,7 @@ class Arduino():
             self._ser = serial.Serial(port=port , baudrate=115200)
             print("Successfully connected to Arduino at {0}".format(port))
             self.port = port
+            self.ERROR = None
         except serial.serialutil.SerialException as e:
             self.ERROR = "Unable to connect to Arduino at "+port
             print(self.ERROR)

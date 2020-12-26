@@ -18,6 +18,9 @@ def _set_icon(root, name="icon"):
 def _config_arduino(frame):
     _ArduinoConfig(frame, frame.root)
 
+def _config_file(frame):
+    _FileConfig(frame, frame.root)
+
 def _set_dir(parent):
     parent.file.directory = tk.filedialog.askdirectory()
 
@@ -210,8 +213,6 @@ class Main(tk.Frame):
             text="Port: "
         ).pack(side='left')
 
-        # TODO: Add refresh button
-
         self._port_combo = ttk.Combobox(
             port_frm,
             values=[self.arduino.port],
@@ -221,13 +222,6 @@ class Main(tk.Frame):
         self._port_combo.current(0)
         self._port_combo.bind('<Button-1>', lambda e: self._get_ports(e))
         self._port_combo.bind('<<ComboboxSelected>>', lambda e: self._change_port(e))
-
-        tk.Button(
-            port_frm,
-            text="Connect",
-            padx=10,
-            pady=5
-        ).pack(side='left')
 
         tk.Button(
             port_frm,
@@ -272,7 +266,8 @@ class Main(tk.Frame):
             file_frame,
             text="Configure",
             padx=10,
-            pady=5
+            pady=5,
+            command=lambda frm=self:_config_file(frm)
         ).pack(side='left')
 
     def _create_buttons(self):
@@ -326,8 +321,9 @@ class Main(tk.Frame):
         self._port_combo.config(values=ports)
 
     def _change_port(self, event):
+
         self.arduino.set(
-            port=event.widget.get()
+            port=event.widget.get().split(' - ')[0]
         )
 
     def _delete_camera(self):
@@ -913,3 +909,54 @@ class _ArduinoConfig(tk.Toplevel):
 
     def _add_daq(self):
         pass
+
+class _FileConfig(tk.Toplevel):
+    """docstring for FileConfig."""
+
+    def __init__(self, parent=None, master=None):
+
+        super().__init__(master = master)
+        self.root = parent.root
+        self.file = parent.file
+        self._create_widgets()
+
+    def _create_widgets(self):
+
+        for i, (k,v) in enumerate(self.file.__dict__.items()):
+
+            if k == 'ERROR':
+                continue
+            else:
+
+                tk.Label(self, text=k.title()).grid(row=i-1,column=0, sticky='e')
+
+                var = tk.StringVar()
+                var.set(v)
+
+                if k == 'directory':
+                    # TODO: Update dir on configuration
+                    entry = tk.Label(self)
+                    tk.Button(
+                        self,
+                        text="Browse",
+                        padx=10,
+                        pady=5,
+                        command=lambda frm=self:_set_dir(frm)
+                    ).grid(row=i-1,column=2)
+                elif k == 'runs':
+                    entry = tk.Spinbox(
+                        self,
+                        from_=1,
+                        to=100,
+                        width=3
+                    )
+                else:
+                    entry = tk.Entry(self,width=10)
+
+                entry.grid(row=i-1,column=1, sticky='w')
+                entry.config(textvariable=var, justify='center')
+                entry.bind('<FocusOut>', lambda event, k=k:self._callback(event,k))
+
+    def _callback(self, event, setting):
+        value = pywfom.file.TYPES[setting](event.widget.get())
+        self.file.set(setting, value)

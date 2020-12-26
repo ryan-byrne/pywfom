@@ -98,3 +98,11 @@ class Reader(object):
 
     def view(self):
         pass
+
+TYPES = {
+    "user":str,
+    "mouse":str,
+    "directory":str,
+    "runs": int,
+    "run_length": float
+}
