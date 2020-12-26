@@ -705,7 +705,7 @@ class _CameraConfig(tk.Toplevel):
                 )
                 entry.insert(0, v)
                 entry.config(state='readonly')
-                entry.bind('<<ComboboxSelected>>', lambda event, k=k:self._callback(event,k))
+                entry.bind('<<ComboboxSelected>>', lambda event, k=k:self._callback(entry,k))
             elif k in ["framerate", 'name']:
                 entry = tk.Entry(
                     setting_frm,
@@ -721,11 +721,11 @@ class _CameraConfig(tk.Toplevel):
                 )
                 entry.delete(0, 'end')
                 entry.insert(0, v)
-                entry.config(command=lambda entry=entry, k=k:self._callback(k, entry))
-                entry.bind('<Button-1>', lambda event, k=k:self._callback(k, event))
+                entry.config(command=lambda entry=entry, k=k:self._callback(entry, k))
+                entry.bind('<Button-1>', lambda event, k=k:self._callback(event, k))
 
             entry.grid(row=i, column=1, sticky='W', pady=5)
-            entry.bind('<FocusOut>', lambda event, k=k:self._callback(k, event))
+            entry.bind('<FocusOut>', lambda event, k=k:self._callback(event, k))
 
         button_frm = tk.Frame(self)
         button_frm.pack(pady=10)
@@ -735,13 +735,13 @@ class _CameraConfig(tk.Toplevel):
         done_btn = tk.Button(button_frm, text='Done', command=self._close)
         done_btn.pack(side='left')
 
-    def _callback(self, setting, event=None):
+    def _callback(self, event, setting):
 
         try:
             value = pywfom.imaging.TYPES[setting](event.widget.get())
         except:
             value = pywfom.imaging.TYPES[setting](event.get())
-            
+
         if setting == 'name':
             self.parent.thumbnail_labels[self.parent.selected_frame].config(text=value)
 
@@ -749,7 +749,6 @@ class _CameraConfig(tk.Toplevel):
 
     def _reset(self):
         self.camera.set(config=self._init_settings)
-
 
     def _close(self):
         _set_icon(self.root, 'icon')
@@ -906,13 +905,20 @@ class _ArduinoConfig(tk.Toplevel):
             command=self._add_daq
         ).grid(row=count+2, column=0, columnspan=2)
 
+    def _callback(self):
+        # TODO:
+        pass
+
     def _add_led(self):
+        # TODO:
         pass
 
     def _add_stim(self):
+        # TODO:
         pass
 
     def _add_daq(self):
+        # TODO:
         pass
 
 class _FileConfig(tk.Toplevel):
