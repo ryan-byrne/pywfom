@@ -705,6 +705,7 @@ class _CameraConfig(tk.Toplevel):
                 )
                 entry.insert(0, v)
                 entry.config(state='readonly')
+                entry.bind('<<ComboboxSelected>>', lambda event, k=k:self._callback(event,k))
             elif k in ["framerate", 'name']:
                 entry = tk.Entry(
                     setting_frm,
@@ -720,10 +721,11 @@ class _CameraConfig(tk.Toplevel):
                 )
                 entry.delete(0, 'end')
                 entry.insert(0, v)
-                entry.bind('<Button-1>', lambda event, k=k:self._callback(event,k))
+                entry.config(command=lambda entry=entry, k=k:self._callback(k, entry))
+                entry.bind('<Button-1>', lambda event, k=k:self._callback(k, event))
 
             entry.grid(row=i, column=1, sticky='W', pady=5)
-            entry.bind('<FocusOut>', lambda event, k=k:self._callback(event,k))
+            entry.bind('<FocusOut>', lambda event, k=k:self._callback(k, event))
 
         button_frm = tk.Frame(self)
         button_frm.pack(pady=10)
@@ -733,10 +735,13 @@ class _CameraConfig(tk.Toplevel):
         done_btn = tk.Button(button_frm, text='Done', command=self._close)
         done_btn.pack(side='left')
 
-    def _callback(self, event, setting):
+    def _callback(self, setting, event=None):
 
-        value = pywfom.imaging.TYPES[setting](event.widget.get())
-
+        try:
+            value = pywfom.imaging.TYPES[setting](event.widget.get())
+        except:
+            value = pywfom.imaging.TYPES[setting](event.get())
+            
         if setting == 'name':
             self.parent.thumbnail_labels[self.parent.selected_frame].config(text=value)
 
