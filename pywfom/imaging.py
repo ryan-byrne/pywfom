@@ -395,6 +395,9 @@ class Camera(object):
 
     def __init__(self, device='webcam', index=0, **kwargs):
 
+        # TODO: Build out andor
+        # TODO: build out spinnaker
+
         # Create a to store any errors that may occur
         self.ERRORS, self.WARNINGS = [], []
 
@@ -422,6 +425,10 @@ class Camera(object):
             return 1
         elif self.device == 'webcam':
             return self._get_webcam_min(setting)
+        elif self.device == 'andor':
+            return self._get_andor_min(setting)
+        elif self.device == 'spinnaker':
+            return self._get_spinnaker_min(setting)
         else:
             return self._get_test_min(setting)
 
@@ -437,6 +444,8 @@ class Camera(object):
             return self._get_webcam_max(setting)
         elif self.device == 'andor':
             return self._get_andor_max(setting)
+        elif self.device == 'spinnaker':
+            return self._get_spinnaker_max(setting)
         else:
             return self._get_test_max(setting)
 
@@ -462,11 +471,43 @@ class Camera(object):
 
     def _get_andor_max(self, setting):
         # TODO:
-        return None
+        _guide = {
+            'height':2400,
+            'width':2400,
+            'index':10,
+            'framerate':100.0
+        }
+        return _guide[setting]
 
     def _get_andor_min(self, setting):
         # TODO:
-        return None
+        _guide = {
+            'height':50,
+            'width':50,
+            'index':0,
+            'framerate':5.0
+        }
+        return _guide[setting]
+
+    def _get_spinnaker_max(self, setting):
+        # TODO:
+        _guide = {
+            'height':2400,
+            'width':2400,
+            'index':10,
+            'framerate':100.0
+        }
+        return _guide[setting]
+
+    def _get_spinnaker_min(self, setting):
+        # TODO:
+        _guide = {
+            'height':50,
+            'width':50,
+            'index':0,
+            'framerate':5.0
+        }
+        return _guide[setting]
 
     def _get_test_max(self, setting):
 
@@ -523,10 +564,6 @@ class Camera(object):
         :param bool master: Establishes whether :class:`Camera` is self-triggered.
         :param float framerate: Sets the framerate the :class:`Camera` read at
         """
-
-        self.ERRORS, self.WARNINGS = [], []
-
-        #self.frame = loading_frame(self.height, self.width)
 
         self._stop_acquiring()
 
@@ -594,26 +631,27 @@ class Camera(object):
 
     def _start_spinnaker(self, index):
 
-        global PySpin
-        import PySpin
-
-        self._system = PySpin.System.GetInstance()
-
         try:
+            global PySpin
+            import PySpin
+
+            self._system = PySpin.System.GetInstance()
             return self._system.GetCameras().GetByIndex(index)
-        except:
-            self.ERRORS.append('No spinnaker camera found at index:{0}'.format(index))
+        except Exception as e:
+            self.frame = error_frame(str(e))
+            self.ERRORS.append(str(e))
             return None
 
     def _start_andor(self, index):
 
-        global andor
-        from .utils import andor
-
         try:
+            global andor
+            from .utils import andor
             return andor.Open(0)
-        except:
-            self.ERRORS.append('No Andor camera found at index:{0}'.format(index))
+        except Exception as e:
+            self.frame = error_frame(str(e))
+            self.ERRORS.append(str(e))
+            return None
 
     def _set(self, setting, value):
 
@@ -622,13 +660,13 @@ class Camera(object):
             self._shutdown()
             self._handler = self._startup(value, self.index)
 
-        elif setting == 'name':
-            pass
-
         elif setting == 'index':
             self.frame = loading_frame()
             self._shutdown()
             self._handler = self._startup(self.device, value)
+
+        elif setting == 'name' or not self._handler:
+            pass
 
         elif setting == 'master':
             # TODO: COmplete
@@ -660,11 +698,13 @@ class Camera(object):
 
     def _stop_acquiring(self):
 
+        if not self._handler and self.device != 'test':
+            return
 
         self._acquiring = False
 
         if self.device == 'andor':
-            pass
+            andor.Command(self._handler, 'AcquisitionStop')
         elif self.device == 'spinnaker':
             pass
         elif self.device == 'webcam':
@@ -674,7 +714,13 @@ class Camera(object):
 
     def _start_acquiring(self):
 
+        if not self._handler and self.device != 'test':
+            return
+
         self._acquiring = True
+
+        if self.device == 'andor':
+            andor.Command(self._handler, 'AcquisitionStop')
 
         threading.Thread(target=self._update_frame).start()
 

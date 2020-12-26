@@ -764,6 +764,8 @@ class _ArduinoConfig(tk.Toplevel):
 
     def __init__(self, parent=None, master=None):
 
+        # TODO: Get this to actually change settings on the arduino
+
         super().__init__(master = master)
 
         self.parent = parent
@@ -773,26 +775,28 @@ class _ArduinoConfig(tk.Toplevel):
         _set_icon(self.root, 'configure')
         self.title("Arduino Settings")
 
+        # Section for strobe settings
         self._create_strobe_widgets()
+
+
         self._create_stim_widgets()
         self._create_daq_widgets()
 
     def _create_strobe_widgets(self):
 
-        strobe_frm = tk.Frame(self)
-        strobe_frm.pack()
+        self.strobe_frm = tk.Frame(self)
 
         tk.Label(
-            strobe_frm,
-            text='Strobe Settings:').grid(row=0,column=0,columnspan=3)
+            self.strobe_frm,
+            text='Strobe Settings:').grid(row=0,column=0,columnspan=4)
 
         tk.Label(
-            strobe_frm,
+            self.strobe_frm,
             text='Trigger'
         ).grid(row=1, column=0)
 
         trig = tk.Spinbox(
-            strobe_frm,
+            self.strobe_frm,
             from_=0,
             to=40,
             width=2
@@ -802,36 +806,46 @@ class _ArduinoConfig(tk.Toplevel):
         trig.insert(0, self.arduino.strobing['trigger'])
 
         tk.Button(
-            strobe_frm,
-            text='Test'
-        ).grid(row=1, column=2)
+            self.strobe_frm,
+            text='Test',
+            command=self._test_trigger()
+        ).grid(row=1, column=2, columnspan=2)
 
         for i, led in enumerate(self.arduino.strobing['leds']):
 
             name = tk.Entry(
-                strobe_frm,
-                width=7
+                self.strobe_frm,
+                width=7,
+                justify='center'
             )
             name.grid(row=i+2, column=0)
             name.insert(0, led['name'])
 
             pin = tk.Spinbox(
-                strobe_frm,
+                self.strobe_frm,
                 from_=0,
                 to=40,
-                width=2
+                width=2,
+                justify='center'
             )
             pin.grid(row=i+2, column=1)
             pin.delete(0, 'end')
             pin.insert(0, led['pin'])
 
             tk.Button(
-                strobe_frm,
-                text='Test'
+                self.strobe_frm,
+                text='Remove',
+                command=lambda i=i:self._remove_led(i)
             ).grid(row=i+2, column=2)
 
+            tk.Button(
+                self.strobe_frm,
+                text='Test',
+                command=lambda pin=i:self.arduino.toggle_led(pin)
+            ).grid(row=i+2, column=3)
+
         tk.Button(
-            strobe_frm,
+            self.strobe_frm,
             text='Add LED',
             command=self._add_led
         ).grid(row=i+3, column=0, columnspan=3)
@@ -915,7 +929,15 @@ class _ArduinoConfig(tk.Toplevel):
         # TODO:
         pass
 
+    def _test_trigger(self):
+        # TODO:
+        pass
+
     def _add_led(self):
+        # TODO:
+        pass
+
+    def _remove_led(self, i):
         # TODO:
         pass
 
@@ -923,7 +945,15 @@ class _ArduinoConfig(tk.Toplevel):
         # TODO:
         pass
 
+    def _remove_stim(self, i):
+        # TODO:
+        pass
+
     def _add_daq(self):
+        # TODO:
+        pass
+
+    def _remove_daq(self, i):
         # TODO:
         pass
 
