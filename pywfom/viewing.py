@@ -700,8 +700,9 @@ class _CameraConfig(tk.Toplevel):
             if k in pywfom.imaging.OPTIONS:
                 entry = ttk.Combobox(
                     setting_frm,
-                    width=len(v),
-                    values=pywfom.imaging.OPTIONS[k]
+                    width=8,
+                    values=pywfom.imaging.OPTIONS[k],
+                    justify='center'
                 )
                 entry.insert(0, v)
                 entry.config(state='readonly')
@@ -710,19 +711,23 @@ class _CameraConfig(tk.Toplevel):
             elif k in ["framerate", 'name']:
                 entry = tk.Entry(
                     setting_frm,
-                    width=len(v)
+                    width=8,
+                    justify='center'
                 )
                 entry.insert(0, v)
             else:
                 entry = tk.Spinbox(
                     setting_frm,
-                    width=len(v),
+                    width=4,
                     from_= self.camera.get_min(k),
-                    to = self.camera.get_max(k)
+                    to = self.camera.get_max(k),
+                    justify='center'
                 )
                 entry.delete(0, 'end')
                 entry.insert(0, v)
-                entry.config(command=lambda entry=entry, k=k:self._callback(entry, k))
+                entry.config(
+                    command=lambda entry=entry, k=k:self._callback(entry, k)
+                )
                 entry.bind('<Button-1>', lambda event, k=k:self._callback(event, k))
 
             entry.grid(row=i, column=1, sticky='W', pady=5)
