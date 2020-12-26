@@ -705,7 +705,8 @@ class _CameraConfig(tk.Toplevel):
                 )
                 entry.insert(0, v)
                 entry.config(state='readonly')
-                entry.bind('<<ComboboxSelected>>', lambda event, k=k:self._callback(entry,k))
+                entry.bind('<<ComboboxSelected>>', lambda event, k=k:self._callback(event,k))
+
             elif k in ["framerate", 'name']:
                 entry = tk.Entry(
                     setting_frm,
