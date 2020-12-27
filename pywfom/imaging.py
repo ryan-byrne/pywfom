@@ -6,8 +6,6 @@ from PIL import Image, ImageDraw, ImageFont
 PySpin, andor = None, None
 
 # TODO: Synchronize trigger of andor with spinnakers
-# TODO: Make sure every class has a get_max/get_min
-
 
 def error_frame(msg):
 
@@ -24,370 +22,6 @@ def loading_frame(height=500, width=500):
     draw = ImageDraw.Draw(img)
     draw.text((int(height/2)-50, int(width/2)), "Loading Frame...", 255)
     return np.asarray(img)
-
-class Test(object):
-
-    def __init__(self, settings):
-
-        self.ERROR = None
-
-        self.frame = loading_frame(500,500)
-
-        self.set(settings)
-
-    def _start(self):
-        pass
-
-    def _stop(self):
-        pass
-
-    def read(self):
-
-        if self.ERROR:
-            return error_frame(self.ERROR)
-
-        if self.dtype == 'uint8':
-            max = 255
-        else:
-            max = 65024
-
-        if self.master:
-            time.sleep(1/self.framerate)
-
-        return np.random.randint(0,max,size=(self.height, self.width), dtype=self.dtype)
-
-    def set(self, setting, value=None):
-
-        self._stop()
-
-        if type(setting).__name__ == 'dict':
-            for k, v in setting.items():
-                self._set(k, v)
-        else:
-            self._set(setting, value)
-
-        self._start()
-
-    def _set(self, setting, value):
-
-        if TYPES[setting] in [int, float]:
-            value = min(self.get_max(setting), max(self.get_min(setting), value))
-
-        setattr(self, setting, value)
-
-    def get(self, setting):
-        return getattr(self, setting)
-
-    def get_max(self, setting):
-        _max = {
-            "height":1000,
-            "width":1400,
-            "frameRate":100,
-            'offsetX':1390,
-            'offsetY':990,
-            'index':10,
-            'framerate':100.0
-        }
-        return _max[setting]
-
-    def get_min(self, setting):
-
-        _min = {
-            'height':10,
-            'width':10,
-            'offsetX':1,
-            'framerate':1.0,
-            'offsetY':1,
-            'index':0
-        }
-
-        return _min[setting]
-
-    def close(self):
-        self.active = False
-
-class Spinnaker(object):
-
-    """
-    Class object for control of a Spinnaker Camera
-    """
-
-    def __init__(self, settings):
-        # TODO: Grab images
-
-        self.ERROR = None
-
-        try:
-            print("Importing Spinnaker SDK Libraries...")
-            global PySpin
-            import PySpin
-
-            self._pointers = {
-                PySpin.intfIFloat: PySpin.CFloatPtr,
-                PySpin.intfIBoolean: PySpin.CBooleanPtr,
-                PySpin.intfIInteger: PySpin.CIntegerPtr,
-                PySpin.intfIEnumeration: PySpin.CEnumerationPtr,
-                PySpin.intfIString: PySpin.CStringPtr
-            }
-
-            self.settings = {}
-            self.methods = {}
-
-            self.system = PySpin.System.GetInstance()
-            self.set(settings)
-        except Exception as e:
-            for k, v in settings.items():
-                setattr(self, k, v)
-            if type(e).__name__ == "ModuleNotFoundError":
-                msg = "\nYou have not installed PySpin\n\n\
-                Follow the instructions at:\n\nhttps://github.com/ryan-byrne/pywfom/wiki/Cameras:-Spinnaker\n\n"
-            else:
-                msg = str(e)
-            self.ERROR = msg
-            self.frame = error_frame("({0}) {1}".format(self.name, msg))
-            return
-
-    def start(self):
-        self.camera.BeginAcquisition()
-
-    def stop(self):
-        try:
-            self.camera.EndAcquisition()
-        except:
-            pass
-
-    def read(self):
-        return self.camera.GetNextImage(1000).GetNDArray()
-
-    def set(self, setting, value=None):
-
-        """
-        Method for changing setting(s) on the camera
-        """
-
-        self.stop()
-        self.frame = loading_frame()
-        if type(setting).__name__ == 'dict':
-            for k, v in setting.items():
-                self._set(k, v)
-        else:
-            self._set(setting, value)
-
-        self.start()
-
-    def _set(self, setting, value):
-
-        # TODO: Fix issue with switching indexes
-
-        if setting in ['name', 'device']:
-            pass
-        elif setting == 'index':
-            self.camera = self.system.GetCameras().GetByIndex(value)
-            self.camera.Init()
-            for node in self.camera.GetNodeMap().GetNodes():
-                pit = node.GetPrincipalInterfaceType()
-                name = node.GetName()
-                if pit == PySpin.intfICommand:
-                    self.methods[name] = PySpin.CCommandPtr(node)
-                elif pit in self._pointers:
-                    self.settings[name] = self._pointers[pit](node)
-        elif setting == 'master':
-            # TODO: Change Trigger Mode
-            pass
-        elif setting == 'dtype':
-            # TODO: Change Format
-            pass
-        else:
-
-            node = self.settings[setting]
-
-            if node.GetName() == "AcquisitionFrameRateEnable":
-                node.SetValue(value)
-                return
-
-            if value > self.get_max(setting):
-                value = self.get_max(setting)
-                print("({0}) Setting {1} to the maximum value of {2}".format(self.name, setting, value))
-            elif value < self.get_min(setting):
-                value = self.get_min(setting)
-                print("({0}) Setting {1} to the minimum value of {2}".format(self.name, setting, value))
-
-            if node.GetName() == "AcquisitionFrameRate":
-                node.SetValue(value)
-                setattr(self, setting, value)
-                return
-
-            while value%self.get_inc(setting) != 0:
-                value+= 1
-
-            node.SetValue(value)
-
-        setattr(self, setting, value)
-
-    def get(self, setting):
-        try:
-            return self.settings[setting].GetValue()
-        except:
-            try:
-                return self.settings[setting].ToString()
-            except:
-                return None
-
-    def get_max(self, setting):
-        return self.settings[setting].GetMax()
-
-    def get_min(self, setting):
-        return self.settings[setting].GetMin()
-
-    def get_inc(self, setting):
-        return self.settings[setting].GetInc()
-
-    def close(self):
-        self.active = False
-
-class Andor(object):
-
-    def __init__(self, settings, test=False):
-
-        # TODO: Add Mono12 Support
-        # TODO: Fix dark picture problem
-        # TODO: Set AOI
-
-        self.ERROR, self._handle = None, None
-
-        global andor
-        try:
-
-            from pywfom.utils import andor
-            self.set(settings)
-
-        except Exception as e:
-            self.ERROR = str(e)
-
-    def _start(self):
-
-        if not self._handle:
-            return
-
-        self.img_size_bytes = self.get("ImageSizeBytes")
-        andor.SetBool(self._handle, 'SensorCooling', True)
-
-        self._buffers = queue.Queue()
-
-        for i in range(10):
-            buf = np.zeros((self.img_size_bytes), 'uint8')
-            andor.QueueBuffer(
-                self._handle,
-                buf.ctypes.data_as(andor.POINTER(andor.AT_U8)),
-                buf.nbytes
-            )
-            self._buffers.put(buf)
-
-        self._img_stride = self.get('AOIStride')
-
-        andor.Command(self._handle, "AcquisitionStart")
-
-    def _stop(self):
-
-        if not self._handle:
-            return
-
-        andor.Command(self._handle, "AcquisitionStop")
-        andor.Flush(self._handle)
-
-    def read(self):
-        try:
-            buf = self._buffers.get()
-            ptr, length = andor.WaitBuffer(self._handle, 100)
-            img = np.empty((self._height, self._width), dtype="uint16")
-            andor.ConvertBuffer(
-                ptr,
-                img.ctypes.data_as(andor.POINTER(andor.AT_U8)),
-                self._width,
-                self._height,
-                self._img_stride,
-                'Mono16',
-                'Mono16',
-            )
-            andor.QueueBuffer(self._handle, buf.ctypes.data_as(andor.POINTER(andor.AT_U8)), buf.nbytes)
-            self._buffers.put(buf)
-        except Exception as e:
-            msg = 'Unable to read frame ({0})'.format(str(e)) if not self.ERROR else self.ERROR
-            img = error_frame(msg)
-
-        return img
-
-    def set(self, setting, value=None):
-        # TODO: Fix issue of changing index and losing settings
-        print("Adjusting Andor settings...")
-
-        self._stop()
-
-        if type(setting).__name__ == 'dict':
-            for k, v in setting.items():
-                self._set(k, v)
-        else:
-            self._set(setting, value)
-
-        self._start()
-
-    def _set(self, setting, value):
-        print('Setting {0} -> {1}'.format(setting, value))
-        """
-              "device":"andor",
-              "index":0,
-              "master":true,
-              "name":"zyla",
-              "dtype":"uint16",
-              "height":2000,
-              "width":2000,
-              "offsetX":1,
-              "offsetY":1,
-              "binning":"2x2",
-              "framerate":10.0
-        """
-        if not andor:
-            return
-
-        if setting == 'index':
-            self._handle = andor.Open(value)
-            if not self._handle:
-                raise ConnectionError('Unable to connect to Andor at idx:{0}'.format(value))
-        elif setting in ['device', 'name'] or not self._handle:
-            pass
-        elif setting == 'master':
-            if value:
-                andor.SetEnumString(self._handle, 'TriggerMode', 'Internal')
-                andor.SetEnumString(self._handle, 'CycleMode', 'Continuous')
-                andor.SetEnumString(self._handle, 'AuxiliaryOutSource', 'FireRowN')
-            else:
-                andor.SetEnumString(self._handle, 'TriggerMode', 'External')
-                andor.SetEnumString(self._handle, 'CycleMode', 'Fixed')
-                andor.SetInt(self._handle, 'FrameCount', 1)
-        elif setting == 'dtype':
-            andor.SetEnumString(self._handle, 'PixelEncoding', andor.CONVERT[value])
-        elif setting == 'binning':
-            andor.SetEnumString(self._handle, 'AOIBinning', value)
-        elif setting == 'framerate':
-            andor.SetFloat(self._handle, 'FrameRate', value)
-        elif setting == 'height':
-            andor.SetInt(self._handle, 'AOIHeight', value)
-        elif setting == 'width':
-            andor.SetInt(self._handle, 'AOIWidth', value)
-        elif setting == 'offsetY':
-            value += self.height
-            andor.SetInt(self._handle, 'AOITop', value)
-        elif setting == 'offsetX':
-            andor.SetInt(self._handle, 'AOILeft', value)
-
-        setattr(self, setting, value)
-
-    def close(self):
-        try:
-            self._stop()
-        except:
-            pass
-        self.active = False
 
 class Camera(object):
 
@@ -421,13 +55,16 @@ class Camera(object):
         """
 
         if self.device == 'webcam':
-            return self._read_webcam_frame()
+            ret, img = self._handler.read()
+            img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            x, y, w, h = self.offset_x, self.offset_y, self.width, self.height
+            return img_gray[y:h+y, x:w+x]
 
         elif self.device == 'andor':
             return self._read_andor_frame()
 
         elif self.device == 'spinnaker':
-            return self._read_spinnaker_frame()
+            return self._handler.GetNextImage(1000).GetNDArray()
 
         else:
             time.sleep(1/self.framerate)
@@ -449,6 +86,8 @@ class Camera(object):
         :param bool master: Establishes whether :class:`Camera` is self-triggered.
         :param float framerate: Sets the framerate the :class:`Camera` read at
         """
+
+        self.frame = loading_frame()
 
         self._stop_acquiring()
 
@@ -513,8 +152,6 @@ class Camera(object):
 
         self.device, self.index = device, index
 
-        self.frame = loading_frame()
-
         if device == 'webcam':
             return self._start_webcam(index)
         elif device == 'spinnaker':
@@ -542,14 +179,29 @@ class Camera(object):
     def _start_spinnaker(self, index):
 
         try:
+
+            # TODO: startup with storing settings
             global PySpin
             import PySpin
 
             self._system = PySpin.System.GetInstance()
-            return self._system.GetCameras().GetByIndex(index)
+            cam = self._system.GetCameras().GetByIndex(index)
+            cam.Init()
+            """
+            for node in cam.GetNodeMap().GetNodes():
+                pit = node.GetPrincipalInterfaceType()
+                name = node.GetName()
+                if pit == PySpin.intfICommand:
+                    self.methods[name] = PySpin.CCommandPtr(node)
+                elif pit in self._pointers:
+                    self.settings[name] = self._pointers[pit](node)
+            """
+            return cam
+
         except Exception as e:
-            self.frame = error_frame(str(e))
-            self.ERRORS.append(str(e))
+            msg = 'Could not initialize spinnaker camera at index {0}'.format(index)
+            self.frame = error_frame(msg)
+            self.ERRORS.append(msg)
             return None
 
     def _start_andor(self, index):
@@ -557,7 +209,26 @@ class Camera(object):
         try:
             global andor
             from .utils import andor
-            return andor.Open(0)
+
+            # Create camera handler
+            _hndl = andor.Open(0)
+
+            # Create and populate buffers of a certain byte size
+            _img_size = andor.GetInt(_hndl, "ImageSizeBytes")
+            self._buffers = queue.Queue()
+            for i in range(10):
+                _buf = np.zeros((_img_size), 'uint8')
+                andor.QueueBuffer(
+                    _hndl,
+                    buf.ctypes.data_as(andor.POINTER(andor.AT_U8)),
+                    buf.nbytes
+                )
+                self._buffers.put(buf)
+
+            # Store the image stride
+            self._img_stride = andor.GetInt(_hndl, 'AOIStride')
+            return _hndl
+
         except Exception as e:
             self.frame = error_frame(str(e))
             self.ERRORS.append(str(e))
@@ -571,19 +242,11 @@ class Camera(object):
         self._acquiring = True
 
         if self.device == 'andor':
-            andor.Command(self._handler, 'AcquisitionStop')
+            andor.Command(self._handler, 'AcquisitionStart')
+        elif self.device == 'spinnaker':
+            self._handler.BeginAcquisition()
 
         threading.Thread(target=self._update_frame).start()
-
-    def _read_webcam_frame(self):
-        ret, img = self._handler.read()
-        img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        x, y, w, h = self.offset_x, self.offset_y, self.width, self.height
-        return img_gray[y:h+y, x:w+x]
-
-    def _read_andor_frame(self):
-        # TODO:
-        pass
 
     def _stop_acquiring(self):
 
@@ -595,11 +258,28 @@ class Camera(object):
         if self.device == 'andor':
             andor.Command(self._handler, 'AcquisitionStop')
         elif self.device == 'spinnaker':
-            pass
+            self._handler.EndAcquisition()
         elif self.device == 'webcam':
             pass
         else:
             self._handler = None
+
+    def _read_andor_frame(self):
+        # TODO: test
+        buf = self._buffers.get()
+        ptr, length = andor.WaitBuffer(self._handle, 100)
+        img = np.empty((self._height, self._width), dtype="uint8")
+        andor.ConvertBuffer(
+            ptr,
+            img.ctypes.data_as(andor.POINTER(andor.AT_U8)),
+            self._width,
+            self._height,
+            self._img_stride,
+            'Mono12',
+            andor.CONVERT[self.dtype],
+        )
+        andor.QueueBuffer(self._handle, buf.ctypes.data_as(andor.POINTER(andor.AT_U8)), buf.nbytes)
+        self._buffers.put(buf)
 
     def _shutdown(self):
         pass
@@ -634,7 +314,6 @@ class Camera(object):
         pass
 
     def _get_spinnaker_max(self, setting):
-        # TODO:
         pass
 
     def _get_spinnaker_min(self, setting):
@@ -670,6 +349,10 @@ class Camera(object):
             value = max(min(value, self.get_max(setting)), self.get_min(setting))
             if self.device == 'webcam':
                 self._set_webcam(setting, value)
+            elif self.device == 'spinnaker':
+                self._set_spinnaker(setting, value)
+            elif self.device == 'andor':
+                self._set_andor(setting, value)
             else:
                 pass
 
@@ -682,6 +365,12 @@ class Camera(object):
 
         setattr(self, setting, value)
 
+    def _set_spinnaker(self, setting, value):
+        pass
+
+    def _set_andor(self, setting, value):
+        pass
+
     def _update_frame(self):
 
         while self._acquiring:
@@ -691,7 +380,6 @@ class Camera(object):
                 self.frame = self.read()
 
             except Exception as e:
-
                 msg = self.ERRORS[0] if self.ERRORS else str(e)
 
                 self.frame = error_frame(msg)
