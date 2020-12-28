@@ -7,9 +7,14 @@ PySpin, andor = None, None
 
 # TODO: Synchronize trigger of andor with spinnakers
 
-def error_frame(msg):
+def error_frame(msg=""):
 
-    # Create a frame announcing the error
+    """
+    Create an error frame displaying a specified message.
+
+    :param string msg: Message to be displayed on the error frame
+    """
+
     img = Image.fromarray(np.zeros((500,500), "uint8"))
     draw = ImageDraw.Draw(img)
     draw.text((10, 175), "ERROR:", 255)
@@ -17,7 +22,14 @@ def error_frame(msg):
     return np.asarray(img)
 
 def loading_frame(height=500, width=500):
-    # Create a frame announcing the error
+
+    """
+    Create a temporary frame displaying a 'loading' message.
+
+    :param int height: Height of the loading frame (in pixels)
+    :param int width: Width of the loading frame (in pixels)
+    """
+
     img = Image.fromarray(np.zeros((height,width), "uint8"))
     draw = ImageDraw.Draw(img)
     draw.text((int(height/2)-50, int(width/2)), "Loading Frame...", 255)
@@ -27,6 +39,9 @@ class Camera(object):
 
     """
     A Camera Interface for the PyWFOM System
+
+    :param string device: Type of camera
+    :param int index: Index of the camera
     """
 
     def __init__(self, device='test', index=0, **kwargs):
@@ -51,7 +66,7 @@ class Camera(object):
     def read(self):
 
         """
-        Read and return current frame read from Camera Interface
+        Read and return Camera's latest frame as a numpy array
         """
 
         if self.device == 'webcam':
@@ -73,6 +88,9 @@ class Camera(object):
     def set(self, **kwargs):
 
         """
+        Establish camera settings either by including a configuration
+        dictionary, or setting individual keyword arguments.
+
         :param dict config: Dictionary containing multiple settings
         :param string device: Device type for the new :class:`Camera` object.
         :param string name: (optional) Names the :class:`Camera` object.
@@ -103,12 +121,34 @@ class Camera(object):
         self._start_acquiring()
 
     def close(self):
+        """
+        Closes the Camera Interface
+
+        """
         self._stop_acquiring()
 
     def get(self, setting=None):
-        return None
+
+        """
+        Gets the current value of the specified setting
+
+        :param string setting: Setting value to be returned
+        """
+
+        if self.device == 'webcam' or not self._handler:
+            return getattr(self, setting)
+        elif self.device == 'andor':
+            return self._get_andor(setting)
+        elif self.device == 'spinnaker':
+            return self._get_spinnaker(setting)
 
     def get_min(self, setting):
+
+        """
+        Gets the minimum value of the specified setting
+
+        :param string setting: Minimum setting to be returned
+        """
 
         FUNCTIONS = {
             'webcam':self._get_webcam_min,
@@ -128,6 +168,12 @@ class Camera(object):
             return FUNCTIONS[self.device](setting)
 
     def get_max(self, setting):
+
+        """
+        Gets the maximum value of the specified setting
+
+        :param string setting: Maximum setting to be returned
+        """
 
         FUNCTIONS = {
             'webcam':self._get_webcam_max,

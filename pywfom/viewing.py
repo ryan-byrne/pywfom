@@ -95,11 +95,14 @@ def _startup(config):
 
 class Main(tk.Frame):
 
+    """
+    Monitor camera frames, Arduino status, and set file directory
+
+    """
+
     def __init__(self, parent, system):
 
         self.cameras, self.arduino, self.file = system.cameras, system.arduino, system.file
-
-        print("Opening Viewing Frame...")
 
         # General Application Settings
         self.root = parent

@@ -2,10 +2,8 @@ import serial, os, time, sys, glob
 import serial.tools.list_ports
 
 def list_ports():
-    return serial.tools.list_ports.comports()
-
-class ArduinoError(Exception):
-    pass
+    """Return a 2-item list of available COM Ports and their devices"""
+    return serial.tools.list_ports.comports().split(' - ')
 
 class Arduino():
     """ Methods pertaining to Communication with the Arduino """

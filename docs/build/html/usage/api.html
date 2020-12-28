@@ -35,7 +35,7 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Configuring Your System" href="configuration.html" />
+    <link rel="next" title="JSON Configuration File" href="configuration.html" />
     <link rel="prev" title="Quickstart" href="../user/quickstart.html" /> 
 </head>
 
@@ -99,9 +99,10 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">API Documentation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#camera-interface">Camera Interface</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#arduino-interface">Arduino Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-pywfom.viewing">Available GUI's</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuring Your System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">JSON Configuration File</a></li>
 </ul>
 
             
@@ -171,20 +172,80 @@
 <span id="api"></span><h1>API Documentation<a class="headerlink" href="#api-documentation" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="camera-interface">
 <h2>Camera Interface<a class="headerlink" href="#camera-interface" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pywfom.imaging</span> <span class="kn">import</span> <span class="n">Camera</span>
+
+<span class="n">cam</span> <span class="o">=</span> <span class="n">Camera</span><span class="p">(</span><span class="s1">&#39;webcam&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="c1"># Create webcam camera interface</span>
+
+<span class="n">cam</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">height</span><span class="o">=</span><span class="mi">550</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">450</span><span class="p">,</span> <span class="n">framerate</span><span class="o">=</span><span class="mf">15.0</span><span class="p">)</span> <span class="c1"># Establish settings</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">cam</span><span class="o">.</span><span class="n">read</span><span class="p">())</span> <span class="c1"># Print current frame</span>
+
+<span class="n">cam</span><span class="o">.</span><span class="n">close</span><span class="p">()</span> <span class="c1"># Close camera</span>
+</pre></div>
+</div>
+<span class="target" id="module-pywfom.imaging"></span><dl class="py class">
 <dt id="pywfom.imaging.Camera">
-<em class="property">class </em><code class="sig-prename descclassname">pywfom.imaging.</code><code class="sig-name descname">Camera</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">device</span><span class="o">=</span><span class="default_value">'webcam'</span></em>, <em class="sig-param"><span class="n">index</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.Camera" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pywfom.imaging.</code><code class="sig-name descname">Camera</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">device</span><span class="o">=</span><span class="default_value">'test'</span></em>, <em class="sig-param"><span class="n">index</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.Camera" title="Permalink to this definition">¶</a></dt>
 <dd><p>A Camera Interface for the PyWFOM System</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>device</strong> (<em>string</em>) -- Type of camera</p></li>
+<li><p><strong>index</strong> (<em>int</em>) -- Index of the camera</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="pywfom.imaging.Camera.close">
+<code class="sig-name descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.Camera.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Closes the Camera Interface</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pywfom.imaging.Camera.get">
+<code class="sig-name descname">get</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">setting</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.Camera.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the current value of the specified setting</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>setting</strong> (<em>string</em>) -- Setting value to be returned</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pywfom.imaging.Camera.get_max">
+<code class="sig-name descname">get_max</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">setting</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.Camera.get_max" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the maximum value of the specified setting</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>setting</strong> (<em>string</em>) -- Maximum setting to be returned</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pywfom.imaging.Camera.get_min">
+<code class="sig-name descname">get_min</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">setting</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.Camera.get_min" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the minimum value of the specified setting</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>setting</strong> (<em>string</em>) -- Minimum setting to be returned</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py method">
 <dt id="pywfom.imaging.Camera.read">
 <code class="sig-name descname">read</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.Camera.read" title="Permalink to this definition">¶</a></dt>
-<dd><p>Read and return current frame read from Camera Interface</p>
+<dd><p>Read and return Camera's latest frame as a numpy array</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="pywfom.imaging.Camera.set">
 <code class="sig-name descname">set</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.Camera.set" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
+<dd><p>Establish camera settings either by including a configuration
+dictionary, or setting individual keyword arguments.</p>
+<dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>config</strong> (<em>dict</em>) -- Dictionary containing multiple settings</p></li>
@@ -206,10 +267,46 @@
 
 </dd></dl>
 
+<dl class="py function">
+<dt id="pywfom.imaging.error_frame">
+<code class="sig-prename descclassname">pywfom.imaging.</code><code class="sig-name descname">error_frame</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msg</span><span class="o">=</span><span class="default_value">''</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.error_frame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an error frame displaying a specified message.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>msg</strong> (<em>string</em>) -- Message to be displayed on the error frame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="pywfom.imaging.loading_frame">
+<code class="sig-prename descclassname">pywfom.imaging.</code><code class="sig-name descname">loading_frame</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">height</span><span class="o">=</span><span class="default_value">500</span></em>, <em class="sig-param"><span class="n">width</span><span class="o">=</span><span class="default_value">500</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.loading_frame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a temporary frame displaying a 'loading' message.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>height</strong> (<em>int</em>) -- Height of the loading frame (in pixels)</p></li>
+<li><p><strong>width</strong> (<em>int</em>) -- Width of the loading frame (in pixels)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </div>
 <div class="section" id="arduino-interface">
 <h2>Arduino Interface<a class="headerlink" href="#arduino-interface" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pywfom.control</span> <span class="kn">import</span> <span class="n">Arduino</span><span class="p">,</span> <span class="n">list_ports</span>
+
+<span class="n">ports</span> <span class="o">=</span> <span class="n">list_ports</span><span class="p">()</span> <span class="c1"># Gather a list of available COM ports</span>
+
+<span class="n">port</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">ports</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="c1"># Select the first port</span>
+
+<span class="n">ard</span> <span class="o">=</span> <span class="n">Arduino</span><span class="p">(</span><span class="n">port</span><span class="o">=</span><span class="n">port</span><span class="p">)</span> <span class="c1"># Connect to Arduino at specified port</span>
+
+<span class="n">ard</span><span class="o">.</span><span class="n">toggle_led</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span> <span class="c1"># Turn on LED at pin 5</span>
+</pre></div>
+</div>
+<span class="target" id="module-pywfom.control"></span><dl class="py class">
 <dt id="pywfom.control.Arduino">
 <em class="property">class </em><code class="sig-prename descclassname">pywfom.control.</code><code class="sig-name descname">Arduino</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">port</span><span class="o">=</span><span class="default_value">'COM1'</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.control.Arduino" title="Permalink to this definition">¶</a></dt>
 <dd><p>Methods pertaining to Communication with the Arduino</p>
@@ -227,6 +324,26 @@
 
 </dd></dl>
 
+<dl class="py function">
+<dt id="pywfom.control.list_ports">
+<code class="sig-prename descclassname">pywfom.control.</code><code class="sig-name descname">list_ports</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.control.list_ports" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a 2-item list of available COM Ports and their devices</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pywfom.viewing">
+<span id="available-gui-s"></span><h2>Available GUI's<a class="headerlink" href="#module-pywfom.viewing" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="pywfom.viewing.Config">
+<em class="property">class </em><code class="sig-prename descclassname">pywfom.viewing.</code><code class="sig-name descname">Config</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">parent</span></em>, <em class="sig-param"><span class="n">config</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.viewing.Config" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt id="pywfom.viewing.Main">
+<em class="property">class </em><code class="sig-prename descclassname">pywfom.viewing.</code><code class="sig-name descname">Main</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">parent</span></em>, <em class="sig-param"><span class="n">system</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.viewing.Main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Monitor camera frames, Arduino status, and set file directory</p>
+</dd></dl>
+
 </div>
 </div>
 
@@ -238,7 +355,7 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="configuration.html" class="btn btn-neutral float-right" title="Configuring Your System" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="configuration.html" class="btn btn-neutral float-right" title="JSON Configuration File" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="../user/quickstart.html" class="btn btn-neutral float-left" title="Quickstart" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
