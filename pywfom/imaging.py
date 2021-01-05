@@ -40,8 +40,9 @@ class Camera(object):
     """
     A Camera Interface for the PyWFOM System
 
-    :param string device: Type of camera
+    :param str device: Type of camera
     :param int index: Index of the camera
+    :param str name: Name of the camera
     """
 
     def __init__(self, device='test', index=0, **kwargs):
@@ -69,21 +70,24 @@ class Camera(object):
         Read and return Camera's latest frame as a numpy array
         """
 
+        t = time.time()
+
         if self.device == 'webcam':
             ret, img = self._handler.read()
             img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             x, y, w, h = self.offset_x, self.offset_y, self.width, self.height
-            return img_gray[y:h+y, x:w+x]
+            frame = img_gray[y:h+y, x:w+x]
 
         elif self.device == 'andor':
-            return self._read_andor_frame()
+            frame = self._read_andor_frame()
 
         elif self.device == 'spinnaker':
-            return self._handler.GetNextImage(1000).GetNDArray()
+            frame = self._handler.GetNextImage(1000).GetNDArray()
 
         else:
-            time.sleep(1/self.framerate)
-            return np.random.randint(0,255,size=(self.height, self.width)).astype(self.dtype)
+            frame = np.random.randint(0,255,size=(self.height, self.width)).astype(self.dtype)
+
+        return frame
 
     def set(self, **kwargs):
 

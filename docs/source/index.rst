@@ -11,13 +11,11 @@ Wide-Field Optical Mapping (but Python)
 ---------------------------------------
 
 .. toctree::
-  :maxdepth: 2
   :caption: Background:
 
   background/wfom
 
 .. toctree::
-  :maxdepth: 2
   :caption: Getting Started:
 
   user/install
@@ -25,9 +23,10 @@ Wide-Field Optical Mapping (but Python)
   user/quickstart
 
 .. toctree::
-  :maxdepth: 2
   :caption: Usage:
 
+  usage/navigate
+  usage/command
   usage/api
   usage/configuration
 

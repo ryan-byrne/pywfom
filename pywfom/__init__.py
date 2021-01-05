@@ -1,13 +1,12 @@
-import pkgutil, argparse, sys, os, json, pywfom, cv2
+import pkgutil, argparse, sys, os, json, pywfom, cv2, threading, shutil, time
 import numpy as np
 import tkinter as tk
 from tkinter import ttk, simpledialog, filedialog, messagebox
 from PIL import Image, ImageTk, ImageDraw
 from .imaging import Camera
 from .control import Arduino
-from .viewing import Main
-from .file import Writer
 
+# Retrieve command line arguments
 def _get_args():
 
     """
@@ -46,12 +45,52 @@ def _get_args():
 
     return args
 
+# Command Line functions
 def quickstart():
     wfom = pywfom.System()
 
 def test():
+    system = pywfom.System()
+    cam = system.cameras[0]
+    cam.set(height=2400, width=2400, framerate=60)
+    while True:
+        pass
+    cam.close()
+
+def view():
+
+    """
+    View frames, adjust settings, and monitor device connections
+
+    """
+
+    system = _startup()
+
+    if not system:
+        return
+
+    frame = Main(tk.Tk(), system)
+    frame.root.mainloop()
+
+def configure():
+
+    """
+    Configure Interface settings
+
+    """
+
+    system = _startup()
+
+    if not system:
+        return
+
+    frame = Config(tk.Tk(), system)
+    frame.root.mainloop()
+
+def solis():
     pass
 
+# GUI Functions
 def _startup():
 
     args = _get_args()
@@ -68,26 +107,6 @@ def _startup():
 
     return System(args['config'])
 
-def view():
-
-    system = _startup()
-
-    if not system:
-        return
-
-    frame = Main(tk.Tk(), system)
-    frame.root.mainloop()
-
-def configure():
-
-    system = _startup()
-
-    if not system:
-        return
-
-    frame = Config(tk.Tk(), system)
-    frame.root.mainloop()
-
 def _set_icon(root, name="icon"):
     path = "{0}/img/{1}.png".format(os.path.dirname(pywfom.__file__), name)
     photo = tk.PhotoImage(
@@ -97,15 +116,7 @@ def _set_icon(root, name="icon"):
     root.iconbitmap(path)
     root.iconphoto(False, photo)
 
-def _config_arduino(frame):
-    _ArduinoConfig(frame, frame.root)
-
-def _config_file(frame):
-    _FileConfig(frame, frame.root)
-
-def _set_dir(parent):
-    parent.file.directory = tk.filedialog.askdirectory()
-
+# Camera related functions
 def _edit_camera(frame, i=None):
 
     if i:
@@ -114,15 +125,38 @@ def _edit_camera(frame, i=None):
     _set_icon(frame.root, "configure")
     _CameraConfig(frame, frame.root)
 
-def _delete_camera(frame, i=None):
+def _delete_camera(frame, i=None, viewing=False):
 
-    if i:
+    if i or i == 0:
         frame.selected_frame = i
 
-    frame.cameras.pop(frame.selected_frame).close()
-    frame.thumbnails.pop(frame.selected_frame).pack_forget()
-    frame.thumbnail_labels.pop(frame.selected_frame).pack_forget()
-    frame.selected_frame = 0
+    frame.system.cameras.pop(frame.selected_frame).close()
+
+    if viewing:
+        frame.thumbnails.pop(frame.selected_frame).pack_forget()
+        frame.thumbnail_labels.pop(frame.selected_frame).pack_forget()
+        frame.selected_frame = 0
+
+def _add_thumbnail(frame, name):
+    frame.thumbnails.append(tk.Label(frame.thumbnails_frame))
+    frame.thumbnail_labels.append(tk.Label(frame.thumbnails_frame, text=name))
+
+def _add_camera(frame, viewing=True):
+
+    config = json.loads(pkgutil.get_data(__name__, 'utils/default.json'))
+    cam = pywfom.imaging.Camera(config=config['cameras'][0])
+    frame.system.cameras.append(cam)
+
+    if viewing:
+        _add_thumbnail(frame, cam.name)
+        frame.selected_frame = len(frame.system.cameras)-1
+        _CameraConfig(frame, frame.root)
+    else:
+        return
+
+# File Related functions
+def _set_dir(parent):
+    parent.file.directory = tk.filedialog.askdirectory()
 
 def _load(frame):
 
@@ -134,14 +168,53 @@ def _load(frame):
     config = json.load(f)
     f.close()
 
-    frame._shutdown()
+    frame.system.close()
     frame._startup(config)
+
+def _set_default(frame):
+
+    settings = _organize_settings(frame.system)
+
+    if messagebox.askyesno('Set as Default', 'Set current settings as default?'):
+        with open("{0}/{1}".format(pywfom.__path__[0],'utils/default.json'),'w') as f:
+            json.dump(settings, f)
+        f.close()
+
+def _organize_settings(system):
+
+    settings = {}
+
+    for category, value in system.__dict__.items():
+        if category in ["user","mouse", "directory","runs","run_length"]:
+            settings[category] = value
+        elif category == 'arduino':
+            settings[category] = {}
+            for setting, value in system.arduino.__dict__.items():
+                if setting[0] == '_' or setting == 'ERROR':
+                    continue
+                else:
+                    settings[category][setting] = value
+        elif category == 'cameras':
+            settings['cameras'] = []
+            for cam in system.cameras:
+                cam_settings = {}
+                for setting, value in cam.__dict__.items():
+                    if setting[0] == '_' or setting in ['ERRORS', 'WARNINGS', 'frame']:
+                        continue
+                    else:
+                        cam_settings[setting] = value
+                settings['cameras'].append(cam_settings)
+
+        else:
+            continue
+
+    return settings
 
 def _save(frame):
 
     _cameras = []
 
-    for cam in frame.cameras:
+    for cam in frame.system.cameras:
 
         _camera_settings = {}
 
@@ -165,9 +238,6 @@ def _save(frame):
         json.dump(_config, fname)
         fname.close()
 
-def solis():
-    pass
-
 class System(object):
 
     """Class Wrapper for the OpenWFOM System"""
@@ -181,9 +251,77 @@ class System(object):
         else:
             config = json.load(open(config, 'r'))
 
-        self.cameras = [Camera(config=cfg) for cfg in config['cameras']]
-        self.arduino = Arduino(config=config['arduino'])
-        self.file = Writer(config['file'])
+        for k,v in config.items():
+
+            if k == 'cameras':
+                v = [Camera(config=cfg) for cfg in config['cameras']]
+            elif k == 'arduino':
+                v = Arduino(config=config['arduino'])
+            setattr(self, k, v)
+
+    def acquire(self):
+
+        for cam in self.cameras:
+            if cam.ERRORS:
+                tk.messagebox.showerror('Camera Error',message=cam.ERRORS[0])
+                return
+
+        if self.arduino.ERROR:
+            tk.messagebox.showerror('Arduino Error',message=self.arduino.ERROR)
+            return
+
+        threading.Thread(target=self._acquire_frames).start()
+
+    def close(self):
+        [cam.close() for cam in self.cameras]
+        self.arduino.close()
+
+    def _make_run_directory(self, i):
+
+        if not os.path.exists(self.directory):
+            os.mkdir(self.directory)
+
+        mouse_dir = os.path.join(self.directory, self.mouse)
+
+        if not os.path.exists(mouse_dir):
+            os.mkdir(mouse_dir)
+
+        runs = len(os.listdir(mouse_dir))
+
+        run_dir = os.path.join(self.directory, mouse_dir, "run"+str(runs))
+
+        os.mkdir(run_dir)
+
+        with open(run_dir+"/config.json", 'w') as f:
+            json.dump(_organize_settings(self), f)
+        f.close()
+
+        return run_dir
+
+    def _acquire_frames(self):
+
+        self.writing = True
+
+        for i, cam in enumerate(self.cameras):
+            if cam.master:
+                master = i
+
+        for i in range(self.runs):
+
+            path = self._make_run_directory(i)
+            run_frms = self.run_length*self.cameras[i].framerate
+            num_frms = 0
+            # TODO: Write frames simultaneously
+            # TODO: Write to disk in thread
+
+            while num_frms < run_frms:
+                frames = {cam.name: cam.read() for cam in self.cameras}
+                fname = "{0}/frame{1}.npz".format(path, num_frms)
+                np.savez(fname,frames)
+                num_frms+=1
+
+    def _write_frames_to_file(self, fname, frames):
+        pass
 
 class Main(tk.Frame):
 
@@ -194,7 +332,7 @@ class Main(tk.Frame):
 
     def __init__(self, parent, system):
 
-        self.cameras, self.arduino, self.file = system.cameras, system.arduino, system.file
+        self.system = system
 
         # General Application Settings
         self.root = parent
@@ -203,7 +341,6 @@ class Main(tk.Frame):
         self.root.title("pywfom")
         self.root.protocol("WM_DELETE_WINDOW", self.close)
         _set_icon(self.root)
-
 
         # Create Each Side of the Window
         self.right_side = tk.Frame(self.root)
@@ -248,7 +385,7 @@ class Main(tk.Frame):
 
         tk.Button(  _lbl_frame,
                     text='Remove',
-                    command=lambda frm=self:_delete_camera(frm),
+                    command=lambda frm=self:_delete_camera(frm, viewing=True),
                     padx=10,
                     pady=5
         ).pack(side='left')
@@ -276,13 +413,13 @@ class Main(tk.Frame):
         self.thumbnails, self.thumbnail_labels = [], []
 
         # Create thumbnails
-        for i, cam in enumerate(self.cameras):
-            self.add_thumnail(cam.name)
+        for i, cam in enumerate(self.system.cameras):
+            _add_thumbnail(self, cam.name)
 
         tk.Button(
             self.right_side,
             text='Add Camera',
-            command=self._add_camera,
+            command=lambda frm=self:_add_camera(frm),
             padx=10,
             pady=5
         ).pack(pady=10)
@@ -310,18 +447,22 @@ class Main(tk.Frame):
 
         self._port_combo = ttk.Combobox(
             port_frm,
-            values=[self.arduino.port],
+            values=[self.system.arduino.port],
             state='readonly'
         )
         self._port_combo.pack(side='left')
         self._port_combo.current(0)
-        self._port_combo.bind('<Button-1>', lambda e: self._get_ports(e))
-        self._port_combo.bind('<<ComboboxSelected>>', lambda e: self._change_port(e))
+        self._port_combo.bind('<Button-1>',
+            lambda e: self._port_combo.config(values=pywfom.control.list_ports())
+        )
+        self._port_combo.bind('<<ComboboxSelected>>',
+            lambda e: self.system.arduino.set(port=e.widget.get().split(' - ')[0])
+        )
 
         tk.Button(
             port_frm,
             text="Configure",
-            command=lambda frm=self:_config_arduino(frm),
+            command=lambda frm=self:_ArduinoConfig(frm, frm.root),
             padx=10,
             pady=5
         ).pack(side='left')
@@ -395,40 +536,23 @@ class Main(tk.Frame):
             pady=5
         ).pack(side='left', padx=10)
 
+        tk.Button(
+            btn_frm,
+            text="Make Default",
+            command=lambda frm=self:_set_default(frm),
+            padx=10,
+            pady=5
+        ).pack(side='left', padx=10)
+
         self.acquire_btn = tk.Button(
             btn_frm,
             text="Acquire",
-            command=self.acquire,
+            command=self._acquire,
             padx=10,
             pady=5
         ).pack(side='left', padx=10)
 
         btn_frm.pack(pady=30)
-
-    def add_thumnail(self, name):
-        self.thumbnails.append(tk.Label(self.thumbnails_frame))
-        self.thumbnail_labels.append(tk.Label(self.thumbnails_frame, text=name))
-
-    def _get_ports(self, event):
-        self._port_combo.config(values=['Loading Ports...'])
-        ports = pywfom.control.list_ports()
-        ports.insert(0, self.arduino.port)
-        self._port_combo.config(values=ports)
-
-    def _change_port(self, event):
-
-        self.arduino.set(
-            port=event.widget.get().split(' - ')[0]
-        )
-
-    def _delete_camera(self):
-        if i:
-            frame.selected_frame = i
-
-        self.cameras.pop(frame.selected_frame).close()
-        frame.thumbnails.pop(frame.selected_frame).pack_forget()
-        frame.thumbnail_labels.pop(frame.selected_frame).pack_forget()
-        frame.selected_frame = 0
 
     def _update(self):
 
@@ -436,21 +560,21 @@ class Main(tk.Frame):
 
         self._draw_thumnails()
 
-        msg = "Ready" if not self.arduino.ERROR else self.arduino.ERROR
+        msg = "Ready" if not self.system.arduino.ERROR else self.system.arduino.ERROR
         self.arduino_status.config(text=msg)
 
-        self.dir_name.config(text=self.file.directory)
+        self.dir_name.config(text=self.system.directory)
 
         self.root.after(1, self._update)
 
     def _draw_main_image(self):
 
-        if len(self.cameras) == 0:
+        if len(self.system.cameras) == 0:
             frame = pywfom.imaging.error_frame("No Cameras Configured")
             image = self.convert_frame(frame, (800,1000), True)
         else:
             # Draw main image
-            cam = self.cameras[self.selected_frame]
+            cam = self.system.cameras[self.selected_frame]
             image = self.convert_frame(cam.frame, (800,1000), True)
 
             h, w, fr = cam.height, cam.width, cam.framerate
@@ -475,15 +599,16 @@ class Main(tk.Frame):
         self.canvas.image = image
 
     def _draw_thumnails(self):
+
         # Draw thumnails
-        if len(self.cameras) == 0:
+        if len(self.system.cameras) == 0:
             return
 
-        tn_height = self.root.winfo_height()/len(self.cameras)/3
+        tn_height = self.root.winfo_height()/len(self.system.cameras)/3
 
         thumbnail_size = (tn_height, tn_height)
 
-        for i, cam in enumerate(self.cameras):
+        for i, cam in enumerate(self.system.cameras):
             img = self.convert_frame(cam.frame, thumbnail_size, False)
             self.thumbnails[i].img = img
             self.thumbnails[i].config(image=img, borderwidth=3, relief="flat", bg="white")
@@ -493,46 +618,13 @@ class Main(tk.Frame):
 
         self.thumbnails[self.selected_frame].config(borderwidth=10,relief="ridge", bg="green")
 
-    def _add_camera(self):
-        cam = pywfom.imaging.Camera()
-        self.cameras.append(cam)
-        self.add_thumnail(cam.name)
-        self.selected_frame = len(self.cameras)-1
-        _CameraConfig(self, self.root)
+    def _acquire(self):
 
-    def acquire(self):
-
-        for cam in self.cameras:
-            if cam.ERROR:
-                tk.messagebox.showerror(
-                    'Camera Error',
-                    message=cam.ERROR
-                )
-                return
-
-        if self.arduino.ERROR or self.file.ERROR:
-            tk.messagebox.showerror(
-                'Arduino Error',
-                message=self.arduino.ERROR
-            )
-            return
-
-
-        result = tk.messagebox.askyesno("pywfom", message="Start acquistion?")
-
-        if result:
-            self.file.write(self.arduino, self.cameras)
-        else:
-            pass
-
-    def _shutdown(self):
-        print("Closing pywfom...")
-        [cam.close() for cam in self.cameras]
-        self.arduino.close()
-        self.file.close()
+        if tk.messagebox.askyesno("pywfom", message="Start acquistion?"):
+            self.system.acquire()
 
     def close(self, event=None):
-        self._shutdown()
+        self.system.close()
         self.root.destroy()
 
     def set_aoi_start(self, event):
@@ -558,7 +650,7 @@ class Main(tk.Frame):
             self.iy = self.y
             h = abs(h)
 
-        cam = self.cameras[self.selected_frame]
+        cam = self.system.cameras[self.selected_frame]
 
         x, y, he, wi = "offset_x", "offset_y", "height", "width"
 
@@ -575,7 +667,7 @@ class Main(tk.Frame):
         self.x, self.y = event.x, event.y
 
     def reset_aoi(self, event):
-        cam = self.cameras[self.selected_frame]
+        cam = self.system.cameras[self.selected_frame]
         cam.set(
             height=cam.get_max("height"),
             width=cam.get_max("width"),
@@ -615,7 +707,9 @@ class Config(tk.Frame):
 
     # TODO: Build out
 
-    def __init__(self, parent, config):
+    def __init__(self, parent, system):
+
+        self.system = system
 
         # General Application Settings
         self.root = parent
@@ -624,105 +718,107 @@ class Config(tk.Frame):
         self.root.title("WFOM Configuration")
         self.root.protocol("WM_DELETE_WINDOW", self._close)
         _set_icon(self.root, 'configure')
-        # Initiate each component's Class
-        self.file = Writer(config=config["file"])
+
+        self._error_msg = tk.Frame(self.root)
+
+        self._file_frame = tk.Frame(self.root)
         self._create_file_widgets()
-        self.arduino = Arduino(config["arduino"])
+        self._arduino_frame = tk.Frame(self.root)
         self._create_arduino_widgets()
-        self.cameras = [
-            pywfom.imaging.DEVICES[cfg['device']](cfg) for cfg in config["cameras"]
-        ]
+        self._camera_frame = tk.Frame(self.root)
         self._create_camera_widgets()
 
     def _create_file_widgets(self):
-        tk.Label(self.root, text='File').grid(row=0, column=0, columnspan=3)
-        for i, setting in enumerate(self.file.__dict__):
-            if setting == 'ERROR':
+
+        self._file_frame.pack_forget()
+
+        tk.Label(self._file_frame, text='File').grid(row=0, column=0, columnspan=3)
+
+        for i, (k,v) in enumerate(self.system.__dict__.items()):
+
+            var = tk.StringVar()
+            var.set(v)
+            if k in ['arduino', 'cameras']:
                 continue
-            elif setting == 'directory':
-                tk.Label(self.root, text=setting.title()).grid(row=i, column=0)
-                self.path = tk.Label(self.root)
+            elif k == 'directory':
+                tk.Label(self._file_frame, text=k.title()).grid(row=i, column=0)
+                self.path = tk.Label(self._file_frame)
                 self.path.grid(row=i, column=1)
-                tk.Button(self.root,text='Browse').grid(row=i, column=2)
+                tk.Button(self._file_frame,text='Browse').grid(row=i, column=2)
             else:
-                tk.Label(self.root,text=setting.title()).grid(row=i,column=0)
-                tk.Entry(self.root).grid(row=i,column=1)
+                tk.Label(self._file_frame,text=k.title()).grid(row=i,column=0)
+                tk.Entry(self._file_frame, textvariable=var).grid(row=i,column=1)
+
+        self._file_frame.pack(side='left')
 
     def _create_arduino_widgets(self):
-        tk.Label(self.root, text='Arduino').grid(row=0, column=8, columnspan=2)
 
-        tk.Label(
-            self.root,
-            text="Port: "
-        ).grid(row=1, column=8)
+        self._arduino_frame.pack_forget()
 
-        self.ports = ttk.Combobox(
-            self.root
+        tk.Label(self._arduino_frame, text='Arduino').grid(row=0, column=0, columnspan=2)
+
+        tk.Label(self._arduino_frame,text="Port: ").grid(row=1, column=0)
+
+        self._port_combo = ttk.Combobox(self._arduino_frame,values=[self.system.arduino.port],state='readonly')
+        self._port_combo.insert(0,"Current Port ({0})".format(self.system.arduino.port))
+        self._port_combo.bind('<Button-1>',
+            lambda e: self._port_combo.config(values=pywfom.control.list_ports())
         )
-        self.ports.insert(0,"Current Port ({0})".format(self.arduino.port))
-        self.ports.config(state='readonly')
-        self.ports.bind('<Button-1>', self._port_combo_select)
-        self.ports.bind("<<ComboboxSelected>>", self._port_combo_update)
-        self.ports.grid(row=1, column=9)
+        self._port_combo.bind('<<ComboboxSelected>>',
+            lambda e: self.system.arduino.set(port=e.widget.get().split(' - ')[0])
+        )
+        self._port_combo.grid(row=1, column=1)
 
-        tk.Button(  self.root,
+        tk.Button(  self._arduino_frame,
                     text='Configure',
-                    command=lambda frm=self:_config_arduino(frm)
-        ).grid(row=2, column=8, columnspan=2)
+                    command=lambda frm=self:_ArduinoConfig(frm, frm.root)
+        ).grid(row=1, column=3)
 
-        tk.Label(self.root, text='Status: ').grid(row=3, column=8)
-        status = 'Ready' if not self.arduino.ERROR else "ERROR"
-        lbl = tk.Label(self.root, text=status)
-        if self.arduino.ERROR:
+        tk.Label(self._arduino_frame, text='Status: ').grid(row=2, column=0)
+        status = 'Ready' if not self.system.arduino.ERROR else "ERROR"
+        lbl = tk.Label(self._arduino_frame, text=status)
+        if self.system.arduino.ERROR:
             lbl.bind('<Enter>', lambda event, msg=status:self._show_msg(event, msg))
-        lbl.grid(row=4, column=9)
+        lbl.grid(row=2, column=1)
+
+        self._arduino_frame.pack(side='left')
 
     def _create_camera_widgets(self):
-        tk.Label(self.root, text='Cameras').grid(row=0, column=3, columnspan=4)
 
-        tk.Label(self.root, text='Name').grid(row=1, column=3)
-        tk.Label(self.root, text='Type').grid(row=1, column=4)
-        tk.Label(self.root, text='Status').grid(row=1, column=5)
+        # TODO: Remove cameras
 
-        for i, cam in enumerate(self.cameras):
-            tk.Label(self.root, text=cam.name).grid(row=i+2, column=3)
-            tk.Label(self.root, text=cam.device).grid(row=i+2, column=4)
-            status = 'Ready' if not cam.ERROR else "ERROR"
-            lbl = tk.Label(self.root, text=status)
-            self.msg = tk.Label(self.root)
-            if cam.ERROR:
+        self._camera_frame.pack_forget()
+
+        tk.Label(self._camera_frame, text='Cameras').grid(row=0, column=0, columnspan=4)
+
+        tk.Label(self._camera_frame, text='Name').grid(row=1, column=0)
+        tk.Label(self._camera_frame, text='Type').grid(row=1, column=1)
+        tk.Label(self._camera_frame, text='Status').grid(row=1, column=2)
+
+        count=0
+        for i, cam in enumerate(self.system.cameras):
+            tk.Label(self._camera_frame, text=cam.name).grid(row=i+2, column=0)
+            tk.Label(self._camera_frame, text=cam.device).grid(row=i+2, column=1)
+            status = 'Ready' if not cam.ERRORS else "ERROR"
+            lbl = tk.Label(self._camera_frame, text=status)
+            self.msg = tk.Label(self._camera_frame)
+            if cam.ERRORS:
                 lbl.bind('<Enter>', lambda event, msg=status:self._show_msg(event, msg))
-            lbl.grid(row=i+2, column=5)
-            tk.Button(  self.root,
-                        text='Remove').grid(row=i+2, column=6)
-            tk.Button(  self.root,
-                        text='Edit').grid(row=i+2, column=7)
+            lbl.grid(row=i+2, column=2)
+            tk.Button(  self._camera_frame,
+                        text='Remove',
+                        command=lambda i=i:self._delete(i)
+            ).grid(row=i+2, column=3)
+            tk.Button(  self._camera_frame,
+                        text='Edit',
+                        command=lambda i=i:_CameraConfig(self, self.root, self.system.cameras[i])
+            ).grid(row=i+2, column=4)
+            count+=1
 
-    def _port_combo_select(self, event):
+        tk.Button( self._camera_frame, text='Add Camera', command= lambda :self._add()
+        ).grid(row=count+2, column=0, columnspan=5)
 
-        self.ports.config(values=['Loading Ports...'])
-
-        ports = list_ports()
-
-        if len(ports) == 0:
-            ports = ['No ports found']
-
-        ports = ["{0} - {1}".format(p.device, p.description) for p in ports]
-
-        self.ports.config(values=ports)
-
-    def _port_combo_update(self, event):
-
-        port = ''
-        for let in event.widget.get():
-
-            if let == '-':
-                break
-            else:
-                port += let
-
-
-        self.arduino.set('port', port[:-1])
+        self._camera_frame.pack(side='left')
 
     def _show_msg(self, event, msg):
         # TODO: Add error popup
@@ -732,25 +828,20 @@ class Config(tk.Frame):
         # TODO: Remove error popup
         pass
 
-    def _camera_config(self):
-        pass
+    def _delete(self,i):
+        _delete_camera(self,i)
+        self._create_camera_widgets()
 
-    def _delete_camera(self):
-        pass
-
-    def _add_camera(self):
-        pass
+    def _add(self):
+        _add_camera(self, False)
+        self._create_camera_widgets()
 
     def _edit_camera(self):
         pass
 
-    def _arduino_config(self):
-        pass
-
     def _close(self, event=None):
-        self.arduino.close()
-        self.file.close()
-        [cam.close() for cam in self.cameras]
+        self.system.arduino.close()
+        [cam.close() for cam in self.system.cameras]
         self.root.destroy()
 
 class _CameraConfig(tk.Toplevel):
@@ -760,7 +851,7 @@ class _CameraConfig(tk.Toplevel):
         super().__init__(master = master)
 
         if not camera:
-            self.camera = parent.cameras[parent.selected_frame]
+            self.camera = parent.system.cameras[parent.selected_frame]
         else:
             self.camera = camera
 
@@ -775,12 +866,15 @@ class _CameraConfig(tk.Toplevel):
 
         self.title("({0}) Settings".format(self.camera.name))
 
-        self._create_widgets()
+        self.widget_frm = tk.Frame(self)
+        self._update_widgets()
 
-    def _create_widgets(self):
+    def _update_widgets(self):
 
-        setting_frm = tk.Frame(self)
-        setting_frm.pack()
+        self.widget_frm.destroy()
+        self.widget_frm = tk.Frame(self)
+
+        setting_frm = tk.Frame(self.widget_frm)
 
         for i, (k, v) in enumerate(self.camera.__dict__.items()):
 
@@ -828,13 +922,16 @@ class _CameraConfig(tk.Toplevel):
             entry.grid(row=i, column=1, sticky='W', pady=5)
             entry.bind('<FocusOut>', lambda event, k=k:self._callback(event, k))
 
-        button_frm = tk.Frame(self)
+        setting_frm.pack()
+        button_frm = tk.Frame(self.widget_frm)
         button_frm.pack(pady=10)
 
         reset_btn = tk.Button(button_frm, text='Reset', command=self._reset)
         reset_btn.pack(side='left', padx=10)
         done_btn = tk.Button(button_frm, text='Done', command=self._close)
         done_btn.pack(side='left')
+
+        self.widget_frm.pack()
 
     def _callback(self, event, setting):
 
@@ -850,10 +947,14 @@ class _CameraConfig(tk.Toplevel):
 
     def _reset(self):
         self.camera.set(config=self._init_settings)
+        self._update_widgets()
 
-    def _close(self):
-        _set_icon(self.root, 'icon')
-        self.destroy()
+    def _close(self, event=None):
+        if event and event.widget.widgetName in ['frame', 'ttk::combobox']:
+            pass
+        else:
+            _set_icon(self.root, 'icon')
+            self.destroy()
 
 class _ArduinoConfig(tk.Toplevel):
 
@@ -865,20 +966,28 @@ class _ArduinoConfig(tk.Toplevel):
 
         self.parent = parent
         self.root = self.parent.root
-        self.arduino = parent.arduino
+        self.arduino = parent.system.arduino
         self.reset = self.arduino.__dict__.copy()
         _set_icon(self.root, 'configure')
         self.title("Arduino Settings")
-
-        # Section for strobe settings
+        self.strobe_frm = tk.Frame(self)
         self._create_strobe_widgets()
+        self.stim_frm = tk.Frame(self)
+        self._create_stim_widgets()
+        self.daq_frm = tk.Frame(self)
+        self._create_daq_widgets()
+        self.btn_frm = tk.Frame(self)
+        self._create_buttons()
 
-
+    def _update(self):
+        self._create_strobe_widgets()
         self._create_stim_widgets()
         self._create_daq_widgets()
+        self._create_buttons()
 
     def _create_strobe_widgets(self):
 
+        self.strobe_frm.destroy()
         self.strobe_frm = tk.Frame(self)
 
         tk.Label(
@@ -890,21 +999,18 @@ class _ArduinoConfig(tk.Toplevel):
             text='Trigger'
         ).grid(row=1, column=0)
 
-        trig = tk.Spinbox(
+        self.trig = tk.Spinbox(
             self.strobe_frm,
             from_=0,
             to=40,
-            width=2
+            width=2,
+            justify='center'
         )
-        trig.grid(row=1, column=1)
-        trig.delete(0, 'end')
-        trig.insert(0, self.arduino.strobing['trigger'])
+        self.trig.grid(row=1, column=1)
+        self.trig.delete(0, 'end')
+        self.trig.insert(0, self.arduino.strobing['trigger'])
 
-        tk.Button(
-            self.strobe_frm,
-            text='Test',
-            command=self._test_trigger()
-        ).grid(row=1, column=2, columnspan=2)
+        self.leds = []
 
         for i, led in enumerate(self.arduino.strobing['leds']):
 
@@ -913,6 +1019,7 @@ class _ArduinoConfig(tk.Toplevel):
                 width=7,
                 justify='center'
             )
+            name.bind('<FocusOut>', lambda event, i=i:self._callback(event, i, 'led'))
             name.grid(row=i+2, column=0)
             name.insert(0, led['name'])
 
@@ -923,6 +1030,8 @@ class _ArduinoConfig(tk.Toplevel):
                 width=2,
                 justify='center'
             )
+            pin.bind('<FocusOut>', lambda event, i=i:self._callback(event, i, 'led'))
+            pin.bind('<Button-1>', lambda event, i=i:self._callback(event, i, 'led'))
             pin.grid(row=i+2, column=1)
             pin.delete(0, 'end')
             pin.insert(0, led['pin'])
@@ -943,15 +1052,23 @@ class _ArduinoConfig(tk.Toplevel):
             self.strobe_frm,
             text='Add LED',
             command=self._add_led
-        ).grid(row=i+3, column=0, columnspan=3)
+        ).grid(row=i+3, column=0, columnspan=4)
+
+        tk.Button(
+            self.strobe_frm,
+            text='Test',
+            command=self._test_trigger()
+        ).grid(row=1, column=2, columnspan=2)
+
+        self.strobe_frm.pack()
 
     def _create_stim_widgets(self):
 
-        stim_frm = tk.Frame(self)
-        stim_frm.pack()
+        self.stim_frm.destroy()
+        self.stim_frm = tk.Frame(self)
 
         tk.Label(
-            stim_frm,
+            self.stim_frm,
             text='Stim Settings:').grid(row=0,column=0,columnspan=4)
 
         count = 0
@@ -959,69 +1076,100 @@ class _ArduinoConfig(tk.Toplevel):
         for i, stim in enumerate(self.arduino.stim):
 
             tk.Label(
-                stim_frm,
+                self.stim_frm,
                 text = "{0} ({1})".format(stim['name'], stim['type'])
             ).grid(row=i+1, column=0)
 
             tk.Button(
-                stim_frm,
-                text = 'Delete'
+                self.stim_frm,
+                text = 'Remove',
+                command= lambda i=i:self._remove_stim(i)
             ).grid(row=i+1, column=1)
 
             tk.Button(
-                stim_frm,
-                text = 'Edit'
+                self.stim_frm,
+                text = 'Configure',
+                command= lambda i=i:self._StimConfig(self, self.root, i)
             ).grid(row=i+1, column=2)
-
-            tk.Button(
-                stim_frm,
-                text = 'Test'
-            ).grid(row=i+1, column=3)
 
             count += 1
 
         tk.Button(
-            stim_frm,
+            self.stim_frm,
             text='Add Stim',
             command=self._add_stim
         ).grid(row=count+2, column=0, columnspan=4)
 
+        self.stim_frm.pack()
+
     def _create_daq_widgets(self):
 
-        daq_frm = tk.Frame(self)
-        daq_frm.pack()
+        self.daq_frm.destroy()
+        self.daq_frm = tk.Frame(self)
 
         tk.Label(
-            daq_frm,
+            self.daq_frm,
             text='Data Acquisition'
-        ).grid(row=0, column=0, columnspan=2)
+        ).grid(row=0, column=0, columnspan=4)
 
         count = 0
+        self.daqs = []
 
         for i, daq in enumerate(self.arduino.data_acquisition):
 
-            tk.Label(
-                daq_frm,
-                text = daq['name']
-            ).grid(row=i+1, column=0)
+            daq_name = tk.Entry(
+                self.daq_frm,
+                text = daq['name'],
+                width=7,
+                justify='center'
+            )
+            daq_name.insert(0, daq['name'])
+            daq_name.bind('<FocusOut>', lambda e, i=i:self._callback(e,i))
+            daq_name.grid(row=i+1, column=0)
 
-            tk.Spinbox(
-                daq_frm,
+            daq = tk.Spinbox(
+                self.daq_frm,
                 from_=0,
                 to=40,
                 width=2
-            ).grid(row=i+1, column=1)
+            )
+            daq.grid(row=i+1, column=1)
+            daq.bind('<Button-1>', lambda e, i=i:self._callback(e,i))
+            daq.bind('<FocusOut>', lambda e, i=i:self._callback(e,i))
+
+            tk.Button(
+                self.daq_frm,
+                text = 'Remove',
+                command=lambda i=i: self._remove_daq(i)
+            ).grid(row=i+1, column=2)
+
+            tk.Button(
+                self.daq_frm,
+                text = 'Test',
+                command=lambda i=i: self._DaqConfig(self, self.root, i)
+            ).grid(row=i+1, column=3)
 
             count+=1
 
         tk.Button(
-            daq_frm,
+            self.daq_frm,
             text='Add DAQ',
             command=self._add_daq
-        ).grid(row=count+2, column=0, columnspan=2)
+        ).grid(row=count+2, column=0, columnspan=4)
 
-    def _callback(self):
-        # TODO:
+        self.daq_frm.pack()
+
+    def _create_buttons(self):
+
+        self.btn_frm.destroy()
+        self.btn_frm = tk.Frame(self)
+
+        tk.Button(self.btn_frm, text='Reset', command=self._reset).pack(side='left')
+        tk.Button(self.btn_frm, text='Deploy', command=self._deploy).pack(side='left')
+
+        self.btn_frm.pack()
+
+    def _callback(self,event,i,name):
         pass
 
     def _test_trigger(self):
@@ -1029,76 +1177,95 @@ class _ArduinoConfig(tk.Toplevel):
         pass
 
     def _add_led(self):
-        # TODO:
-        pass
+        self.arduino.strobing['leds'].append({'name':'newLED','pin':1})
+        self._update()
 
     def _remove_led(self, i):
-        # TODO:
-        pass
+        self.arduino.strobing['leds'].pop(i)
+        self._update()
 
     def _add_stim(self):
-        # TODO:
-        pass
+        stim =  {
+            "name":"default",
+            "type":"2PinStepper",
+            "pins":{
+                "step":5,
+                "dim":6
+            },
+            "pre_stim":4.0,
+            "stim":7.0,
+            "post_stim":8.0
+        }
+        self.arduino.stim.append(stim)
+        self._update()
 
     def _remove_stim(self, i):
-        # TODO:
-        pass
+        self.arduino.stim.pop(i)
+        self._update()
 
     def _add_daq(self):
-        # TODO:
-        pass
+        self.arduino.data_acquisition.append({'name':'newDAQ','pin':1})
+        self._update()
 
     def _remove_daq(self, i):
-        # TODO:
-        pass
+        self.arduino.data_acquisition.pop(i)
+        self._update()
 
-class _FileConfig(tk.Toplevel):
-    """docstring for FileConfig."""
+    def _reset(self):
+        self.arduino.set(config=self.reset)
+        self._update()
 
-    def __init__(self, parent=None, master=None):
+    def _deploy(self):
 
-        super().__init__(master = master)
-        self.root = parent.root
-        self.file = parent.file
-        self._create_widgets()
+        strobing = {
+            'trigger':self.trig.get(),
+            'leds':[]
+        }
 
-    def _create_widgets(self):
+        print(self.trig.get())
+        for led in self.leds:
+            print(led.get())
+        for stim in self.stims:
+            print(stim)
+        for daq in self.daqs:
+            print(daq.get())
 
-        for i, (k,v) in enumerate(self.file.__dict__.items()):
+    def _close(self, event):
+        _set_icon(self.root, 'icon')
+        self.destroy()
 
-            if k == 'ERROR':
-                continue
-            else:
+    class _StimConfig(tk.Toplevel):
 
-                tk.Label(self, text=k.title()).grid(row=i-1,column=0, sticky='e')
+        def __init__(self, parent, master, index):
 
-                var = tk.StringVar()
-                var.set(v)
+            # TODO: Complete
 
-                if k == 'directory':
-                    # TODO: Update dir on configuration
-                    entry = tk.Label(self)
-                    tk.Button(
-                        self,
-                        text="Browse",
-                        padx=10,
-                        pady=5,
-                        command=lambda frm=self:_set_dir(frm)
-                    ).grid(row=i-1,column=2)
-                elif k == 'runs':
-                    entry = tk.Spinbox(
-                        self,
-                        from_=1,
-                        to=100,
-                        width=3
-                    )
-                else:
-                    entry = tk.Entry(self,width=10)
+            super().__init__(master = master)
 
-                entry.grid(row=i-1,column=1, sticky='w')
-                entry.config(textvariable=var, justify='center')
-                entry.bind('<FocusOut>', lambda event, k=k:self._callback(event,k))
+            self.stim_settings = parent.arduino.stim[index]
 
-    def _callback(self, event, setting):
-        value = pywfom.file.TYPES[setting](event.widget.get())
-        self.file.set(setting, value)
+            self._create_widgets()
+
+        def _create_widgets(self):
+
+            for i, (k, v) in enumerate(self.stim_settings.items()):
+                tk.Label(self, text=k).grid(row=i, column=0)
+                tk.Label(self, text=v).grid(row=i, column=1)
+
+    class _DaqConfig(tk.Toplevel):
+
+        def __init__(self, parent, master, index):
+
+            # TODO: Complete
+
+            super().__init__(master = master)
+
+            self.daq = parent.arduino.data_acquisition[index]
+
+            self._create_widgets()
+
+        def _create_widgets(self):
+
+            for i, (k, v) in enumerate(self.daq.items()):
+                tk.Label(self, text=k).grid(row=i, column=0)
+                tk.Label(self, text=v).grid(row=i, column=1)

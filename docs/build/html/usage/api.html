@@ -36,7 +36,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="JSON Configuration File" href="configuration.html" />
-    <link rel="prev" title="Quickstart" href="../user/quickstart.html" /> 
+    <link rel="prev" title="Command Line Tools" href="command.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -96,10 +96,11 @@
 </ul>
 <p class="caption"><span class="caption-text">Usage:</span></p>
 <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="command.html">Command Line Tools</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">API Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-pywfom">pyWFOM Graphical User Interface</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#camera-interface">Camera Interface</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#arduino-interface">Arduino Interface</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-pywfom.viewing">Available GUI's</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="configuration.html">JSON Configuration File</a></li>
@@ -170,8 +171,24 @@
             
   <div class="section" id="api-documentation">
 <span id="api"></span><h1>API Documentation<a class="headerlink" href="#api-documentation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-pywfom">
+<span id="pywfom-graphical-user-interface"></span><h2>pyWFOM Graphical User Interface<a class="headerlink" href="#module-pywfom" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="pywfom.configure">
+<code class="sig-prename descclassname">pywfom.</code><code class="sig-name descname">configure</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.configure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Configure Interface settings</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="pywfom.view">
+<code class="sig-prename descclassname">pywfom.</code><code class="sig-name descname">view</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.view" title="Permalink to this definition">¶</a></dt>
+<dd><p>View frames, adjust settings, and monitor device connections</p>
+</dd></dl>
+
+</div>
 <div class="section" id="camera-interface">
 <h2>Camera Interface<a class="headerlink" href="#camera-interface" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">pyWFOM</span></code> also allows you to adjust and view cameras directly from Python.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pywfom.imaging</span> <span class="kn">import</span> <span class="n">Camera</span>
 
 <span class="n">cam</span> <span class="o">=</span> <span class="n">Camera</span><span class="p">(</span><span class="s1">&#39;webcam&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="c1"># Create webcam camera interface</span>
@@ -190,8 +207,9 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>device</strong> (<em>string</em>) -- Type of camera</p></li>
+<li><p><strong>device</strong> (<em>str</em>) -- Type of camera</p></li>
 <li><p><strong>index</strong> (<em>int</em>) -- Index of the camera</p></li>
+<li><p><strong>name</strong> (<em>str</em>) -- Name of the camera</p></li>
 </ul>
 </dd>
 </dl>
@@ -295,6 +313,7 @@ dictionary, or setting individual keyword arguments.</p>
 </div>
 <div class="section" id="arduino-interface">
 <h2>Arduino Interface<a class="headerlink" href="#arduino-interface" title="Permalink to this headline">¶</a></h2>
+<p>Attached Arduinos can also be controlled using Python.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pywfom.control</span> <span class="kn">import</span> <span class="n">Arduino</span><span class="p">,</span> <span class="n">list_ports</span>
 
 <span class="n">ports</span> <span class="o">=</span> <span class="n">list_ports</span><span class="p">()</span> <span class="c1"># Gather a list of available COM ports</span>
@@ -331,20 +350,6 @@ dictionary, or setting individual keyword arguments.</p>
 </dd></dl>
 
 </div>
-<div class="section" id="module-pywfom.viewing">
-<span id="available-gui-s"></span><h2>Available GUI's<a class="headerlink" href="#module-pywfom.viewing" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
-<dt id="pywfom.viewing.Config">
-<em class="property">class </em><code class="sig-prename descclassname">pywfom.viewing.</code><code class="sig-name descname">Config</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">parent</span></em>, <em class="sig-param"><span class="n">config</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.viewing.Config" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py class">
-<dt id="pywfom.viewing.Main">
-<em class="property">class </em><code class="sig-prename descclassname">pywfom.viewing.</code><code class="sig-name descname">Main</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">parent</span></em>, <em class="sig-param"><span class="n">system</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.viewing.Main" title="Permalink to this definition">¶</a></dt>
-<dd><p>Monitor camera frames, Arduino status, and set file directory</p>
-</dd></dl>
-
-</div>
 </div>
 
 
@@ -358,7 +363,7 @@ dictionary, or setting individual keyword arguments.</p>
         <a href="configuration.html" class="btn btn-neutral float-right" title="JSON Configuration File" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="../user/quickstart.html" class="btn btn-neutral float-left" title="Quickstart" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="command.html" class="btn btn-neutral float-left" title="Command Line Tools" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

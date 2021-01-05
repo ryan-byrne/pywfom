@@ -3,8 +3,16 @@
 API Documentation
 =================
 
+pyWFOM Graphical User Interface
+-------------------------------
+
+.. automodule:: pywfom
+  :members: view, configure
+
 Camera Interface
 ----------------
+
+``pyWFOM`` also allows you to adjust and view cameras directly from Python.
 
 .. code-block:: python
 
@@ -24,6 +32,9 @@ Camera Interface
 Arduino Interface
 -----------------
 
+Attached Arduinos can also be controlled using Python.
+
+
 .. code-block:: python
 
     from pywfom.control import Arduino, list_ports
@@ -37,10 +48,4 @@ Arduino Interface
     ard.toggle_led(5) # Turn on LED at pin 5
 
 .. automodule:: pywfom.control
-  :members:
-
-Available GUI's
----------------
-
-.. automodule:: pywfom.viewing
   :members:

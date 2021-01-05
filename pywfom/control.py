@@ -3,7 +3,7 @@ import serial.tools.list_ports
 
 def list_ports():
     """Return a 2-item list of available COM Ports and their devices"""
-    return serial.tools.list_ports.comports().split(' - ')
+    return serial.tools.list_ports.comports()
 
 class Arduino():
     """ Methods pertaining to Communication with the Arduino """
@@ -50,14 +50,18 @@ class Arduino():
         elif setting == "stim":
 
             for stim in value:
+                # TODO: Set stim
                 # Send command for setting stim pins (i.e. s5s6s)
                 pass
+
+        elif setting == 'data_acquisition':
+            # TODO: Set DAQ
+            pass
 
     def _set_leds(self):
         """ Set led pin strobe array (i.e. p6p7p8p) """
         msg = "p"
         for led in self.strobing['leds']:
-            print('setting led: {0}'.format(led['pin']))
             msg += "{0}p".format(led['pin'])
         self._ser.write(msg.encode())
         time.sleep(0.1)
@@ -65,7 +69,6 @@ class Arduino():
     def _set_trigger(self):
         """ Send command for setting trigger pin (i.e. t3) """
         pin = self.strobing['trigger']
-        print('setting trigger to: {0}'.format(pin))
         self._ser.write("t{0}".format(pin).encode())
         time.sleep(0.1)
 

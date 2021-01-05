@@ -18,7 +18,7 @@ Any required USB Drivers will be installed alongside the IDE.
 Deploying to the Arduino
 ------------------------
 
-1. Attach the Arduino you wish to use with your ``PyWFOM`` system to your machine via USB.
+1. Attach the Arduino you wish to use with your ``pyWFOM`` system to your machine via USB.
 
   * **NOTE:** `Arduino MEGA <https://store.arduino.cc/usa/mega-2560-r3/>`_ is suggested
 
@@ -42,12 +42,12 @@ Deploying to the Arduino
 
   Wait until the code successfully deploys
 
-6. ``PyWFOM`` is now able to send settings to your **Arduino**
+6. ``pyWFOM`` is now able to send settings to your **Arduino**
 
 Attaching Devices
 -----------------
 
-Adding devices to your ``PyWFOM`` system is as simple as attaching them to the
+Adding devices to your ``pyWFOM`` system is as simple as attaching them to the
 pins of your **Arduino**.
 
 The example below shows 3 separate BNC connectors attached to an exposure
@@ -59,10 +59,10 @@ trigger from a **sCMOS camera** and **two LED drivers**.
 
   Simple wiring diagram including a single sCMOS Camera and 2 LEDs
 
-``PyWFOM`` would send this information to the **Arduino** using the ``strobing``
+``pyWFOM`` would send this information to the **Arduino** using the ``strobing``
 setting in ``config.json``.
 
-Take a look at the section on `Configuring Your System <configuration_>`_
+Take a look at the section on JSON Configuration.
 
 .. code-block:: json
 

@@ -48,7 +48,7 @@ WFOM is currently being used in a **wide** (•͡˘㇁•͡˘) range of applicat
 
   Resting state neural and hemodynamic activity in the awake mouse brain
 
-For a comprehensive list of WFOM applications,
+For a comprehensive list of WFOM applications, `visit this page <https://hillmanlab.zuckermaninstitute.columbia.edu/>`_
 
 Why PyWFOM?
 -----------

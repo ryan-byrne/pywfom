@@ -23,6 +23,7 @@ setup(
     entry_points={
         'console_scripts':[
             'wfom = pywfom:view',
+            'wfom-solis = pywfom:solis',
             'wfom-configure = pywfom:configure',
             'wfom-quickstart = pywfom:quickstart'
         ] },

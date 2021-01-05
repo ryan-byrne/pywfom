@@ -3,16 +3,41 @@
 JSON Configuration File
 =======================
 
+``pyWFOM`` uses a JSON file to store various metadata and settings.
+
+========== ============================================== ========= ===============
+Setting    Description                                      Type     Example
+========== ============================================== ========= ===============
+user        Name or ID of individual who                    string    "rjb2202"
+            ran the acquisition.
+---------- ---------------------------------------------- --------- ---------------
+mouse       Name or ID of the mouse the acquisition was    string     "cm100"
+            conducted on.
+---------- ---------------------------------------------- --------- ---------------
+directory   Location data will be saved to                  string    "C:/data"
+---------- ---------------------------------------------- --------- ---------------
+runs        Number of runs for given acquisition              int      5
+---------- ---------------------------------------------- --------- ---------------
+run_length     Length of each acquisition (in seconds)        float      10.0
+========== ============================================== ========= ===============
+
+The JSON file also contains the settings for each Camera and Arduino Object.
+
+**NOTE:** *It is highly recommended you only alter the your JSON Configuration
+file from the provided GUI's, not directly editing the file itself.*
+
+===============================
+Example
+===============================
+
 .. code-block:: JSON
 
   {
-    "file":{
-      "user":"rjb2202",
-      "mouse":"cm100",
-      "directory":"C:/data",
-      "runs": 5,
-      "run_length": 2.0
-    },
+    "user":"rjb2202",
+    "mouse":"cm100",
+    "directory":"C:/data",
+    "runs": 5,
+    "run_length": 2.0
     "arduino": {
       "port": "COM4",
       "data_acquisition":[

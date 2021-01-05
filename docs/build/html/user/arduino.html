@@ -101,8 +101,10 @@
 </ul>
 <p class="caption"><span class="caption-text">Usage:</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../usage/navigate.html">Navigating the GUI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage/command.html">Command Line Tools</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../usage/api.html">API Documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../usage/configuration.html">Configuring Your System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage/configuration.html">JSON Configuration File</a></li>
 </ul>
 
             
@@ -182,7 +184,7 @@ and follow the instructions on your screen.</p>
 <div class="section" id="deploying-to-the-arduino">
 <h2>Deploying to the Arduino<a class="headerlink" href="#deploying-to-the-arduino" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
-<li><p>Attach the Arduino you wish to use with your <code class="docutils literal notranslate"><span class="pre">PyWFOM</span></code> system to your machine via USB.</p></li>
+<li><p>Attach the Arduino you wish to use with your <code class="docutils literal notranslate"><span class="pre">pyWFOM</span></code> system to your machine via USB.</p></li>
 </ol>
 <blockquote>
 <div><ul class="simple">
@@ -206,12 +208,12 @@ and follow the instructions on your screen.</p>
 <p class="caption"><span class="caption-text">Wait until the code successfully deploys</span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
 </div>
 <ol class="arabic simple" start="6">
-<li><p><code class="docutils literal notranslate"><span class="pre">PyWFOM</span></code> is now able to send settings to your <strong>Arduino</strong></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pyWFOM</span></code> is now able to send settings to your <strong>Arduino</strong></p></li>
 </ol>
 </div>
 <div class="section" id="attaching-devices">
 <h2>Attaching Devices<a class="headerlink" href="#attaching-devices" title="Permalink to this headline">¶</a></h2>
-<p>Adding devices to your <code class="docutils literal notranslate"><span class="pre">PyWFOM</span></code> system is as simple as attaching them to the
+<p>Adding devices to your <code class="docutils literal notranslate"><span class="pre">pyWFOM</span></code> system is as simple as attaching them to the
 pins of your <strong>Arduino</strong>.</p>
 <p>The example below shows 3 separate BNC connectors attached to an exposure
 trigger from a <strong>sCMOS camera</strong> and <strong>two LED drivers</strong>.</p>
@@ -219,9 +221,9 @@ trigger from a <strong>sCMOS camera</strong> and <strong>two LED drivers</strong
 <a class="reference internal image-reference" href="../_images/simple_arduino.png"><img alt="../_images/simple_arduino.png" src="../_images/simple_arduino.png" style="width: 500px;" /></a>
 <p class="caption"><span class="caption-text">Simple wiring diagram including a single sCMOS Camera and 2 LEDs</span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">PyWFOM</span></code> would send this information to the <strong>Arduino</strong> using the <code class="docutils literal notranslate"><span class="pre">strobing</span></code>
+<p><code class="docutils literal notranslate"><span class="pre">pyWFOM</span></code> would send this information to the <strong>Arduino</strong> using the <code class="docutils literal notranslate"><span class="pre">strobing</span></code>
 setting in <code class="docutils literal notranslate"><span class="pre">config.json</span></code>.</p>
-<p>Take a look at the section on <a href="#id5"><span class="problematic" id="id6">`Configuring Your System &lt;configuration_&gt;`_</span></a></p>
+<p>Take a look at the section on JSON Configuration.</p>
 <div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
   <span class="nt">&quot;strobing&quot;</span><span class="p">:</span> <span class="p">{</span>
     <span class="nt">&quot;leds&quot;</span><span class="p">:[</span>
