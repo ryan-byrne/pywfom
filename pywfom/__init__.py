@@ -156,7 +156,7 @@ def _add_camera(frame, viewing=True):
 
 # File Related functions
 def _set_dir(parent):
-    parent.file.directory = tk.filedialog.askdirectory()
+    parent.system.directory = tk.filedialog.askdirectory()
 
 def _load(frame):
 
