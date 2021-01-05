@@ -339,6 +339,7 @@ class Main(tk.Frame):
         self.root.attributes('-fullscreen', True)
         self.root.bind("<Escape>", self.close)
         self.root.title("pywfom")
+        self.root.bind('<FocusIn>', self._close_children)
         self.root.protocol("WM_DELETE_WINDOW", self.close)
         _set_icon(self.root)
 
@@ -360,6 +361,14 @@ class Main(tk.Frame):
         self._create_buttons()
         # Begin Updating the Frame
         self._update()
+
+    def _close_children(self, event):
+        _set_icon(self.root)
+        for child in self.root.winfo_children():
+            if child.widgetName == 'toplevel':
+                child.destroy()
+            else:
+                continue
 
     def _create_main_window(self):
 
@@ -474,12 +483,15 @@ class Main(tk.Frame):
 
         tk.Label(
             self.right_side,
-            text='File:'
+            text='Run:'
         ).pack()
 
         # Create File Directory
         file_frame = tk.Frame(self.right_side)
         file_frame.pack()
+
+        run_frame = tk.Frame(self.right_side)
+        run_frame.pack()
 
         tk.Label(
             file_frame,
@@ -503,7 +515,7 @@ class Main(tk.Frame):
             text="Configure",
             padx=10,
             pady=5,
-            command=lambda frm=self:_config_file(frm)
+            command=lambda frm=self:_FileConfig(frm, frm.root)
         ).pack(side='left')
 
     def _create_buttons(self):
@@ -565,7 +577,7 @@ class Main(tk.Frame):
 
         self.dir_name.config(text=self.system.directory)
 
-        self.root.after(1, self._update)
+        self.root.after(10, self._update)
 
     def _draw_main_image(self):
 
@@ -1269,3 +1281,61 @@ class _ArduinoConfig(tk.Toplevel):
             for i, (k, v) in enumerate(self.daq.items()):
                 tk.Label(self, text=k).grid(row=i, column=0)
                 tk.Label(self, text=v).grid(row=i, column=1)
+
+class _FileConfig(tk.Toplevel):
+
+    def __init__(self, parent=None, master=None):
+
+        # TODO: Get this to actually change settings on the arduino
+
+        super().__init__(master = master)
+
+        self.system = parent.system
+        _set_icon(self.root, 'configure')
+
+        self._init_system = self.system.__dict__.copy()
+
+        self._create_widgets()
+        self._create_buttons()
+
+    def _create_widgets(self):
+
+        widget_frm = tk.Frame(self)
+
+        for i, (k,v) in enumerate(self.system.__dict__.items()):
+            var = tk.StringVar()
+            var.set(v)
+            if k in ['arduino', 'cameras','directory']:
+                continue
+
+            elif k == 'runs':
+
+                tk.Label(widget_frm,text=k.title()).grid(row=i,column=0)
+                entry = tk.Spinbox(widget_frm,from_=0,to=100,width=3,justify='center',textvariable=var)
+                entry.grid(row=i,column=1)
+            else:
+
+                tk.Label(widget_frm,text=k.title()).grid(row=i,column=0)
+                entry = tk.Entry(widget_frm, textvariable=var, width=7,justify='center')
+                entry.grid(row=i,column=1)
+
+            entry.bind('<FocusOut>',
+                lambda event, k=k:self._callback(k, event))
+            entry.bind('<Return>',
+                lambda event, k=k:self._callback(k, event))
+            entry.bind('<Button-1>',
+                lambda event, k=k:self._callback(k, event))
+
+            widget_frm.pack()
+
+    def _callback(self, setting, event):
+        # TODO: Spinbox changes to new value on press, not old
+        setattr(self.system, setting, event.widget.get())
+
+    def _create_buttons(self):
+
+        button_frm = tk.Frame(self)
+        button_frm.pack()
+
+        tk.Button(button_frm,text='Reset').pack(side='left')
+        tk.Button(button_frm,text='Done').pack(side='left')
