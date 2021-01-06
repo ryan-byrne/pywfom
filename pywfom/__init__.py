@@ -1,4 +1,4 @@
-import pkgutil, argparse, sys, os, json, pywfom, cv2, threading, shutil, time
+import pkgutil, argparse, sys, os, json, pywfom, cv2, threading, shutil, time, tempfile
 import numpy as np
 import tkinter as tk
 from tkinter import ttk, simpledialog, filedialog, messagebox
@@ -50,12 +50,9 @@ def quickstart():
     wfom = pywfom.System()
 
 def test():
-    system = pywfom.System()
-    cam = system.cameras[0]
-    cam.set(height=2400, width=2400, framerate=60)
-    while True:
-        pass
-    cam.close()
+
+    frame = Viewer(tk.Tk())
+    frame.root.mainloop()
 
 def view():
 
@@ -300,28 +297,54 @@ class System(object):
 
     def _acquire_frames(self):
 
-        self.writing = True
+        master = []
 
         for i, cam in enumerate(self.cameras):
             if cam.master:
-                master = i
+                master.append(i)
+
+        if len(master)>1:
+            messagebox.showerror(
+                title='Acquisition Error',
+                message='Too many master cameras. There can only be one!'
+            )
+            return
+        else:
+            master = master[0]
+
+        self.arduino.start_strobing()
 
         for i in range(self.runs):
 
             path = self._make_run_directory(i)
-            run_frms = self.run_length*self.cameras[i].framerate
+            run_frms = self.run_length*self.cameras[master].framerate
             num_frms = 0
             # TODO: Write frames simultaneously
             # TODO: Write to disk in thread
 
             while num_frms < run_frms:
-                frames = {cam.name: cam.read() for cam in self.cameras}
+
+                self._frames = {}
                 fname = "{0}/frame{1}.npz".format(path, num_frms)
-                np.savez(fname,frames)
+
+                for cam in self.cameras:
+                    t = threading.Thread(target=self._read_camera_frame, args=(cam,))
+                    t.start()
+                    t.join()
+
+
+                threading.Thread(target=self._save_frames, args=(fname,)).start()
+
                 num_frms+=1
 
-    def _write_frames_to_file(self, fname, frames):
-        pass
+        self.arduino.stop_strobing()
+
+    def _save_frames(self, fname):
+        data = [v for k,v in self._frames.items()]
+        np.savez(fname, *data)
+
+    def _read_camera_frame(self, camera):
+        self._frames[camera.name] = camera.read()
 
 class Main(tk.Frame):
 
@@ -715,6 +738,118 @@ class Main(tk.Frame):
 
         return img
 
+class Viewer(tk.Frame):
+
+    def __init__(self, parent):
+
+        # TODO: Add buttons
+        #   - To start and stop viewing
+        #   - incease or decrease play speed
+        # Monitor other aspects of the run
+
+        self.root = parent
+
+        self.root.bind('<space>', self._toggle_play)
+        self.root.bind('<Right>', self._slide_right)
+        self.root.bind('<Left>', self._slide_left)
+
+        #self.dir = filedialog.askdirectory()
+        self.dir = "/Users/rbyrne/projects/pywfom/data/cm100/run5"
+
+        self.paused = False
+
+        if not self.dir:
+            return
+
+        with open("{0}/config.json".format(self.dir)) as f:
+            self.config = json.load(f)
+        f.close()
+
+        for i, cam in enumerate(self.config['cameras']):
+            if cam['master']:
+                self.framerate = cam['framerate']
+
+        self.files = []
+
+        for i in range(len(os.listdir(self.dir))-1):
+            self.files.append(np.load("{0}/frame{1}.npz".format(self.dir, i), allow_pickle=True))
+
+        self.current_frame = 0
+
+        self._create_viewing_frames()
+        self._create_controls()
+        self._update()
+
+    def _create_viewing_frames(self):
+
+        self.cam_frms = []
+
+        for i, cam in enumerate(self.config['cameras']):
+            tk.Label(self.root, text=cam['name']).grid(row=0,column=i)
+            frm = tk.Canvas(self.root)
+            frm.grid(row=1,column=i)
+            self.cam_frms.append(frm)
+
+    def _create_controls(self):
+
+        self.control_frm = tk.Frame(self.root)
+
+        self.slider = tk.Scale(
+            self.control_frm, orient=tk.HORIZONTAL, length=600
+        )
+        self.slider.pack(side='left')
+        self.slider.bind('<Button-1>', self._slider_callback)
+        self.slider.bind('<ButtonRelease-1>', self._set_frame)
+
+        self.play_pause = tk.Button(self.control_frm,command=self._toggle_play,text='||')
+        self.play_pause.pack(side='left')
+
+        self.control_frm.grid(row=2,column=0,columnspan=len(self.cam_frms))
+
+    def _update(self):
+
+        try:
+            frame = self.files[self.current_frame]
+        except:
+            self.current_frame = 0
+            frame = self.files[self.current_frame]
+
+        for i, frm in enumerate(frame.files):
+            canvas = self.cam_frms[i]
+            array_img = Image.fromarray(frame.get(frm))
+            img = ImageTk.PhotoImage(image=array_img)
+            canvas.create_image(0,0,image=img,anchor="nw")
+            canvas.image = img
+            canvas.config(height=img.height(),width=img.width())
+
+        if not self.paused:
+            self.current_frame+=1
+            self.play_pause.config(text='||')
+            self.slider.set(self.current_frame)
+        else:
+            self.play_pause.config(text='►')
+
+        self.root.after(int(1/self.framerate*1000), self._update)
+
+    def _set_frame(self, event=None):
+        self.current_frame = self.slider.get()
+
+    def _slider_callback(self,event=None):
+        self.paused = True
+
+    def _slide_left(self, event=None):
+        self.paused = True
+        self.current_frame -= 1
+        self.slider.set(self.current_frame)
+
+    def _slide_right(self, event=None):
+        self.paused = True
+        self.current_frame += 1
+        self.slider.set(self.current_frame)
+
+    def _toggle_play(self, event=None):
+        self.paused = not self.paused
+
 class Config(tk.Frame):
 
     # TODO: Build out
@@ -933,6 +1068,7 @@ class _CameraConfig(tk.Toplevel):
 
             entry.grid(row=i, column=1, sticky='W', pady=5)
             entry.bind('<FocusOut>', lambda event, k=k:self._callback(event, k))
+            entry.bind('<Return>', lambda event, k=k:self._callback(event, k))
 
         setting_frm.pack()
         button_frm = tk.Frame(self.widget_frm)
@@ -947,10 +1083,9 @@ class _CameraConfig(tk.Toplevel):
 
     def _callback(self, event, setting):
 
-        try:
-            value = pywfom.imaging.TYPES[setting](event.widget.get())
-        except:
-            value = pywfom.imaging.TYPES[setting](event.get())
+        # TODO: Fix problem with setting master
+
+        value = pywfom.imaging.TYPES[setting](event.widget.get())
 
         if setting == 'name':
             self.parent.thumbnail_labels[self.parent.selected_frame].config(text=value)
@@ -979,17 +1114,16 @@ class _ArduinoConfig(tk.Toplevel):
         self.parent = parent
         self.root = self.parent.root
         self.arduino = parent.system.arduino
-        self.reset = self.arduino.__dict__.copy()
+        self._init_settings = {}
+        for k,v in self.arduino.__dict__.items():
+            self._init_settings[k] = v
         _set_icon(self.root, 'configure')
         self.title("Arduino Settings")
         self.strobe_frm = tk.Frame(self)
-        self._create_strobe_widgets()
         self.stim_frm = tk.Frame(self)
-        self._create_stim_widgets()
         self.daq_frm = tk.Frame(self)
-        self._create_daq_widgets()
         self.btn_frm = tk.Frame(self)
-        self._create_buttons()
+        self._update()
 
     def _update(self):
         self._create_strobe_widgets()
@@ -1053,11 +1187,11 @@ class _ArduinoConfig(tk.Toplevel):
                 text='Remove',
                 command=lambda i=i:self._remove_led(i)
             ).grid(row=i+2, column=2)
-
+            # TODO: Turn on correct pin based off widget
             tk.Button(
                 self.strobe_frm,
                 text='Test',
-                command=lambda pin=i:self.arduino.toggle_led(pin)
+                command=lambda pin=pin:self.arduino.toggle_led(pin.get())
             ).grid(row=i+2, column=3)
 
         tk.Button(
@@ -1136,7 +1270,7 @@ class _ArduinoConfig(tk.Toplevel):
                 justify='center'
             )
             daq_name.insert(0, daq['name'])
-            daq_name.bind('<FocusOut>', lambda e, i=i:self._callback(e,i))
+            daq_name.bind('<FocusOut>', lambda e, i=i:self._callback(e,i, 'daq'))
             daq_name.grid(row=i+1, column=0)
 
             daq = tk.Spinbox(
@@ -1146,8 +1280,8 @@ class _ArduinoConfig(tk.Toplevel):
                 width=2
             )
             daq.grid(row=i+1, column=1)
-            daq.bind('<Button-1>', lambda e, i=i:self._callback(e,i))
-            daq.bind('<FocusOut>', lambda e, i=i:self._callback(e,i))
+            daq.bind('<Button-1>', lambda e, i=i:self._callback(e,i,'daq'))
+            daq.bind('<FocusOut>', lambda e, i=i:self._callback(e,i,'daq'))
 
             tk.Button(
                 self.daq_frm,
@@ -1177,7 +1311,7 @@ class _ArduinoConfig(tk.Toplevel):
         self.btn_frm = tk.Frame(self)
 
         tk.Button(self.btn_frm, text='Reset', command=self._reset).pack(side='left')
-        tk.Button(self.btn_frm, text='Deploy', command=self._deploy).pack(side='left')
+        tk.Button(self.btn_frm, text='Done', command=self.destroy).pack(side='left')
 
         self.btn_frm.pack()
 
@@ -1198,7 +1332,7 @@ class _ArduinoConfig(tk.Toplevel):
 
     def _add_stim(self):
         stim =  {
-            "name":"default",
+            "name":"newStim",
             "type":"2PinStepper",
             "pins":{
                 "step":5,
@@ -1224,23 +1358,9 @@ class _ArduinoConfig(tk.Toplevel):
         self._update()
 
     def _reset(self):
-        self.arduino.set(config=self.reset)
+        # TODO: Fix this so it actually resets
+        self.arduino.set(config=self._init_settings)
         self._update()
-
-    def _deploy(self):
-
-        strobing = {
-            'trigger':self.trig.get(),
-            'leds':[]
-        }
-
-        print(self.trig.get())
-        for led in self.leds:
-            print(led.get())
-        for stim in self.stims:
-            print(stim)
-        for daq in self.daqs:
-            print(daq.get())
 
     def _close(self, event):
         _set_icon(self.root, 'icon')
@@ -1286,37 +1406,43 @@ class _FileConfig(tk.Toplevel):
 
     def __init__(self, parent=None, master=None):
 
-        # TODO: Get this to actually change settings on the arduino
-
         super().__init__(master = master)
 
         self.system = parent.system
+        self.root = parent.root
         _set_icon(self.root, 'configure')
 
         self._init_system = self.system.__dict__.copy()
 
+        self.widget_frm = tk.Frame(self)
+        self.button_frm = tk.Frame(self)
+        self._update()
+
+
+    def _update(self):
         self._create_widgets()
         self._create_buttons()
 
     def _create_widgets(self):
 
-        widget_frm = tk.Frame(self)
+        self.widget_frm.destroy()
+        self.widget_frm = tk.Frame(self)
 
         for i, (k,v) in enumerate(self.system.__dict__.items()):
             var = tk.StringVar()
             var.set(v)
-            if k in ['arduino', 'cameras','directory']:
+            if k in ['arduino', 'cameras','directory'] or k[0] == '_':
                 continue
 
             elif k == 'runs':
 
-                tk.Label(widget_frm,text=k.title()).grid(row=i,column=0)
-                entry = tk.Spinbox(widget_frm,from_=0,to=100,width=3,justify='center',textvariable=var)
+                tk.Label(self.widget_frm,text=k.title()).grid(row=i,column=0)
+                entry = tk.Spinbox(self.widget_frm,from_=0,to=100,width=3,justify='center',textvariable=var)
                 entry.grid(row=i,column=1)
             else:
 
-                tk.Label(widget_frm,text=k.title()).grid(row=i,column=0)
-                entry = tk.Entry(widget_frm, textvariable=var, width=7,justify='center')
+                tk.Label(self.widget_frm,text=k.title()).grid(row=i,column=0)
+                entry = tk.Entry(self.widget_frm, textvariable=var, width=7,justify='center')
                 entry.grid(row=i,column=1)
 
             entry.bind('<FocusOut>',
@@ -1326,16 +1452,32 @@ class _FileConfig(tk.Toplevel):
             entry.bind('<Button-1>',
                 lambda event, k=k:self._callback(k, event))
 
-            widget_frm.pack()
-
-    def _callback(self, setting, event):
-        # TODO: Spinbox changes to new value on press, not old
-        setattr(self.system, setting, event.widget.get())
+        self.widget_frm.pack()
 
     def _create_buttons(self):
 
-        button_frm = tk.Frame(self)
-        button_frm.pack()
+        self.button_frm.destroy()
+        self.button_frm = tk.Frame(self)
 
-        tk.Button(button_frm,text='Reset').pack(side='left')
-        tk.Button(button_frm,text='Done').pack(side='left')
+        tk.Button(self.button_frm,text='Reset',command=self._reset).pack(side='left')
+        tk.Button(self.button_frm,text='Done',command=self.destroy).pack(side='left')
+
+        self.button_frm.pack()
+
+    def _callback(self, setting, event):
+        # TODO: Spinbox changes to new value on press, not old
+        if setting == 'run_length':
+            value = float(event.widget.get())
+        elif setting == 'runs':
+            value = int(event.widget.get())
+        else:
+            value = event.widget.get()
+        setattr(self.system, setting, value)
+
+    def _reset(self):
+        for k,v in self._init_system.items():
+            if k in ['arduino', 'cameras','directory'] or k[0] == '_':
+                continue
+            else:
+                setattr(self.system, k, v)
+        self._update()

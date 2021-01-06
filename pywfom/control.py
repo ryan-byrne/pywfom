@@ -27,6 +27,9 @@ class Arduino():
 
         for k, v in settings.items():
 
+            if k[0] == '_' or k == 'ERROR':
+                continue
+
             if not hasattr(self, k) or v != getattr(self, k):
                 self._set(k,v)
             else:
@@ -58,15 +61,18 @@ class Arduino():
             # TODO: Set DAQ
             pass
 
-    def _set_leds(self):
-        """ Set led pin strobe array (i.e. p6p7p8p) """
+    def _set_leds(self, pins=None):
+        """ Set led strobe pins, an array of [2,3,4] sends `p2p3p4p` to the Arduino
+
+        :param list pins: List of pins to be considered LED drivers
+        """
         msg = "p"
         for led in self.strobing['leds']:
             msg += "{0}p".format(led['pin'])
         self._ser.write(msg.encode())
         time.sleep(0.1)
 
-    def _set_trigger(self):
+    def _set_trigger(self, pin=None):
         """ Send command for setting trigger pin (i.e. t3) """
         pin = self.strobing['trigger']
         self._ser.write("t{0}".format(pin).encode())
@@ -74,11 +80,17 @@ class Arduino():
 
     def toggle_led(self, pin):
         """ Turn on a specified LED """
+        print("Turning on {0}".format(pin))
         self._ser.write("T{0}".format(pin).encode())
         time.sleep(0.1)
 
-    def toggle_strobing(self):
-        """ Toggles strobing on the connected LEDs"""
+    def start_strobing(self):
+        """ Turns on strobing on the Arduino"""
+        self._ser.write("S".encode())
+        time.sleep(0.1)
+
+    def stop_strobing(self):
+        """ Turns off strobing on the Arduino"""
         self._ser.write("S".encode())
         time.sleep(0.1)
 

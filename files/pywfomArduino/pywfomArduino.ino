@@ -53,7 +53,7 @@ void loop() {
       case 'T':
         toggleLed(msg);
         break;
-      case 's':
+      case 'm':
         updateStimPins(msg);
         break;
       case 'f':
@@ -63,11 +63,15 @@ void loop() {
         updateTrigger(msg);
         break;
       case 'S':
-        // Toggle Strobing
-        strobing = !strobing;
+        // Turn on Strobing
+        strobing = true;
+        break;
+      case 's':
+        // Turn off Strobing
+        strobing = false;
         break;
       case 'C':
-        clearSettings();
+        clearAllSettings();
         break;
       case 'c':
         clearLeds();
@@ -78,9 +82,9 @@ void loop() {
   if (strobing){
     while(digitalRead(trigPin)){}
     nextLed();
-    while(!digitalRead(trigPin)){} 
+    while(!digitalRead(trigPin)){}
   }
-  
+
 }
 
 void nextLed(){
@@ -94,7 +98,7 @@ void nextLed(){
 
 }
 
-void clearSettings(){
+void clearAllSettings(){
   incomingByte;
   trigPin;
   int ledPins[] = {};

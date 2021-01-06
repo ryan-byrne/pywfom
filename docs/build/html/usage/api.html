@@ -96,6 +96,7 @@
 </ul>
 <p class="caption"><span class="caption-text">Usage:</span></p>
 <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="navigate.html">Navigating the GUI</a></li>
 <li class="toctree-l1"><a class="reference internal" href="command.html">Command Line Tools</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">API Documentation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#module-pywfom">pyWFOM Graphical User Interface</a></li>
@@ -330,15 +331,38 @@ dictionary, or setting individual keyword arguments.</p>
 <em class="property">class </em><code class="sig-prename descclassname">pywfom.control.</code><code class="sig-name descname">Arduino</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">port</span><span class="o">=</span><span class="default_value">'COM1'</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.control.Arduino" title="Permalink to this definition">¶</a></dt>
 <dd><p>Methods pertaining to Communication with the Arduino</p>
 <dl class="py method">
-<dt id="pywfom.control.Arduino.toggle_led">
-<code class="sig-name descname">toggle_led</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pin</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.control.Arduino.toggle_led" title="Permalink to this definition">¶</a></dt>
-<dd><p>Turn on a specified LED</p>
+<dt id="pywfom.control.Arduino.set_leds">
+<code class="sig-name descname">set_leds</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pins</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.control.Arduino.set_leds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set led strobe pins, an array of [2,3,4] sends <cite>p2p3p4p</cite> to the Arduino</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>pins</strong> (<em>list</em>) -- List of pins to be considered LED drivers</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
-<dt id="pywfom.control.Arduino.toggle_strobing">
-<code class="sig-name descname">toggle_strobing</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.control.Arduino.toggle_strobing" title="Permalink to this definition">¶</a></dt>
-<dd><p>Toggles strobing on the connected LEDs</p>
+<dt id="pywfom.control.Arduino.set_trigger">
+<code class="sig-name descname">set_trigger</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pin</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.control.Arduino.set_trigger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send command for setting trigger pin (i.e. t3)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pywfom.control.Arduino.start_strobing">
+<code class="sig-name descname">start_strobing</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.control.Arduino.start_strobing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Turns on strobing on the Arduino</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pywfom.control.Arduino.stop_strobing">
+<code class="sig-name descname">stop_strobing</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.control.Arduino.stop_strobing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Turns off strobing on the Arduino</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pywfom.control.Arduino.toggle_led">
+<code class="sig-name descname">toggle_led</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pin</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.control.Arduino.toggle_led" title="Permalink to this definition">¶</a></dt>
+<dd><p>Turn on a specified LED</p>
 </dd></dl>
 
 </dd></dl>

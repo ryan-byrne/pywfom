@@ -25,6 +25,7 @@ setup(
             'wfom = pywfom:view',
             'wfom-solis = pywfom:solis',
             'wfom-configure = pywfom:configure',
+            'wfom-watch = pywfom:watch'
             'wfom-quickstart = pywfom:quickstart'
         ] },
     long_description=long_description,
