@@ -359,6 +359,8 @@ class Main(tk.Frame):
 
         # General Application Settings
         self.root = parent
+        s = ttk.Style(self.root)
+        s.theme_use('clam')
         self.root.attributes('-fullscreen', True)
         self.root.bind("<Escape>", self.close)
         self.root.title("pywfom")
@@ -742,16 +744,22 @@ class Viewer(tk.Frame):
 
     def __init__(self, parent):
 
-        # TODO: Add buttons
-        #   - To start and stop viewing
-        #   - incease or decrease play speed
+        # TODO:
         # Monitor other aspects of the run
+        #
+
+
 
         self.root = parent
+        s = ttk.Style(self.root)
+        s.theme_use('clam')
 
         self.root.bind('<space>', self._toggle_play)
         self.root.bind('<Right>', self._slide_right)
         self.root.bind('<Left>', self._slide_left)
+        self.root.protocol("WM_DELETE_WINDOW", self.close)
+        self.root.bind("<Escape>", self.close)
+        self.root.title()
 
         #self.dir = filedialog.askdirectory()
         self.dir = "/Users/rbyrne/projects/pywfom/data/cm100/run5"
@@ -849,6 +857,9 @@ class Viewer(tk.Frame):
 
     def _toggle_play(self, event=None):
         self.paused = not self.paused
+
+    def close(self, event=None):
+        self.root.destroy()
 
 class Config(tk.Frame):
 
