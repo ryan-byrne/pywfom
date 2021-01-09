@@ -1,15 +1,21 @@
 {
   "user": "rjb2202",
   "mouse": "cm100",
-  "directory": "/Users/rbyrne/projects/pywfom/data",
+  "directory": "C:/Ryan/data",
   "runs": 1,
   "run_length": 1.0,
   "arduino": {
-    "port": "/dev/cu.Bluetooth-Incoming-Port",
-    "data_acquisition": [{
-      "name": "encoder1",
-      "pin": 12
-    }],
+    "port": "COM4",
+    "data_acquisition": [
+      {
+        "name": "encoder1",
+        "pin": 12
+      },
+      {
+        "name": "encoder2",
+        "pin": 13
+      }
+    ],
     "strobing": {
       "leds": [{
         "name": "blue",
@@ -39,7 +45,7 @@
     }]
   },
   "cameras": [{
-    "device": "webcam",
+    "device": "test",
     "index": 0,
     "name": "cam1",
     "height": 564,

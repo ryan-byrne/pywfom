@@ -25,12 +25,12 @@ setup(
             'wfom = pywfom:view',
             'wfom-solis = pywfom:solis',
             'wfom-configure = pywfom:configure',
-            'wfom-watch = pywfom:watch'
+            'wfom-watch = pywfom:watch',
             'wfom-quickstart = pywfom:quickstart'
         ] },
     long_description=long_description,
     long_description_content_type='text/markdown',
-    python_requires='>3.5,!=3.7.6',
+    python_requires='>3.5',
     license="MIT",
     classifiers=[
         "Programming Language :: Python :: 3",

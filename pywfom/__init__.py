@@ -49,8 +49,18 @@ def _get_args():
 def quickstart():
     wfom = pywfom.System()
 
-def test():
+def test(system):
 
+    root = tk.Tk()
+    frame = tk.Frame(root)
+
+    frame.root = root
+    frame.system = system
+
+    ard = _ArduinoConfig(frame, frame.root)
+    root.mainloop()
+
+def watch():
     frame = Viewer(tk.Tk())
     frame.root.mainloop()
 
@@ -99,7 +109,7 @@ def _startup():
         solis()
 
     if args['test']:
-        test()
+        test(System(args['config']))
         return None
 
     return System(args['config'])
@@ -762,7 +772,8 @@ class Viewer(tk.Frame):
         self.root.title()
 
         #self.dir = filedialog.askdirectory()
-        self.dir = "/Users/rbyrne/projects/pywfom/data/cm100/run5"
+        self.dir = "C:/Ryan/data/cm100/run3"
+        #self.dir = "/Users/rbyrne/projects/pywfom/data/cm100/run5"
 
         self.paused = False
 
@@ -803,7 +814,7 @@ class Viewer(tk.Frame):
         self.control_frm = tk.Frame(self.root)
 
         self.slider = tk.Scale(
-            self.control_frm, orient=tk.HORIZONTAL, length=600
+            self.control_frm, orient=tk.HORIZONTAL, from_=0, to=len(self.files), length=600
         )
         self.slider.pack(side='left')
         self.slider.bind('<Button-1>', self._slider_callback)
@@ -1123,6 +1134,8 @@ class _ArduinoConfig(tk.Toplevel):
         super().__init__(master = master)
 
         self.parent = parent
+        self.names, self.pins, self.daq_names, self.daq_pins = [], [], [], []
+        self.stim_names, self.stim_types = [], []
         self.root = self.parent.root
         self.arduino = parent.system.arduino
         self._init_settings = {}
@@ -1147,74 +1160,43 @@ class _ArduinoConfig(tk.Toplevel):
         self.strobe_frm.destroy()
         self.strobe_frm = tk.Frame(self)
 
-        tk.Label(
-            self.strobe_frm,
-            text='Strobe Settings:').grid(row=0,column=0,columnspan=4)
+        tk.Label(self.strobe_frm,text='Strobe Settings:').grid(row=0,column=0,columnspan=4)
 
-        tk.Label(
-            self.strobe_frm,
-            text='Trigger'
-        ).grid(row=1, column=0)
+        # Create and Bind Trigger Widgets
+        tk.Label(self.strobe_frm,text='Trigger').grid(row=1, column=0)
+        self.trig = tk.IntVar(value=self.arduino.strobing['trigger'])
+        tk.Spinbox(self.strobe_frm,from_=0,to=40,width=2,justify='center', textvariable=self.trig).grid(row=1, column=1)
+        self.trig.trace('w', self._strobing_callback)
 
-        self.trig = tk.Spinbox(
-            self.strobe_frm,
-            from_=0,
-            to=40,
-            width=2,
-            justify='center'
-        )
-        self.trig.grid(row=1, column=1)
-        self.trig.delete(0, 'end')
-        self.trig.insert(0, self.arduino.strobing['trigger'])
-
-        self.leds = []
+        self.names = []
+        self.pins = []
+        count = 0
 
         for i, led in enumerate(self.arduino.strobing['leds']):
 
-            name = tk.Entry(
-                self.strobe_frm,
-                width=7,
-                justify='center'
-            )
-            name.bind('<FocusOut>', lambda event, i=i:self._callback(event, i, 'led'))
-            name.grid(row=i+2, column=0)
-            name.insert(0, led['name'])
+            # Create widget for each led
+            name = tk.StringVar(value=led['name'])
+            tk.Entry(self.strobe_frm,width=7,justify='center',textvariable=name).grid(row=i+2, column=0)
+            name.trace('w', self._strobing_callback)
+            self.names.append(name)
 
-            pin = tk.Spinbox(
-                self.strobe_frm,
-                from_=0,
-                to=40,
-                width=2,
-                justify='center'
-            )
-            pin.bind('<FocusOut>', lambda event, i=i:self._callback(event, i, 'led'))
-            pin.bind('<Button-1>', lambda event, i=i:self._callback(event, i, 'led'))
-            pin.grid(row=i+2, column=1)
-            pin.delete(0, 'end')
-            pin.insert(0, led['pin'])
+            pin = tk.IntVar(value=led['pin'])
+            tk.Spinbox(self.strobe_frm,from_=0,to=40,width=2,justify='center',textvariable=pin).grid(row=i+2, column=1)
+            pin.trace('w', self._strobing_callback)
+            self.pins.append(pin)
 
-            tk.Button(
-                self.strobe_frm,
-                text='Remove',
+            tk.Button(self.strobe_frm,text='Remove',
                 command=lambda i=i:self._remove_led(i)
             ).grid(row=i+2, column=2)
-            # TODO: Turn on correct pin based off widget
-            tk.Button(
-                self.strobe_frm,
-                text='Test',
+            tk.Button(self.strobe_frm,text='Test',
                 command=lambda pin=pin:self.arduino.toggle_led(pin.get())
             ).grid(row=i+2, column=3)
+            count+=1
 
-        tk.Button(
-            self.strobe_frm,
-            text='Add LED',
-            command=self._add_led
-        ).grid(row=i+3, column=0, columnspan=4)
+        tk.Button(self.strobe_frm,text='Add LED',command=self._add_led
+        ).grid(row=count+3, column=0, columnspan=4)
 
-        tk.Button(
-            self.strobe_frm,
-            text='Test',
-            command=self._test_trigger()
+        tk.Button(self.strobe_frm,text='Test',command=self._test_trigger
         ).grid(row=1, column=2, columnspan=2)
 
         self.strobe_frm.pack()
@@ -1224,37 +1206,37 @@ class _ArduinoConfig(tk.Toplevel):
         self.stim_frm.destroy()
         self.stim_frm = tk.Frame(self)
 
-        tk.Label(
-            self.stim_frm,
-            text='Stim Settings:').grid(row=0,column=0,columnspan=4)
+        tk.Label(self.stim_frm,text='Stim Settings:').grid(row=0,column=0,columnspan=4)
 
         count = 0
+        self.stim_names = []
+        self.stim_types = []
 
         for i, stim in enumerate(self.arduino.stim):
 
-            tk.Label(
-                self.stim_frm,
-                text = "{0} ({1})".format(stim['name'], stim['type'])
+            name = tk.StringVar(value=stim['name'])
+            tk.Entry(self.stim_frm,textvariable=name, width=10, justify='center'
             ).grid(row=i+1, column=0)
+            name.trace('w', self._stim_callback)
+            self.stim_names.append(name)
 
-            tk.Button(
-                self.stim_frm,
-                text = 'Remove',
-                command= lambda i=i:self._remove_stim(i)
+            t = tk.StringVar(value=stim['type'])
+            ttk.Combobox(self.stim_frm,textvariable=t,state='readonly',width=12,justify='center',
+            values=pywfom.control.OPTIONS['stim_types']
             ).grid(row=i+1, column=1)
+            t.trace('w', self._stim_callback)
+            self.stim_types.append(t)
 
-            tk.Button(
-                self.stim_frm,
-                text = 'Configure',
-                command= lambda i=i:self._StimConfig(self, self.root, i)
+            tk.Button(self.stim_frm,text='Remove',command=lambda i=i:self._remove_stim(i)
             ).grid(row=i+1, column=2)
+
+            tk.Button(self.stim_frm,text='Configure',
+                command= lambda i=i:self._StimConfig(self, self.root, i)
+            ).grid(row=i+1, column=3)
 
             count += 1
 
-        tk.Button(
-            self.stim_frm,
-            text='Add Stim',
-            command=self._add_stim
+        tk.Button(self.stim_frm,text='Add Stim',command=self._add_stim
         ).grid(row=count+2, column=0, columnspan=4)
 
         self.stim_frm.pack()
@@ -1264,54 +1246,34 @@ class _ArduinoConfig(tk.Toplevel):
         self.daq_frm.destroy()
         self.daq_frm = tk.Frame(self)
 
-        tk.Label(
-            self.daq_frm,
-            text='Data Acquisition'
-        ).grid(row=0, column=0, columnspan=4)
+        tk.Label(self.daq_frm,text='Data Acquisition').grid(row=0, column=0, columnspan=4)
 
+        self.daq_names = []
+        self.daq_pins = []
         count = 0
-        self.daqs = []
 
         for i, daq in enumerate(self.arduino.data_acquisition):
 
-            daq_name = tk.Entry(
-                self.daq_frm,
-                text = daq['name'],
-                width=7,
-                justify='center'
-            )
-            daq_name.insert(0, daq['name'])
-            daq_name.bind('<FocusOut>', lambda e, i=i:self._callback(e,i, 'daq'))
-            daq_name.grid(row=i+1, column=0)
+            dn = tk.StringVar(name='{0}dname'.format(i), value=daq['name'])
+            tk.Entry(self.daq_frm, textvariable=dn, width=7,justify='center').grid(row=i+1, column=0)
+            self.daq_names.append(dn)
+            dn.trace('w', self._daq_callback)
 
-            daq = tk.Spinbox(
-                self.daq_frm,
-                from_=0,
-                to=40,
-                width=2
-            )
-            daq.grid(row=i+1, column=1)
-            daq.bind('<Button-1>', lambda e, i=i:self._callback(e,i,'daq'))
-            daq.bind('<FocusOut>', lambda e, i=i:self._callback(e,i,'daq'))
+            dp = tk.IntVar(name='{0}dpin'.format(i), value=daq['pin'])
+            tk.Spinbox(self.daq_frm,from_=0,to=40,width=2,textvariable=dp).grid(row=i+1, column=1)
+            self.daq_pins.append(dp)
+            dp.trace('w', self._daq_callback)
 
-            tk.Button(
-                self.daq_frm,
-                text = 'Remove',
-                command=lambda i=i: self._remove_daq(i)
+            tk.Button(self.daq_frm,text = 'Remove',command=lambda i=i: self._remove_daq(i)
             ).grid(row=i+1, column=2)
 
-            tk.Button(
-                self.daq_frm,
-                text = 'Test',
+            tk.Button(self.daq_frm,text = 'Test',
                 command=lambda i=i: self._DaqConfig(self, self.root, i)
             ).grid(row=i+1, column=3)
 
             count+=1
 
-        tk.Button(
-            self.daq_frm,
-            text='Add DAQ',
-            command=self._add_daq
+        tk.Button(self.daq_frm,text='Add DAQ',command=self._add_daq
         ).grid(row=count+2, column=0, columnspan=4)
 
         self.daq_frm.pack()
@@ -1326,19 +1288,55 @@ class _ArduinoConfig(tk.Toplevel):
 
         self.btn_frm.pack()
 
-    def _callback(self,event,i,name):
-        pass
+    def _strobing_callback(self, nm, idx, mode):
+
+        self.arduino.strobing['trigger'] = self.trig.get()
+
+        self.arduino.strobing['leds'] = []
+
+        for i in range(len(self.names)):
+            self.arduino.strobing['leds'].append({
+                'pin':self.pins[i].get(),
+                'name':self.names[i].get()
+            })
+
+    def _daq_callback(self, nm, idx, mode):
+
+        self.arduino.data_acquisition = []
+
+        for i in range(len(self.daq_names)):
+            self.arduino.data_acquisition.append({
+                'name':self.daq_names[i].get(),
+                'pin':self.daq_pins[i].get()
+            })
+
+        self.arduino.set_daq()
+
+    def _stim_callback(self, nm, idx, mode):
+
+        for i in range(len(self.stim_names)):
+            self.arduino.stim[i]['name'] = self.stim_names[i].get()
+            self.arduino.stim[i]['type'] = self.stim_types[i].get()
 
     def _test_trigger(self):
-        # TODO:
-        pass
+
+        if not messagebox.askyesno(
+            'Test Trigger',
+            "Test the exposure trigger? This will strobe the LEDs."):
+            return
+        else:
+            self.arduino.start_strobing()
+            messagebox.showinfo('Testing Trigger', 'Press OK to Stop')
+            self.arduino.stop_strobing()
 
     def _add_led(self):
         self.arduino.strobing['leds'].append({'name':'newLED','pin':1})
+        self.arduino.set_leds()
         self._update()
 
     def _remove_led(self, i):
         self.arduino.strobing['leds'].pop(i)
+        self.arduino.set_leds()
         self._update()
 
     def _add_stim(self):
@@ -1362,10 +1360,12 @@ class _ArduinoConfig(tk.Toplevel):
 
     def _add_daq(self):
         self.arduino.data_acquisition.append({'name':'newDAQ','pin':1})
+        self.set_daq()
         self._update()
 
     def _remove_daq(self, i):
         self.arduino.data_acquisition.pop(i)
+        self.set_daq()
         self._update()
 
     def _reset(self):
@@ -1386,14 +1386,53 @@ class _ArduinoConfig(tk.Toplevel):
             super().__init__(master = master)
 
             self.stim_settings = parent.arduino.stim[index]
+            self.parent = parent
+            self._init_settings = self.stim_settings.copy()
 
             self._create_widgets()
 
         def _create_widgets(self):
-
+            count = 0
             for i, (k, v) in enumerate(self.stim_settings.items()):
-                tk.Label(self, text=k).grid(row=i, column=0)
-                tk.Label(self, text=v).grid(row=i, column=1)
+                tk.Label(self, text=k).grid(row=count, column=0)
+                if k == 'pins':
+                    for name, pin in self.stim_settings[k].items():
+                        tk.Label(self, text=name).grid(row=count, column=1)
+                        spin = tk.Spinbox(self, width=2, from_=0, to=100, textvariable=v
+                        )
+                        spin.grid(row=count, column=2)
+                        count+=1
+                        spin.delete(0, 'end')
+                        spin.insert(0, pin)
+                elif k == 'type':
+                    combo = ttk.Combobox(
+                        self, width=10,
+                        values=pywfom.control.OPTIONS['stim_types']
+                    )
+                    combo.insert(0, v)
+                    combo.config(state='readonly')
+                    combo.grid(row=count, column=1, columnspan=2)
+                    combo.bind('<<ComboboxSelected>>', lambda event: self._callback(event, 'type'))
+                else:
+                    e = tk.Entry(self, width=7)
+                    e.grid(row=count, column=1, columnspan=2)
+                    e.insert(0, v)
+                count+=1
+
+            btn_frm = tk.Frame(self)
+            btn_frm.grid(row=count, column=0, columnspan=3)
+
+            tk.Button(btn_frm, text='Test', command=self._test).pack(side='left')
+            tk.Button(btn_frm, text='Reset', command=self._reset).pack(side='left')
+            tk.Button(btn_frm, text='Done', command=self.destroy).pack(side='left')
+
+        def _reset(self):
+            # TODO: COmplete
+            pass
+
+        def _test(self):
+            # TODO: COmplete
+            pass
 
     class _DaqConfig(tk.Toplevel):
 
@@ -1403,15 +1442,31 @@ class _ArduinoConfig(tk.Toplevel):
 
             super().__init__(master = master)
 
-            self.daq = parent.arduino.data_acquisition[index]
-
+            self.arduino = parent.arduino
+            self.daq = parent.arduino.data_acquisition
             self._create_widgets()
+            self._update()
 
         def _create_widgets(self):
 
-            for i, (k, v) in enumerate(self.daq.items()):
-                tk.Label(self, text=k).grid(row=i, column=0)
-                tk.Label(self, text=v).grid(row=i, column=1)
+            self.data = []
+
+            for i, daq in enumerate(self.daq):
+                tk.Label(self, text=daq['name']).grid(row=i, column=0)
+                tk.Label(self, text=daq['pin']).grid(row=i, column=1)
+                d = tk.Label(self)
+                self.data.append(d)
+                d.grid(row=i, column=2)
+
+            tk.Button(self, text='Done', command=self.destroy).grid(row=i+1, column=0, columnspan=3)
+
+        def _update(self):
+
+            for i, d in enumerate(self.data):
+                val = str(self.arduino.DAQ_MSG).split('_')[1][1:].split(',')[i]
+                d.config(text=val)
+
+            self.after(10, self._update)
 
 class _FileConfig(tk.Toplevel):
 

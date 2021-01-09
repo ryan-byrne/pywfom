@@ -1,1 +1,1 @@
-start cmd /k "cd /Ryan/wfom/Scripts && activate && cd /Ryan"
+start cmd /k "cd /Ryan/wfom/Scripts && activate && cd /Ryan && wfom -t -v"
