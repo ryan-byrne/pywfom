@@ -1299,6 +1299,9 @@ class _ArduinoConfig(tk.Toplevel):
                 'pin':self.pins[i].get(),
                 'name':self.names[i].get()
             })
+            
+        self.arduino.set_trigger()
+        self.arduino.set_leds()
 
     def _daq_callback(self, nm, idx, mode):
 
