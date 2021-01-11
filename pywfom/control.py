@@ -89,8 +89,15 @@ class Arduino():
         time.sleep(0.1)
 
     def set_stim(self):
-        # TODO:
-        pass
+        # <m15,16,17,18,.200>
+
+        msg = "<m{0},.{1}>".format(
+            ",".join([str(pin) for pin in self.stim[0]['pins']]),
+            self.stim[0]['steps_per_revolution']
+        )
+        self._ser.write(msg.encode())
+        time.sleep(0.1)
+
 
     def set_daq(self, pins=None):
         self._acquiring = False
@@ -103,6 +110,10 @@ class Arduino():
         self._acquiring = True
         while self._acquiring:
             self.DAQ_MSG = self._ser.readline()
+
+    def step(speed, steps):
+        # <p60,200>
+        self._ser.write("<p{0},{1}>".format(speed, steps))
 
     def toggle_led(self, pin):
         print("Toggle led")

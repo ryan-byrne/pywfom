@@ -1,19 +1,37 @@
+#include <Stepper.h>
+
+// Serial message variables
 char incomingChar;
 char receivedChars[32];
 boolean msgComplete = false;
 boolean receivingMsg = false;
+char msg[32];
+char c;
+char pin[2];
+char val[4];
+
+// LED Settings
 int currentLed = 0;
 int numLeds = 0;
-int numDaq = 0;
-int ledPins[10];
-int stimPins[10];
-int daqPins[10];
 int trigPin;
-char msg[32];
-int midx = 0;
-char pin[2];
-char val[3];
+int ledPins[10];
 boolean strobing = false;
+
+// DAQ Settings
+int numDaq = 0;
+int daqPins[10];
+
+// Stepper Settings
+int stimPins[4];
+int stepsPerRevolution;
+int numStim = 0;
+int stepperPos = 0;
+Stepper stim(stepsPerRevolution, stimPins[0], stimPins[1]);
+
+// Index Settings
+int idx = 0;
+int midx = 0;
+int pidx = 0;
 
 void setup() {
   Serial.begin(115200);
@@ -75,12 +93,22 @@ void parseMsg(){
         break;
       case 'd':
         updateDaqPins();
-        break;  
+        break;
+      case 'm':
+        updateStim();
+        break;
       case 'c':
         clearLeds();
         break;
       case 't':
         trigPin = int(receivedChars[1]);
+        break;
+      case 'T':
+        toggleLed();
+        break;
+      case 'p':
+        setStep();
+        break;
     }
     
     msgComplete = false;
@@ -88,12 +116,6 @@ void parseMsg(){
 }
 
 void returnData(){
-
-  /*
-   * Message Format: s,d_5:256,
-   * A = strobing (s or S)
-   * B = DAQ
-   */
    
   midx = 0;
 
@@ -119,6 +141,12 @@ void returnData(){
     }
     msg[midx++] = ',';
   }
+
+  msg[midx++] = 'm';
+  itoa( stepperPos, val, 10 );
+  for ( int i=0; i<sizeof(val); i++ ) {
+    msg[midx++] = val[i];
+  }
   msg[midx++] = '\0';
   Serial.println(msg);
 }
@@ -134,20 +162,62 @@ void nextLed(){
   
 }
 
+void updateStim() {
+  // 
+  // <m15,16,17,18,.200>
+  pidx = 0;
+  idx = 0;
+  boolean recordPins = false;
+  
+  for ( int i=1; i<sizeof(receivedChars); i++ ) {
+    
+    c = receivedChars[i];
+    if ( !c ) { continue; }
+    else if ( c == ',' ) {
+      pinMode( atoi(pin), OUTPUT);
+      stimPins[idx++] = atoi(pin);
+      pidx = 0;
+    }
+    else if ( c == '.' ) { recordPins = true; }
+    else if ( !recordPins ) { val[pidx++] = c; }
+    else { pin[pidx++] = c; }
+    
+  }
+
+  stepsPerRevolution = atoi( val );
+
+  if ( numStim == 4 ) { Stepper stim( stepsPerRevolution, stimPins[0], stimPins[1], stimPins[2], stimPins[3] ); }
+  else { Stepper stim( stepsPerRevolution, stimPins[0], stimPins[1]); }
+  
+}
+
+void setStep() {
+  idx = 0;
+  for ( int i=1; i<sizeof(receivedChars); i++ ) {
+    c = receivedChars[i];
+    if ( !c ) { continue; }
+    else if ( c == ',' ) {
+      val[idx] = '\0'; 
+      stim.setSpeed(atoi(val));
+      idx = 0;
+    }
+    else { val[idx++] = c; } 
+  }
+  val[idx] = '\0';
+  stim.step(atoi(val));
+  stepperPos += atoi(val);
+}
+
 void updateLedPins(){
 
-  char c;
-  char pin[4];
-  int idx = 0;
+  idx = 0;
   numLeds = 0;
   
   for ( int i=1; i<sizeof(receivedChars); i++ ) {
     
     c = receivedChars[i];
     
-    if (int(c) == 0){
-      continue;
-    }
+    if (int(c) == 0){ continue; }
     else if ( c == ',' ){
       pin[idx] = '\0';
       ledPins[numLeds] = atoi(pin);
@@ -164,9 +234,7 @@ void updateLedPins(){
 
 void updateDaqPins(){
 
-  char c;
-  char pin[4];
-  int idx = 0;
+  idx = 0;
   numDaq = 0;
   
   for ( int i=1; i<sizeof(receivedChars); i++ ) {
@@ -191,12 +259,12 @@ void updateDaqPins(){
 }
 
 void clearAllSettings(){
-  trigPin;
-  int ledPins[] = {};
-  int stimPins[] = {};
-  String msg;
-  currentLed = 0;
   strobing = false;
+}
+
+void toggleLed() {
+  clearLeds();
+  
 }
 
 void clearLeds() {

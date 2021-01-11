@@ -58,6 +58,7 @@ def test(system):
     frame.system = system
 
     ard = _ArduinoConfig(frame, frame.root)
+    ard._StimConfig(ard, ard.root)
     root.mainloop()
 
 def watch():
@@ -1134,8 +1135,8 @@ class _ArduinoConfig(tk.Toplevel):
         super().__init__(master = master)
 
         self.parent = parent
-        self.names, self.pins, self.daq_names, self.daq_pins = [], [], [], []
-        self.stim_names, self.stim_types = [], []
+        self.names, self.pins, self.daq_names, self.daq_pins= [], [], [], []
+        self.stim_names = []
         self.root = self.parent.root
         self.arduino = parent.system.arduino
         self._init_settings = {}
@@ -1210,7 +1211,6 @@ class _ArduinoConfig(tk.Toplevel):
 
         count = 0
         self.stim_names = []
-        self.stim_types = []
 
         for i, stim in enumerate(self.arduino.stim):
 
@@ -1220,12 +1220,8 @@ class _ArduinoConfig(tk.Toplevel):
             name.trace('w', self._stim_callback)
             self.stim_names.append(name)
 
-            t = tk.StringVar(value=stim['type'])
-            ttk.Combobox(self.stim_frm,textvariable=t,state='readonly',width=12,justify='center',
-            values=pywfom.control.OPTIONS['stim_types']
+            ttk.Label(self.stim_frm,text=stim['type'],width=12,justify='center'
             ).grid(row=i+1, column=1)
-            t.trace('w', self._stim_callback)
-            self.stim_types.append(t)
 
             tk.Button(self.stim_frm,text='Remove',command=lambda i=i:self._remove_stim(i)
             ).grid(row=i+1, column=2)
@@ -1299,7 +1295,7 @@ class _ArduinoConfig(tk.Toplevel):
                 'pin':self.pins[i].get(),
                 'name':self.names[i].get()
             })
-            
+
         self.arduino.set_trigger()
         self.arduino.set_leds()
 
@@ -1382,52 +1378,84 @@ class _ArduinoConfig(tk.Toplevel):
 
     class _StimConfig(tk.Toplevel):
 
-        def __init__(self, parent, master, index):
+        def __init__(self, parent, master, index=0):
 
             # TODO: Complete
 
             super().__init__(master = master)
 
-            self.stim_settings = parent.arduino.stim[index]
+            self.stim = parent.arduino.stim[index]
             self.parent = parent
-            self._init_settings = self.stim_settings.copy()
+            self._init_settings = self.stim.copy()
+            self.vars = []
+            self.pins = []
 
             self._create_widgets()
 
+
         def _create_widgets(self):
-            count = 0
-            for i, (k, v) in enumerate(self.stim_settings.items()):
-                tk.Label(self, text=k).grid(row=count, column=0)
+
+            stim_frm = tk.Frame(self)
+            row = 0
+            self.vars = []
+            self.pins = []
+
+            for i, (k,v) in enumerate(self.stim.items()):
+
+                tk.Label(stim_frm, text=k.title()).grid(row=row, column=0)
+
                 if k == 'pins':
-                    for name, pin in self.stim_settings[k].items():
-                        tk.Label(self, text=name).grid(row=count, column=1)
-                        spin = tk.Spinbox(self, width=2, from_=0, to=100, textvariable=v
-                        )
-                        spin.grid(row=count, column=2)
-                        count+=1
-                        spin.delete(0, 'end')
-                        spin.insert(0, pin)
+                    pin_frm = tk.Frame(stim_frm)
+                    for pin in v:
+                        var = tk.IntVar()
+                        var.set(value=pin)
+                        var.trace('w', self._callback)
+                        self.pins.append(var)
+                        tk.Spinbox(pin_frm, width=2, from_=0, to=40, textvariable=var).pack()
+                    pin_frm.grid(row=row, column=1)
+                elif k == 'steps_per_revolution':
+                    var = tk.IntVar()
+                    var.set(value=v)
+                    var.trace('w', self._callback)
+                    self.vars.append(var)
+                    tk.Spinbox(stim_frm, width=3, from_=0, to=999, textvariable=var
+                    ).grid(row=row, column=1)
                 elif k == 'type':
-                    combo = ttk.Combobox(
-                        self, width=10,
-                        values=pywfom.control.OPTIONS['stim_types']
-                    )
-                    combo.insert(0, v)
-                    combo.config(state='readonly')
-                    combo.grid(row=count, column=1, columnspan=2)
-                    combo.bind('<<ComboboxSelected>>', lambda event: self._callback(event, 'type'))
+                    var = tk.StringVar()
+                    var.set(v)
+                    var.trace('w', self._callback)
+                    ttk.Combobox(
+                        stim_frm, width=10, textvariable=var, justify='center',
+                        values=pywfom.control.OPTIONS['stim_types'], state='readonly'
+                    ).grid(row=row, column=1)
+                    self.vars.append(var)
                 else:
-                    e = tk.Entry(self, width=7)
-                    e.grid(row=count, column=1, columnspan=2)
-                    e.insert(0, v)
-                count+=1
+                    var = tk.StringVar()
+                    var.set(v)
+                    var.trace('w', self._callback)
+                    tk.Entry(stim_frm, width=10, justify='center',textvariable=var
+                    ).grid(row=row, column=1)
+                    self.vars.append(var)
 
-            btn_frm = tk.Frame(self)
-            btn_frm.grid(row=count, column=0, columnspan=3)
+                row+=1
 
-            tk.Button(btn_frm, text='Test', command=self._test).pack(side='left')
-            tk.Button(btn_frm, text='Reset', command=self._reset).pack(side='left')
-            tk.Button(btn_frm, text='Done', command=self.destroy).pack(side='left')
+            tk.Button(stim_frm, text='Reset').grid(row=row, column=0)
+            tk.Button(stim_frm, text='Test').grid(row=row, column=1)
+
+            stim_frm.pack()
+
+            tk.Button(self, text='Done').pack()
+
+        def _callback(self, nm, idx, mode):
+
+            names = ['name', 'type', 'steps_per_revolution', 'pre_stim', 'stim', 'post_stim']
+
+            for i, var in enumerate(self.vars):
+                self.stim[names[i]] = var.get()
+
+            self.stim['pins'] = [pin.get() for pin in self.pins]
+
+            self.parent.arduino.set_stim()
 
         def _reset(self):
             # TODO: COmplete

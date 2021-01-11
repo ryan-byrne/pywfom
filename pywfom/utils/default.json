@@ -34,11 +34,9 @@
     },
     "stim": [{
       "name": "default",
-      "type": "2PinStepper",
-      "pins": {
-        "step": 5,
-        "dim": 6
-      },
+      "type": "4PinStepper",
+      "pins": [15,16,17,18],
+      "steps_per_revolution":200,
       "pre_stim": 4.0,
       "stim": 7.0,
       "post_stim": 8.0
