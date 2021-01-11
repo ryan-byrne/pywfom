@@ -22,10 +22,9 @@ setup(
     ],
     entry_points={
         'console_scripts':[
-            'wfom = pywfom:view',
+            'wfom = pywfom:main',
             'wfom-solis = pywfom:solis',
-            'wfom-configure = pywfom:configure',
-            'wfom-watch = pywfom:watch',
+            'wfom-viewer = pywfom:view',
             'wfom-quickstart = pywfom:quickstart'
         ] },
     long_description=long_description,

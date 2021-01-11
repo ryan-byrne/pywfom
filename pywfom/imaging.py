@@ -434,7 +434,6 @@ class Camera(object):
 
                 self.frame = error_frame(msg)
 
-
 OPTIONS = {
     'dtype':['uint8','uint12', 'uin12p', 'uint16'],
     'device':['andor', 'spinnaker', 'webcam', 'test'],
