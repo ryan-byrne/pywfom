@@ -1,16 +1,17 @@
 .. _navigate:
 
-Navigating the GUI
-==================
+Graphical User Interfaces
+=========================
 
-When ``wfom`` or ``wfom-configure`` are called from the :ref:`command` on of two
-**GUI's** will  be opened.
+Main Frame
+----------
 
-WFOM GUI
---------
+.. autoclass :: pywfom.viewing.Main
+  :members:
 
-Opened when ``wfom`` is called. This GUI can 
 
-.. figure:: img/main_gui.png
-  :align: center
-  :width: 800
+Run Viewer
+----------
+
+.. autoclass :: pywfom.viewing.Viewer
+  :members:

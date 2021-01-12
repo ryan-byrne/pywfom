@@ -38,11 +38,55 @@ def loading_frame(height=500, width=500):
 class Camera(object):
 
     """
-    A Camera Interface for the PyWFOM System
 
-    :param str device: Type of camera
-    :param int index: Index of the camera
-    :param str name: Name of the camera
+    Interface for controlling Cameras using :py:mod:`pywfom`
+
+    :Example:
+
+    .. code-block:: python
+
+        from pywfom.imaging import Camera
+
+        cam = Camera('webcam', 0) # Create webcam camera interface
+
+        cam.set(height=550, width=450, framerate=15.0) # Establish settings
+
+        print(cam.read()) # Print current frame
+
+        cam.close() # Close camera
+
+    :param device: Type of camera (``andor``, ``spinnaker``, ``webcam``, or ``test``)
+    :type device: `str`_
+
+    :param index: Index of the camera
+    :type index: `int`_
+
+    :ivar device: Type of Camera
+    :vartype device: `str`_
+    :ivar index: Index of Camera
+    :vartype index: `int`_
+    :ivar name: Name of Camera
+    :vartype name: `str`_
+    :ivar height: Height of the camera frame
+    :vartype height: `int`_
+    :ivar width: Width of the camera frame
+    :vartype width: `int`_
+    :ivar offset_x: Leftmost pixel captured by the camera
+    :vartype offset_x: `int`_
+    :ivar offset_y: Bottommost pixel captured by the camera
+    :vartype offset_y: `int`_
+    :ivar binning:
+        Dimensions of pixels to be combined and averaged, aka chunking
+        (``1x1``, ``2x2``, ``4x4``, ``8x8``)
+    :vartype binning: `str`_
+    :ivar dtype: `dtype`_ of the generated `numpy`_ array
+    :ivar master: Determines whether the camera is self-triggered
+    :vartype master: `bool`_
+    :ivar framerate:
+        Rate at which frames are captured (only used when
+        :py:data:`pywfom.imaging.Camera.master` is ``false``)
+    :vartype framerate: `float`_
+
     """
 
     def __init__(self, device='test', index=0, **kwargs):
@@ -64,10 +108,47 @@ class Camera(object):
 
         self.set(config=config)
 
+    def set(self, **kwargs):
+
+        """
+        Establish camera settings either by including a configuration
+        dictionary, or setting individual keyword arguments.
+
+        :param dict config: Dictionary containing multiple settings
+        :param string device: Device type for the new :class:`Camera` object.
+        :param string name: (optional) Names the :class:`Camera` object.
+        :param int index: Sets the index :class:`Camera` will connect to.
+        :param int height: Sets the height of the :class:`Camera` frame.
+        :param int width: Sets the width of the :class:`Camera` frame.
+        :param int offset_x: Sets the width of the :class:`Camera` frame.
+        :param int offset_y: Sets the width of the :class:`Camera` frame.
+        :param string binning: Sets the binning of the :class:`Camera` frame.
+        :param string dtype: Sets the datatype of the :class:`Camera` frame.
+        :param bool master: Establishes whether :class:`Camera` is self-triggered.
+        :param float framerate: Sets the framerate the :class:`Camera` read at
+
+        """
+
+        self.frame = loading_frame()
+
+        self._stop_acquiring()
+
+        settings = kwargs['config'] if 'config' in kwargs else kwargs
+
+        for k, v in settings.items():
+
+            if not hasattr(self, k) or v != getattr(self, k) or k in TYPES:
+                self._set(k,v)
+            else:
+                continue
+
+        self._start_acquiring()
+
     def read(self):
 
         """
         Read and return Camera's latest frame as a numpy array
+
         """
 
         t = time.time()
@@ -89,41 +170,6 @@ class Camera(object):
 
         return frame
 
-    def set(self, **kwargs):
-
-        """
-        Establish camera settings either by including a configuration
-        dictionary, or setting individual keyword arguments.
-
-        :param dict config: Dictionary containing multiple settings
-        :param string device: Device type for the new :class:`Camera` object.
-        :param string name: (optional) Names the :class:`Camera` object.
-        :param int index: Sets the index :class:`Camera` will connect to.
-        :param int height: Sets the height of the :class:`Camera` frame.
-        :param int width: Sets the width of the :class:`Camera` frame.
-        :param int offset_x: Sets the width of the :class:`Camera` frame.
-        :param int offset_y: Sets the width of the :class:`Camera` frame.
-        :param string binning: Sets the binning of the :class:`Camera` frame.
-        :param string dtype: Sets the datatype of the :class:`Camera` frame.
-        :param bool master: Establishes whether :class:`Camera` is self-triggered.
-        :param float framerate: Sets the framerate the :class:`Camera` read at
-        """
-
-        self.frame = loading_frame()
-
-        self._stop_acquiring()
-
-        settings = kwargs['config'] if 'config' in kwargs else kwargs
-
-        for k, v in settings.items():
-
-            if not hasattr(self, k) or v != getattr(self, k) or k in TYPES:
-                self._set(k,v)
-            else:
-                continue
-
-        self._start_acquiring()
-
     def close(self):
         """
         Closes the Camera Interface
@@ -136,7 +182,8 @@ class Camera(object):
         """
         Gets the current value of the specified setting
 
-        :param string setting: Setting value to be returned
+        :param setting: Setting value to be returned
+        :type setting: `str`_
         """
 
         if self.device == 'webcam' or not self._handler:
@@ -152,6 +199,7 @@ class Camera(object):
         Gets the minimum value of the specified setting
 
         :param string setting: Minimum setting to be returned
+        :type setting: `str`_
         """
 
         FUNCTIONS = {
@@ -177,6 +225,7 @@ class Camera(object):
         Gets the maximum value of the specified setting
 
         :param string setting: Maximum setting to be returned
+        :type setting: `str`_
         """
 
         FUNCTIONS = {

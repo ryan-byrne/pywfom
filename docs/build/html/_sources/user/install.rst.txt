@@ -1,6 +1,5 @@
 .. _install:
 
-=================
 Installing PyWFOM
 =================
 
@@ -13,7 +12,7 @@ System Requirements
 w/ PIP
 --------
 
-The easiest way to install ``PyWFOM`` is through the Python Package Manager, `PIP <https://pypi.org/project/pywfom/>`_.
+The easiest way to install :py:mod:`pywfom` is through the Python Package Manager, `PIP <https://pypi.org/project/pywfom/>`_.
 
 .. code-block:: shell
 

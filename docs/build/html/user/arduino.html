@@ -101,10 +101,14 @@
 </ul>
 <p class="caption"><span class="caption-text">Usage:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../usage/navigate.html">Navigating the GUI</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../usage/command.html">Command Line Tools</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../usage/api.html">API Documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../usage/configuration.html">JSON Configuration File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage/command.html">Command Line Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage/navigate.html">Graphical User Interfaces</a></li>
+</ul>
+<p class="caption"><span class="caption-text">File Format:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../file/configuration.html">Acquisition Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../file/configuration.html#json-configuration-file">JSON Configuration File</a></li>
 </ul>
 
             
@@ -171,59 +175,59 @@
            <div itemprop="articleBody">
             
   <div class="section" id="arduino-setup">
-<span id="arduino"></span><h1>Arduino Setup<a class="headerlink" href="#arduino-setup" title="Permalink to this headline">¶</a></h1>
-<p>Running <code class="docutils literal notranslate"><span class="pre">PyWFOM</span></code> requires first setting up an
-<a class="reference external" href="https://arduino.cc/">Arduino Microcontroller</a>
+<h1>Arduino Setup<a class="headerlink" href="#arduino-setup" title="Permalink to this headline">¶</a></h1>
+<p>Running <code class="xref py py-mod docutils literal notranslate"><span class="pre">pywfom</span></code> requires first setting up an <a class="reference external" href="https://arduino.cc/">Arduino</a>
 to be used with the system.</p>
 <div class="section" id="installing-the-arduino-ide-drivers">
 <h2>Installing the Arduino IDE &amp; Drivers<a class="headerlink" href="#installing-the-arduino-ide-drivers" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference external" href="https://www.arduino.cc/en/software/">Download the IDE for your Operating System</a>
-and follow the instructions on your screen.</p>
-<p>Any required USB Drivers will be installed alongside the IDE.</p>
+<p>Download the <a class="reference external" href="https://www.arduino.cc/en/software/">Arduino IDE</a> for your Operating System and follow the
+instructions on your screen.</p>
+<p>Any required USB Drivers will be installed alongside the <a class="reference external" href="https://www.arduino.cc/en/software/">Arduino IDE</a>.</p>
 </div>
 <div class="section" id="deploying-to-the-arduino">
 <h2>Deploying to the Arduino<a class="headerlink" href="#deploying-to-the-arduino" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
-<li><p>Attach the Arduino you wish to use with your <code class="docutils literal notranslate"><span class="pre">pyWFOM</span></code> system to your machine via USB.</p></li>
+<li><p>Attach the <a class="reference external" href="https://arduino.cc/">Arduino</a> you wish to use with your <code class="xref py py-mod docutils literal notranslate"><span class="pre">pywfom</span></code> system to your
+machine via USB.</p></li>
 </ol>
 <blockquote>
 <div><ul class="simple">
-<li><p><strong>NOTE:</strong> <a class="reference external" href="https://store.arduino.cc/usa/mega-2560-r3/">Arduino MEGA</a> is suggested</p></li>
+<li><p><strong>NOTE:</strong> <a class="reference external" href="https://store.arduino.cc/usa/mega-2560-r3">Arduino MEGA</a> is suggested</p></li>
 </ul>
 </div></blockquote>
 <ol class="arabic simple" start="2">
-<li><p>Download the <a class="reference external" href="https://raw.githubusercontent.com/ryan-byrne/pywfom/master/files/pywfomArduino/pywfomArduino.ino">pywfomArduino.ino</a> file.</p></li>
-<li><p>Start the <strong>Arduino IDE</strong>, and open the downloaded <code class="docutils literal notranslate"><span class="pre">pywfomArduino.ino</span></code> file</p></li>
+<li><p>Download the <a class="reference external" href="https://raw.githubusercontent.com/ryan-byrne/pywfom/master/files/pywfomArduino/pywfomArduino.ino">pyWFOM Arduino File</a></p></li>
+<li><p>Start the <a class="reference external" href="https://www.arduino.cc/en/software/">Arduino IDE</a>, and open the <a class="reference external" href="https://raw.githubusercontent.com/ryan-byrne/pywfom/master/files/pywfomArduino/pywfomArduino.ino">pyWFOM Arduino File</a></p></li>
 <li><p>Verify the correct device and port are selected</p></li>
 </ol>
 <div class="figure align-center" id="id1">
 <a class="reference internal image-reference" href="../_images/correctport.png"><img alt="../_images/correctport.png" src="../_images/correctport.png" style="width: 500px;" /></a>
-<p class="caption"><span class="caption-text">These can be changed from the <cite>Tools</cite> Menu</span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-text">These can be changed from the <code class="docutils literal notranslate"><span class="pre">Tools</span></code> Menu</span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
 </div>
 <ol class="arabic simple" start="5">
-<li><p>Deploy the code to the Arduino</p></li>
+<li><p>Deploy the code to the <a class="reference external" href="https://arduino.cc/">Arduino</a></p></li>
 </ol>
 <div class="figure align-center" id="id2">
 <a class="reference internal image-reference" href="../_images/deploy.png"><img alt="../_images/deploy.png" src="../_images/deploy.png" style="width: 500px;" /></a>
 <p class="caption"><span class="caption-text">Wait until the code successfully deploys</span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
 </div>
 <ol class="arabic simple" start="6">
-<li><p><code class="docutils literal notranslate"><span class="pre">pyWFOM</span></code> is now able to send settings to your <strong>Arduino</strong></p></li>
+<li><p><code class="xref py py-mod docutils literal notranslate"><span class="pre">pywfom</span></code> is now able to send settings to your <a class="reference external" href="https://arduino.cc/">Arduino</a></p></li>
 </ol>
 </div>
 <div class="section" id="attaching-devices">
 <h2>Attaching Devices<a class="headerlink" href="#attaching-devices" title="Permalink to this headline">¶</a></h2>
-<p>Adding devices to your <code class="docutils literal notranslate"><span class="pre">pyWFOM</span></code> system is as simple as attaching them to the
-pins of your <strong>Arduino</strong>.</p>
+<p>Adding devices to your <code class="xref py py-mod docutils literal notranslate"><span class="pre">pywfom</span></code> system is as simple as attaching them
+to the pins of your <a class="reference external" href="https://arduino.cc/">Arduino</a>.</p>
 <p>The example below shows 3 separate BNC connectors attached to an exposure
 trigger from a <strong>sCMOS camera</strong> and <strong>two LED drivers</strong>.</p>
 <div class="figure align-center" id="id3">
 <a class="reference internal image-reference" href="../_images/simple_arduino.png"><img alt="../_images/simple_arduino.png" src="../_images/simple_arduino.png" style="width: 500px;" /></a>
 <p class="caption"><span class="caption-text">Simple wiring diagram including a single sCMOS Camera and 2 LEDs</span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">pyWFOM</span></code> would send this information to the <strong>Arduino</strong> using the <code class="docutils literal notranslate"><span class="pre">strobing</span></code>
-setting in <code class="docutils literal notranslate"><span class="pre">config.json</span></code>.</p>
-<p>Take a look at the section on JSON Configuration.</p>
+<p><code class="xref py py-mod docutils literal notranslate"><span class="pre">pywfom</span></code> would send this information to the <a class="reference external" href="https://arduino.cc/">Arduino</a> using the
+<code class="docutils literal notranslate"><span class="pre">strobing</span></code> setting in <code class="docutils literal notranslate"><span class="pre">config.json</span></code>.</p>
+<p>Take a look at the section on the <a class="reference internal" href="../file/configuration.html#json-configuration-file"><span class="std std-ref">JSON Configuration File</span></a>.</p>
 <div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
   <span class="nt">&quot;strobing&quot;</span><span class="p">:</span> <span class="p">{</span>
     <span class="nt">&quot;leds&quot;</span><span class="p">:[</span>

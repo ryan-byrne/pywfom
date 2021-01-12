@@ -1,4 +1,4 @@
-.. _wfom:
+.. _about:
 
 About WFOM
 ==========

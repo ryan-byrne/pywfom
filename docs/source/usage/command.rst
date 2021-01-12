@@ -3,24 +3,24 @@
 Command Line Tools
 ==================
 
-Possibly the easiest way to configure and run your pyWFOM package is from the
-command line using pyWFOM's Built-In **Command Line Tools**.
+The simplest way to configure, acquire, and view runs is with one of :py:mod:`pywfom`'s
+available `Command Line Tools`_.
 
-Available Commands
-------------------
-
-=============== ============================================================
+=============== =================================================================
 Command         Description
-=============== ============================================================
-wfom            Runs pyWFOM and opens the Main Viewing Interface
---------------- ------------------------------------------------------------
-wfom-quickstart Starts an instance of pyWFOM using the default settings
---------------- ------------------------------------------------------------
-wfom-configure  Opens the pyWFOM Configuration Window to change settings
-=============== ============================================================
+=============== =================================================================
+wfom            Creates a :ref:`System Interface` and opens the :ref:`Main Frame`
+--------------- -----------------------------------------------------------------
+wfom-viewer     View :ref:`Acquisition Files` in the :ref:`Run Viewer`
+--------------- -----------------------------------------------------------------
+wfom-quickstart Quickly start an acquisition using the default settings
+=============== =================================================================
+
+wfom
+----
 
 Arguments
----------
+*********
 
 ======== ============== =========================================================
 Argument   Name         Description
@@ -37,6 +37,4 @@ Argument   Name         Description
 .. code-block:: bash
 
   wfom -v -c path/to/config/myConfiguration.json
-
-The command above opens a new instance of pyWFOM in 'verbose mode', and with
-the configuration settings from the file found at `path/to/config/myConfiguration.json`
+  

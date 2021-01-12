@@ -1,51 +1,28 @@
 .. _api:
+.. _int: https://docs.python.org/3/library/functions.html#int
+.. _float: https://docs.python.org/3/library/functions.html#float
+.. _dict: https://docs.python.org/3/library/stdtypes.html#dict
+.. _str: https://docs.python.org/3/library/stdtypes.html#str
+.. _list: https://docs.python.org/3/library/stdtypes.html#list
+.. _object: https://docs.python.org/3/library/functions.html#object
+.. _numpy: https://numpy.org/doc/stable/reference/generated/numpy.array.html#numpy-array
+.. _dtype: https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype
+.. _bool: https://docs.python.org/3/library/functions.html#bool
 
 API Documentation
 =================
 
-pyWFOM Graphical User Interface
--------------------------------
-
-.. automodule:: pywfom
-  :members: view, configure
+.. autoclass:: pywfom.System
+  :members:
 
 Camera Interface
 ----------------
-
-``pyWFOM`` also allows you to adjust and view cameras directly from Python.
-
-.. code-block:: python
-
-    from pywfom.imaging import Camera
-
-    cam = Camera('webcam', 0) # Create webcam camera interface
-
-    cam.set(height=550, width=450, framerate=15.0) # Establish settings
-
-    print(cam.read()) # Print current frame
-
-    cam.close() # Close camera
 
 .. automodule:: pywfom.imaging
   :members:
 
 Arduino Interface
 -----------------
-
-Attached Arduinos can also be controlled using Python.
-
-
-.. code-block:: python
-
-    from pywfom.control import Arduino, list_ports
-
-    ports = list_ports() # Gather a list of available COM ports
-
-    port, name = ports[0] # Select the first port
-
-    ard = Arduino(port=port) # Connect to Arduino at specified port
-
-    ard.toggle_led(5) # Turn on LED at pin 5
 
 .. automodule:: pywfom.control
   :members:

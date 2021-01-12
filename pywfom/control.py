@@ -6,7 +6,22 @@ def list_ports():
     return serial.tools.list_ports.comports()
 
 class Arduino():
-    """ Methods pertaining to Communication with the Arduino """
+    """ Methods pertaining to Communication with the Arduino
+
+
+    .. code-block:: python
+
+        from pywfom.control import Arduino, list_ports
+
+        ports = list_ports() # Gather a list of available COM ports
+
+        port, name = ports[0] # Select the first port
+
+        ard = Arduino(port=port) # Connect to Arduino at specified port
+
+        ard.toggle_led(5) # Turn on LED at pin 5
+
+    """
 
     def __init__(self, port='COM1', **kwargs):
 
@@ -64,7 +79,7 @@ class Arduino():
     def set_leds(self, pins=None):
         """ Set led strobe pins, an array of [2,3,4] sends `p2p3p4p` to the Arduino
 
-        :param list pins: List of pins to be considered LED drivers
+        :param list_ pins: List of pins to be considered LED drivers
         """
 
         if not pins:

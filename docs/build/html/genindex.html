@@ -94,10 +94,14 @@
 </ul>
 <p class="caption"><span class="caption-text">Usage:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="usage/navigate.html">Navigating the GUI</a></li>
-<li class="toctree-l1"><a class="reference internal" href="usage/command.html">Command Line Tools</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage/api.html">API Documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="usage/configuration.html">JSON Configuration File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage/command.html">Command Line Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage/navigate.html">Graphical User Interfaces</a></li>
+</ul>
+<p class="caption"><span class="caption-text">File Format:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file/configuration.html">Acquisition Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file/configuration.html#json-configuration-file">JSON Configuration File</a></li>
 </ul>
 
             
@@ -174,12 +178,15 @@
  | <a href="#P"><strong>P</strong></a>
  | <a href="#R"><strong>R</strong></a>
  | <a href="#S"><strong>S</strong></a>
- | <a href="#T"><strong>T</strong></a>
  | <a href="#V"><strong>V</strong></a>
  
 </div>
 <h2 id="A">A</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="usage/api.html#pywfom.System.acquire">acquire() (pywfom.System method)</a>
+</li>
+  </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="usage/api.html#pywfom.control.Arduino">Arduino (class in pywfom.control)</a>
 </li>
@@ -194,9 +201,11 @@
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="usage/api.html#pywfom.imaging.Camera.close">close() (pywfom.imaging.Camera method)</a>
+
+      <ul>
+        <li><a href="usage/api.html#pywfom.System.close">(pywfom.System method)</a>
 </li>
-      <li><a href="usage/api.html#pywfom.configure">configure() (in module pywfom)</a>
-</li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -237,12 +246,12 @@
 <h2 id="M">M</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="usage/navigate.html#pywfom.viewing.Main">Main (class in pywfom.viewing)</a>
+</li>
       <li>
     module
 
       <ul>
-        <li><a href="usage/api.html#module-pywfom">pywfom</a>
-</li>
         <li><a href="usage/api.html#module-pywfom.control">pywfom.control</a>
 </li>
         <li><a href="usage/api.html#module-pywfom.imaging">pywfom.imaging</a>
@@ -254,13 +263,6 @@
 <h2 id="P">P</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li>
-    pywfom
-
-      <ul>
-        <li><a href="usage/api.html#module-pywfom">module</a>
-</li>
-      </ul></li>
       <li>
     pywfom.control
 
@@ -299,17 +301,9 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="usage/api.html#pywfom.control.Arduino.set_trigger">set_trigger() (pywfom.control.Arduino method)</a>
 </li>
-      <li><a href="usage/api.html#pywfom.control.Arduino.start_strobing">start_strobing() (pywfom.control.Arduino method)</a>
-</li>
       <li><a href="usage/api.html#pywfom.control.Arduino.stop_strobing">stop_strobing() (pywfom.control.Arduino method)</a>
 </li>
-  </ul></td>
-</tr></table>
-
-<h2 id="T">T</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="usage/api.html#pywfom.control.Arduino.toggle_led">toggle_led() (pywfom.control.Arduino method)</a>
+      <li><a href="usage/api.html#pywfom.System">System (class in pywfom)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -317,7 +311,7 @@
 <h2 id="V">V</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="usage/api.html#pywfom.view">view() (in module pywfom)</a>
+      <li><a href="usage/navigate.html#pywfom.viewing.Viewer">Viewer (class in pywfom.viewing)</a>
 </li>
   </ul></td>
 </tr></table>

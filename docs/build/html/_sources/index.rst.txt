@@ -8,7 +8,7 @@ Welcome to...
 .. image:: img/banner.png
 
 Wide-Field Optical Mapping (but Python)
----------------------------------------
++++++++++++++++++++++++++++++++++++++++
 
 .. toctree::
   :caption: Background:
@@ -25,10 +25,14 @@ Wide-Field Optical Mapping (but Python)
 .. toctree::
   :caption: Usage:
 
-  usage/navigate
-  usage/command
   usage/api
-  usage/configuration
+  usage/command
+  usage/navigate
+
+.. toctree::
+  :caption: File Format:
+
+  file/configuration
 
 
 Indices and tables

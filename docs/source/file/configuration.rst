@@ -1,5 +1,8 @@
 .. _configuration:
 
+Acquisition Files
+=================
+
 JSON Configuration File
 =======================
 
@@ -26,9 +29,8 @@ The JSON file also contains the settings for each Camera and Arduino Object.
 **NOTE:** *It is highly recommended you only alter the your JSON Configuration
 file from the provided GUI's, not directly editing the file itself.*
 
-===============================
 Example
-===============================
+-------
 
 .. code-block:: JSON
 
@@ -89,3 +91,6 @@ Example
       }
     ]
   }
+
+Default Configuration
+---------------------

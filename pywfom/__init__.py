@@ -82,7 +82,7 @@ def test():
 def view():
 
     """
-    View previous run
+    Opens a GUI to be able to view the frames and data of a previous run
 
     """
 
@@ -93,7 +93,7 @@ def view():
 def main():
 
     """
-    Configure Interface settings
+    Opens a GUI to open, monitor, and control a pyWFOM System Class
 
     """
 
@@ -116,7 +116,48 @@ def solis():
 
 class System(object):
 
-    """Class Wrapper for the OpenWFOM System"""
+    """
+
+    Class wrapper for :py:mod:`pywfom`
+
+    :Example:
+
+    .. code-block:: python
+
+        import pywfom
+
+        wfom = pywfom.System('path/to/config.json') # default.json used if empty
+
+        wfom.directory = 'path/to/data' # Path to save run data
+
+        wfom.acquire() # Saves data to wfom.directory
+
+        wfom.close() # Closes system
+
+    :param config:
+        Path to local :ref:`JSON Configuration File`. If empty, the
+        :ref:`Default Configuration` is used.
+    :type config: `str`_
+
+    :ivar cameras: A list of :py:class:`pywfom.imaging.Camera`'s
+    :vartype cameras: `list`_
+    :ivar arduino: :py:class:`pywfom.control.Arduino`
+    :vartype arduino: `object`_
+    :ivar user: Name of the user conducting the run
+    :vartype user: `str`_
+    :ivar mouse: Name of the mouse used in the run
+    :vartype mouse: `str`_
+    :ivar directory:
+        Path to directory where :ref:`Acquisition Files` and a copy of the
+        :ref:`JSON Configuration File` will be saved
+    :vartype directory: `str`_
+    :ivar runs: Number of runs to be carried out
+    :vartype runs: `int`_
+    :ivar run_length: Length of each run (in seconds)
+    :vartype run_length: `float`_
+
+
+    """
 
     def __init__(self, config=None):
 
@@ -137,6 +178,12 @@ class System(object):
 
     def acquire(self):
 
+        """
+        Begin an acquiring :ref:`Acquisition Files` on your :py:mod:`pywfom`
+        System.
+
+        """
+
         for cam in self.cameras:
             if cam.ERRORS:
                 tk.messagebox.showerror('Camera Error',message=cam.ERRORS[0])
@@ -149,6 +196,9 @@ class System(object):
         threading.Thread(target=self._acquire_frames).start()
 
     def close(self):
+        """
+        Close each :py:class:`pywfom.imaging.Camera` and :py:class:`pywfom.control.Arduino`
+        """
         [cam.close() for cam in self.cameras]
         self.arduino.close()
 

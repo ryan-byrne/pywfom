@@ -35,8 +35,8 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="JSON Configuration File" href="configuration.html" />
-    <link rel="prev" title="Command Line Tools" href="command.html" /> 
+    <link rel="next" title="Command Line Tools" href="command.html" />
+    <link rel="prev" title="Quickstart" href="../user/quickstart.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -96,15 +96,18 @@
 </ul>
 <p class="caption"><span class="caption-text">Usage:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="navigate.html">Navigating the GUI</a></li>
-<li class="toctree-l1"><a class="reference internal" href="command.html">Command Line Tools</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">API Documentation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#module-pywfom">pyWFOM Graphical User Interface</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#camera-interface">Camera Interface</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#arduino-interface">Arduino Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-pywfom.imaging">Camera Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-pywfom.control">Arduino Interface</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="configuration.html">JSON Configuration File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="command.html">Command Line Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="navigate.html">Graphical User Interfaces</a></li>
+</ul>
+<p class="caption"><span class="caption-text">File Format:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../file/configuration.html">Acquisition Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../file/configuration.html#json-configuration-file">JSON Configuration File</a></li>
 </ul>
 
             
@@ -171,25 +174,69 @@
            <div itemprop="articleBody">
             
   <div class="section" id="api-documentation">
-<span id="api"></span><h1>API Documentation<a class="headerlink" href="#api-documentation" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="module-pywfom">
-<span id="pywfom-graphical-user-interface"></span><h2>pyWFOM Graphical User Interface<a class="headerlink" href="#module-pywfom" title="Permalink to this headline">¶</a></h2>
-<dl class="py function">
-<dt id="pywfom.configure">
-<code class="sig-prename descclassname">pywfom.</code><code class="sig-name descname">configure</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.configure" title="Permalink to this definition">¶</a></dt>
-<dd><p>Configure Interface settings</p>
-</dd></dl>
+<h1>API Documentation<a class="headerlink" href="#api-documentation" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt id="pywfom.System">
+<em class="property">class </em><code class="sig-prename descclassname">pywfom.</code><code class="sig-name descname">System</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.System" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class wrapper for <code class="xref py py-mod docutils literal notranslate"><span class="pre">pywfom</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Example</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pywfom</span>
 
-<dl class="py function">
-<dt id="pywfom.view">
-<code class="sig-prename descclassname">pywfom.</code><code class="sig-name descname">view</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.view" title="Permalink to this definition">¶</a></dt>
-<dd><p>View frames, adjust settings, and monitor device connections</p>
-</dd></dl>
+<span class="n">wfom</span> <span class="o">=</span> <span class="n">pywfom</span><span class="o">.</span><span class="n">System</span><span class="p">(</span><span class="s1">&#39;path/to/config.json&#39;</span><span class="p">)</span> <span class="c1"># default.json used if empty</span>
 
+<span class="n">wfom</span><span class="o">.</span><span class="n">directory</span> <span class="o">=</span> <span class="s1">&#39;path/to/data&#39;</span> <span class="c1"># Path to save run data</span>
+
+<span class="n">wfom</span><span class="o">.</span><span class="n">acquire</span><span class="p">()</span> <span class="c1"># Saves data to wfom.directory</span>
+
+<span class="n">wfom</span><span class="o">.</span><span class="n">close</span><span class="p">()</span> <span class="c1"># Closes system</span>
+</pre></div>
 </div>
-<div class="section" id="camera-interface">
-<h2>Camera Interface<a class="headerlink" href="#camera-interface" title="Permalink to this headline">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">pyWFOM</span></code> also allows you to adjust and view cameras directly from Python.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a>) -- Path to local <a class="reference internal" href="../file/configuration.html#json-configuration-file"><span class="std std-ref">JSON Configuration File</span></a>. If empty, the
+<a class="reference internal" href="../file/configuration.html#default-configuration"><span class="std std-ref">Default Configuration</span></a> is used.</p>
+</dd>
+<dt class="field-even">Variables</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>cameras</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list">list</a>) -- A list of <a class="reference internal" href="#pywfom.imaging.Camera" title="pywfom.imaging.Camera"><code class="xref py py-class docutils literal notranslate"><span class="pre">pywfom.imaging.Camera</span></code></a>'s</p></li>
+<li><p><strong>arduino</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object">object</a>) -- <a class="reference internal" href="#pywfom.control.Arduino" title="pywfom.control.Arduino"><code class="xref py py-class docutils literal notranslate"><span class="pre">pywfom.control.Arduino</span></code></a></p></li>
+<li><p><strong>user</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a>) -- Name of the user conducting the run</p></li>
+<li><p><strong>mouse</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a>) -- Name of the mouse used in the run</p></li>
+<li><p><strong>directory</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a>) -- Path to directory where <a class="reference internal" href="../file/configuration.html#acquisition-files"><span class="std std-ref">Acquisition Files</span></a> and a copy of the
+<a class="reference internal" href="../file/configuration.html#json-configuration-file"><span class="std std-ref">JSON Configuration File</span></a> will be saved</p></li>
+<li><p><strong>runs</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int">int</a>) -- Number of runs to be carried out</p></li>
+<li><p><strong>run_length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float">float</a>) -- Length of each run (in seconds)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="pywfom.System.acquire">
+<code class="sig-name descname">acquire</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.System.acquire" title="Permalink to this definition">¶</a></dt>
+<dd><p>Begin an acquiring <a class="reference internal" href="../file/configuration.html#acquisition-files"><span class="std std-ref">Acquisition Files</span></a> on your <code class="xref py py-mod docutils literal notranslate"><span class="pre">pywfom</span></code>
+System.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pywfom.System.close">
+<code class="sig-name descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.System.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Close each <a class="reference internal" href="#pywfom.imaging.Camera" title="pywfom.imaging.Camera"><code class="xref py py-class docutils literal notranslate"><span class="pre">pywfom.imaging.Camera</span></code></a> and <a class="reference internal" href="#pywfom.control.Arduino" title="pywfom.control.Arduino"><code class="xref py py-class docutils literal notranslate"><span class="pre">pywfom.control.Arduino</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<div class="section" id="module-pywfom.imaging">
+<span id="camera-interface"></span><h2>Camera Interface<a class="headerlink" href="#module-pywfom.imaging" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="pywfom.imaging.Camera">
+<em class="property">class </em><code class="sig-prename descclassname">pywfom.imaging.</code><code class="sig-name descname">Camera</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">device</span><span class="o">=</span><span class="default_value">'test'</span></em>, <em class="sig-param"><span class="n">index</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.Camera" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interface for controlling Cameras using <code class="xref py py-mod docutils literal notranslate"><span class="pre">pywfom</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Example</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pywfom.imaging</span> <span class="kn">import</span> <span class="n">Camera</span>
 
 <span class="n">cam</span> <span class="o">=</span> <span class="n">Camera</span><span class="p">(</span><span class="s1">&#39;webcam&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="c1"># Create webcam camera interface</span>
@@ -201,16 +248,28 @@
 <span class="n">cam</span><span class="o">.</span><span class="n">close</span><span class="p">()</span> <span class="c1"># Close camera</span>
 </pre></div>
 </div>
-<span class="target" id="module-pywfom.imaging"></span><dl class="py class">
-<dt id="pywfom.imaging.Camera">
-<em class="property">class </em><code class="sig-prename descclassname">pywfom.imaging.</code><code class="sig-name descname">Camera</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">device</span><span class="o">=</span><span class="default_value">'test'</span></em>, <em class="sig-param"><span class="n">index</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.imaging.Camera" title="Permalink to this definition">¶</a></dt>
-<dd><p>A Camera Interface for the PyWFOM System</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>device</strong> (<em>str</em>) -- Type of camera</p></li>
-<li><p><strong>index</strong> (<em>int</em>) -- Index of the camera</p></li>
-<li><p><strong>name</strong> (<em>str</em>) -- Name of the camera</p></li>
+<li><p><strong>device</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a>) -- Type of camera (<code class="docutils literal notranslate"><span class="pre">andor</span></code>, <code class="docutils literal notranslate"><span class="pre">spinnaker</span></code>, <code class="docutils literal notranslate"><span class="pre">webcam</span></code>, or <code class="docutils literal notranslate"><span class="pre">test</span></code>)</p></li>
+<li><p><strong>index</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int">int</a>) -- Index of the camera</p></li>
+</ul>
+</dd>
+<dt class="field-even">Variables</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>device</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a>) -- Type of Camera</p></li>
+<li><p><strong>index</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int">int</a>) -- Index of Camera</p></li>
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a>) -- Name of Camera</p></li>
+<li><p><strong>height</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int">int</a>) -- Height of the camera frame</p></li>
+<li><p><strong>width</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int">int</a>) -- Width of the camera frame</p></li>
+<li><p><strong>offset_x</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int">int</a>) -- Leftmost pixel captured by the camera</p></li>
+<li><p><strong>offset_y</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int">int</a>) -- Bottommost pixel captured by the camera</p></li>
+<li><p><strong>binning</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a>) -- Dimensions of pixels to be combined and averaged, aka chunking
+(<code class="docutils literal notranslate"><span class="pre">1x1</span></code>, <code class="docutils literal notranslate"><span class="pre">2x2</span></code>, <code class="docutils literal notranslate"><span class="pre">4x4</span></code>, <code class="docutils literal notranslate"><span class="pre">8x8</span></code>)</p></li>
+<li><p><strong>dtype</strong> -- <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype">dtype</a> of the generated <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.array.html#numpy-array">numpy</a> array</p></li>
+<li><p><strong>master</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool">bool</a>) -- Determines whether the camera is self-triggered</p></li>
+<li><p><strong>framerate</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float">float</a>) -- Rate at which frames are captured (only used when
+<code class="xref py py-data docutils literal notranslate"><span class="pre">pywfom.imaging.Camera.master</span></code> is <code class="docutils literal notranslate"><span class="pre">false</span></code>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -226,7 +285,7 @@
 <dd><p>Gets the current value of the specified setting</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>setting</strong> (<em>string</em>) -- Setting value to be returned</p>
+<dd class="field-odd"><p><strong>setting</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a>) -- Setting value to be returned</p>
 </dd>
 </dl>
 </dd></dl>
@@ -237,7 +296,7 @@
 <dd><p>Gets the maximum value of the specified setting</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>setting</strong> (<em>string</em>) -- Maximum setting to be returned</p>
+<dd class="field-odd"><p><strong>setting</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a>) -- Maximum setting to be returned</p>
 </dd>
 </dl>
 </dd></dl>
@@ -248,7 +307,7 @@
 <dd><p>Gets the minimum value of the specified setting</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>setting</strong> (<em>string</em>) -- Minimum setting to be returned</p>
+<dd class="field-odd"><p><strong>setting</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a>) -- Minimum setting to be returned</p>
 </dd>
 </dl>
 </dd></dl>
@@ -312,9 +371,12 @@ dictionary, or setting individual keyword arguments.</p>
 </dd></dl>
 
 </div>
-<div class="section" id="arduino-interface">
-<h2>Arduino Interface<a class="headerlink" href="#arduino-interface" title="Permalink to this headline">¶</a></h2>
-<p>Attached Arduinos can also be controlled using Python.</p>
+<div class="section" id="module-pywfom.control">
+<span id="arduino-interface"></span><h2>Arduino Interface<a class="headerlink" href="#module-pywfom.control" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="pywfom.control.Arduino">
+<em class="property">class </em><code class="sig-prename descclassname">pywfom.control.</code><code class="sig-name descname">Arduino</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">port</span><span class="o">=</span><span class="default_value">'COM1'</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.control.Arduino" title="Permalink to this definition">¶</a></dt>
+<dd><p>Methods pertaining to Communication with the Arduino</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pywfom.control</span> <span class="kn">import</span> <span class="n">Arduino</span><span class="p">,</span> <span class="n">list_ports</span>
 
 <span class="n">ports</span> <span class="o">=</span> <span class="n">list_ports</span><span class="p">()</span> <span class="c1"># Gather a list of available COM ports</span>
@@ -326,13 +388,9 @@ dictionary, or setting individual keyword arguments.</p>
 <span class="n">ard</span><span class="o">.</span><span class="n">toggle_led</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span> <span class="c1"># Turn on LED at pin 5</span>
 </pre></div>
 </div>
-<span class="target" id="module-pywfom.control"></span><dl class="py class">
-<dt id="pywfom.control.Arduino">
-<em class="property">class </em><code class="sig-prename descclassname">pywfom.control.</code><code class="sig-name descname">Arduino</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">port</span><span class="o">=</span><span class="default_value">'COM1'</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.control.Arduino" title="Permalink to this definition">¶</a></dt>
-<dd><p>Methods pertaining to Communication with the Arduino</p>
 <dl class="py method">
 <dt id="pywfom.control.Arduino.set_leds">
-<code class="sig-name descname">set_leds</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pins</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.control.Arduino.set_leds" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">set_leds</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pins</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.control.Arduino.set_leds" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set led strobe pins, an array of [2,3,4] sends <cite>p2p3p4p</cite> to the Arduino</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -343,26 +401,14 @@ dictionary, or setting individual keyword arguments.</p>
 
 <dl class="py method">
 <dt id="pywfom.control.Arduino.set_trigger">
-<code class="sig-name descname">set_trigger</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pin</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.control.Arduino.set_trigger" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">set_trigger</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pin</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.control.Arduino.set_trigger" title="Permalink to this definition">¶</a></dt>
 <dd><p>Send command for setting trigger pin (i.e. t3)</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="pywfom.control.Arduino.start_strobing">
-<code class="sig-name descname">start_strobing</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.control.Arduino.start_strobing" title="Permalink to this definition">¶</a></dt>
-<dd><p>Turns on strobing on the Arduino</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="pywfom.control.Arduino.stop_strobing">
 <code class="sig-name descname">stop_strobing</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.control.Arduino.stop_strobing" title="Permalink to this definition">¶</a></dt>
 <dd><p>Turns off strobing on the Arduino</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="pywfom.control.Arduino.toggle_led">
-<code class="sig-name descname">toggle_led</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pin</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.control.Arduino.toggle_led" title="Permalink to this definition">¶</a></dt>
-<dd><p>Turn on a specified LED</p>
 </dd></dl>
 
 </dd></dl>
@@ -384,10 +430,10 @@ dictionary, or setting individual keyword arguments.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="configuration.html" class="btn btn-neutral float-right" title="JSON Configuration File" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="command.html" class="btn btn-neutral float-right" title="Command Line Tools" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="command.html" class="btn btn-neutral float-left" title="Command Line Tools" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="../user/quickstart.html" class="btn btn-neutral float-left" title="Quickstart" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

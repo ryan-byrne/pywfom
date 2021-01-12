@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Navigating the GUI &mdash; pywfom 0.0.1-beta documentation</title>
+  <title>Graphical User Interfaces &mdash; pywfom 0.0.1-beta documentation</title>
   
 
   
@@ -35,8 +35,8 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Command Line Tools" href="command.html" />
-    <link rel="prev" title="Quickstart" href="../user/quickstart.html" /> 
+    <link rel="next" title="Acquisition Files" href="../file/configuration.html" />
+    <link rel="prev" title="Command Line Tools" href="command.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -96,13 +96,18 @@
 </ul>
 <p class="caption"><span class="caption-text">Usage:</span></p>
 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Navigating the GUI</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#wfom-gui">WFOM GUI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="command.html">Command Line Tools</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Graphical User Interfaces</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#main-frame">Main Frame</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#run-viewer">Run Viewer</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="command.html">Command Line Tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api.html">API Documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="configuration.html">JSON Configuration File</a></li>
+</ul>
+<p class="caption"><span class="caption-text">File Format:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../file/configuration.html">Acquisition Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../file/configuration.html#json-configuration-file">JSON Configuration File</a></li>
 </ul>
 
             
@@ -149,7 +154,7 @@
     
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
-      <li>Navigating the GUI</li>
+      <li>Graphical User Interfaces</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -168,16 +173,24 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="navigating-the-gui">
-<span id="navigate"></span><h1>Navigating the GUI<a class="headerlink" href="#navigating-the-gui" title="Permalink to this headline">¶</a></h1>
-<p>When <code class="docutils literal notranslate"><span class="pre">wfom</span></code> or <code class="docutils literal notranslate"><span class="pre">wfom-configure</span></code> are called from the <a class="reference internal" href="command.html#command"><span class="std std-ref">Command Line Tools</span></a> on of two
-<strong>GUI's</strong> will  be opened.</p>
-<div class="section" id="wfom-gui">
-<h2>WFOM GUI<a class="headerlink" href="#wfom-gui" title="Permalink to this headline">¶</a></h2>
-<p>Opened when <code class="docutils literal notranslate"><span class="pre">wfom</span></code> is called. This GUI can</p>
-<div class="figure align-center">
-<a class="reference internal image-reference" href="../_images/main_gui.png"><img alt="../_images/main_gui.png" src="../_images/main_gui.png" style="width: 800px;" /></a>
+  <div class="section" id="graphical-user-interfaces">
+<span id="navigate"></span><h1>Graphical User Interfaces<a class="headerlink" href="#graphical-user-interfaces" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="main-frame">
+<h2>Main Frame<a class="headerlink" href="#main-frame" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="pywfom.viewing.Main">
+<em class="property">class </em><code class="sig-prename descclassname">pywfom.viewing.</code><code class="sig-name descname">Main</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">system</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.viewing.Main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Monitor camera frames, Arduino status, and set file directory</p>
+</dd></dl>
+
 </div>
+<div class="section" id="run-viewer">
+<h2>Run Viewer<a class="headerlink" href="#run-viewer" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="pywfom.viewing.Viewer">
+<em class="property">class </em><code class="sig-prename descclassname">pywfom.viewing.</code><code class="sig-name descname">Viewer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">args</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.viewing.Viewer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </div>
 </div>
 
@@ -189,10 +202,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="command.html" class="btn btn-neutral float-right" title="Command Line Tools" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="../file/configuration.html" class="btn btn-neutral float-right" title="Acquisition Files" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="../user/quickstart.html" class="btn btn-neutral float-left" title="Quickstart" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="command.html" class="btn btn-neutral float-left" title="Command Line Tools" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
