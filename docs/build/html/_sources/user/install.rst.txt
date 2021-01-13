@@ -4,7 +4,18 @@
 .. _`Linux` : https://www.linux.org/pages/download/
 .. _`Python` : https://www.python.org/downloads/
 .. _`PIP` : https://pypi.org/project/pip/
-.. _`Github` : Github <https://github.com/
+.. _`Github` : Github https://github.com/
+.. _`Virtual Environment` : https://docs.python.org/3/tutorial/venv.html
+
+Create Virtual Machine
+======================
+
+It is **highly recommended** you use a `Virtual Environment`_ when installing
+:py:mod:`pywfom`
+
+.. code-block:: shell
+
+  pip install pywfom
 
 Installing PyWFOM
 =================

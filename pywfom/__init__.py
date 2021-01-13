@@ -222,7 +222,7 @@ class System(object):
         wfom.close() # Closes system
 
     :param config:
-    
+
         * `str`_ : Path to local :ref:`JSON Configuration File`
         * `dict`_ : Configure from dictionary
         * ``None``: Use :ref:`Default Configuration`
@@ -243,7 +243,6 @@ class System(object):
     :vartype runs: `int`_
     :ivar run_length: Length of each run (in seconds)
     :vartype run_length: `float`_
-
 
     """
 
