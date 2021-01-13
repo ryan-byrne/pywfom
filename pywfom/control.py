@@ -82,7 +82,6 @@ class Arduino():
             leds = ','.join([str(led['pin']) for led in self.strobing['leds']])
         else:
             leds = ','.join(pins)
-        print(leds)
         self._ser.write("<l{0},>".format(leds).encode())
         time.sleep(0.1)
 
@@ -96,8 +95,6 @@ class Arduino():
             pin = self.strobing['trigger']
         else:
             self.strobing['trigger'] = pin
-
-        print(pin)
 
         self._ser.write("<t{0}>".format(pin).encode())
         time.sleep(0.1)
@@ -135,20 +132,17 @@ class Arduino():
         self._ser.write("<p{0},{1}>".format(speed, steps))
 
     def toggle_led(self, pin):
-        print("Toggle led")
         """ Turn on a specified LED """
         self._ser.write("<T{0}>".format(pin).encode())
         time.sleep(0.1)
 
     def start_strobing(self):
-        print("Start strobe")
         """ Turns on strobing on the Arduino"""
         self._ser.write("<S>".encode())
         time.sleep(0.1)
 
     def stop_strobing(self):
         """ Turns off strobing on the Arduino"""
-        print("Stop strobe")
         self._ser.write("<s>".encode())
         time.sleep(0.1)
 

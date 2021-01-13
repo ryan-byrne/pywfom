@@ -98,6 +98,28 @@ def organize_settings(system):
 
     return settings
 
+def load_settings(frame):
+
+    file = tk.filedialog.askopenfile(parent=frame.root, defaultextension='.json')
+
+    if file is None:
+        return
+    else:
+        frame.system.close()
+        config = json.load(file)
+        frame.system = System(config=config)
+
+def save_settings(frame):
+
+    file = tk.filedialog.asksaveasfile(mode="w", parent=frame.root, defaultextension=".json")
+
+    if file is None:
+        return
+    else:
+        settings = organize_settings(frame.system)
+        json.dump(settings, file)
+        file.close()
+
 # Command Line functions
 def quickstart():
 
@@ -230,6 +252,8 @@ class System(object):
 
         if not config or config == "":
             config = json.loads(pkgutil.get_data(__name__, 'utils/default.json'))
+        elif type(config) == type({}):
+            config = config
         else:
             config = json.load(open(config, 'r'))
 

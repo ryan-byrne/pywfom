@@ -1,4 +1,4 @@
-import json, os, pywfom
+import json, os, pywfom, pkgutil
 import numpy as np
 import tkinter as tk
 from tkinter import ttk, simpledialog, filedialog, messagebox
@@ -57,47 +57,6 @@ def _add_camera(frame, viewing=True):
 # File Related functions
 def _set_dir(parent):
     parent.system.directory = tk.filedialog.askdirectory()
-
-def _load(frame):
-
-    f = filedialog.askopenfile(parent=frame.root)
-
-    if not f:
-        return
-
-    config = json.load(f)
-    f.close()
-
-    frame.system.close()
-    frame._startup(config)
-
-def _save(frame):
-
-    _cameras = []
-
-    for cam in frame.system.cameras:
-
-        _camera_settings = {}
-
-        for setting in pywfom.imaging.TYPES:
-            _camera_settings[setting] = cam.get(setting)
-
-        _cameras.append(_camera_settings)
-
-
-    _config = {
-        'file':frame.file.__dict__,
-        'arduino':frame.arduino.__dict__,
-        'cameras':_cameras
-    }
-
-    fname = filedialog.asksaveasfile(mode="w", parent=frame.root, defaultextension=".json")
-
-    if fname is None:
-        return
-    else:
-        json.dump(_config, fname)
-        fname.close()
 
 class Main(tk.Frame):
 
@@ -376,7 +335,7 @@ class Main(tk.Frame):
         tk.Button(
             btn_frm,
             text="Save",
-            command=lambda frm=self:_save(self),
+            command=lambda frm=self:pywfom.save_settings(self),
             padx=10,
             pady=5
         ).pack(side='left', padx=10)
@@ -384,7 +343,7 @@ class Main(tk.Frame):
         tk.Button(
             btn_frm,
             text="Load",
-            command=lambda frm=self:_load(self),
+            command=lambda frm=self:pywfom.load_settings(self),
             padx=10,
             pady=5
         ).pack(side='left', padx=10)
