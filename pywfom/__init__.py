@@ -2,8 +2,9 @@ import pkgutil, argparse, sys, os, json, pywfom, cv2, threading, shutil, time, t
 import numpy as np
 from .imaging import Camera
 from .control import Arduino
-from .viewing import Main, Viewer, _ArduinoConfig
+from .viewing import Main, Viewer, ArduinoConfig, StimConfig, CameraConfig, _set_icon
 import tkinter as tk
+from PIL import Image, ImageTk
 
 # Retrieve command line arguments
 def _get_args():
@@ -46,9 +47,6 @@ def _get_viewer_args():
 
     parser = argparse.ArgumentParser(description="Command line viewer for pywfom runs")
 
-    msg = "Select a run directory from the GUI"
-    parser.add_argument('-s', '--select', dest='select', action='store_true', default=True, help=msg)
-
     msg = "Specify the path to the run directory you wish to view."
     parser.add_argument(    '-p',
                             '--path',
@@ -59,43 +57,104 @@ def _get_viewer_args():
 
     args = parser.parse_args()
 
-    args.select = False if args.path else True
-
     return args
+
+def set_default(system):
+
+    settings = {}
+
+    for category, value in system.__dict__.items():
+        if category in ["user","mouse", "directory","runs","run_length"]:
+            settings[category] = value
+        elif category == 'arduino':
+            settings[category] = {}
+            for setting, value in system.arduino.__dict__.items():
+                if setting[0] == '_' or setting == 'ERROR':
+                    continue
+                else:
+                    settings[category][setting] = value
+        elif category == 'cameras':
+            settings['cameras'] = []
+            for cam in system.cameras:
+                cam_settings = {}
+                for setting, value in cam.__dict__.items():
+                    if setting[0] == '_' or setting in ['ERRORS', 'WARNINGS', 'frame']:
+                        continue
+                    else:
+                        cam_settings[setting] = value
+                settings['cameras'].append(cam_settings)
+
+        else:
+            continue
+
+    if messagebox.askyesno('Set as Default', 'Set current settings as default?'):
+        with open("{0}/{1}".format(pywfom.__path__[0],'utils/default.json'),'w') as f:
+            json.dump(settings, f)
+        f.close()
 
 # Command Line functions
 def quickstart():
-    wfom = pywfom.System()
+
+    system = System()
+    root = tk.Tk()
+    root.title('pyWFOM Quickstart')
+    path = "{0}/img/quick.png".format(os.path.dirname(pywfom.__file__))
+
+    _set_icon(root, 'quick')
+
+    render = ImageTk.PhotoImage( Image.open(path) )
+
+    img = tk.Label(root, image=render)
+
+    img.image = render
+
+    img.pack()
+
+
+    for setting in ['user', 'mouse']:
+
+        value = tk.simpledialog.askstring(
+            'pyWFOM Quickstart',
+            'What is the name of the {0}?'.format(setting.title())
+        )
+
+        setattr(system, setting, value)
+
+    setattr(system, 'directory', tk.filedialog.askdirectory(
+        title="Select a directory to save to..."
+    ))
+    setattr(system, 'runs', tk.simpledialog.askinteger(
+        'pyWFOM Quickstart',
+        'How many runs?'
+    ))
+    setattr(system, 'run_length', tk.simpledialog.askfloat(
+        'pyWFOM Quickstart',
+        'How long (in seconds) for each run?'
+    ))
+
+    root.destroy()
+
+    frame = Main(system)
+    frame.root.mainloop()
 
 def test():
 
     root = tk.Tk()
     frame = tk.Frame(root)
     frame.root = root
-
-    frame.system = System()
-
-    ard = _ArduinoConfig(frame, frame.root)
-    ard._StimConfig(ard, ard.root)
+    system = System()
+    ard = ArduinoConfig(system.arduino, frame.root)
+    StimConfig(system.arduino, 0, frame.root)
     root.mainloop()
 
 def view():
 
-    """
-    Opens a GUI to be able to view the frames and data of a previous run
-
-    """
-
     args = _get_viewer_args()
-    frame = Viewer(args)
+    run_dir = args.path if args.path else None
+    frame = Viewer(run_dir)
     frame.root.mainloop()
 
 def main():
-
-    """
-    Opens a GUI to open, monitor, and control a pyWFOM System Class
-
-    """
 
     args = _get_args()
 
@@ -219,7 +278,7 @@ class System(object):
         os.mkdir(run_dir)
 
         with open(run_dir+"/config.json", 'w') as f:
-            json.dump(_organize_settings(self), f)
+            json.dump(organize_settings(self), f)
         f.close()
 
         return run_dir

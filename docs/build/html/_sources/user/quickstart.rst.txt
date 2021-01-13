@@ -3,14 +3,11 @@
 Quickstart
 ==========
 
-Once you've completed :ref:`install` and :ref:`arduino`, the system can start to
-be configured.
+Once you've completed :ref:`Installing pyWFOM` and :ref:`Arduino Setup`, the
+system can start to be configured.
 
-The quickest way to do this is ``wfom-quickstart`` (from the :ref:`command`).
-Which can be run in `Verbose Mode` by opening a Command Line and entering:
+The quickest way to do this is running the :ref:`wfom-quickstart` command.
 
 .. code-block:: bash
 
-  wfom-quickstart -v
-
-This will check your system for the proper software and hardware.
+  wfom-quickstart

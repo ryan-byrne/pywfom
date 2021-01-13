@@ -1,36 +1,43 @@
 .. _configuration:
+.. _JSON: https://www.json.org/json-en.html
+.. _numpy: https://numpy.org/
+.. _npz: https://numpy.org/doc/stable/reference/generated/numpy.savez.html
 
 Acquisition Files
 =================
 
+Raw Data is stored as a numpy_ array, and saved as an npz_ file.
+
 JSON Configuration File
 =======================
 
-``pyWFOM`` uses a JSON file to store various metadata and settings.
+:py:mod:`pywfom` uses a JSON_ file to store various metadata and settings.
 
-========== ============================================== ========= ===============
-Setting    Description                                      Type     Example
-========== ============================================== ========= ===============
-user        Name or ID of individual who                    string    "rjb2202"
+========== ========================================= ============== ===============
+Setting    Description                                    Type          Example
+========== ========================================= ============== ===============
+user        Name or ID of individual who                 string       "rjb2202"
             ran the acquisition.
----------- ---------------------------------------------- --------- ---------------
-mouse       Name or ID of the mouse the acquisition was    string     "cm100"
-            conducted on.
----------- ---------------------------------------------- --------- ---------------
-directory   Location data will be saved to                  string    "C:/data"
----------- ---------------------------------------------- --------- ---------------
-runs        Number of runs for given acquisition              int      5
----------- ---------------------------------------------- --------- ---------------
-run_length     Length of each acquisition (in seconds)        float      10.0
-========== ============================================== ========= ===============
+---------- ----------------------------------------- -------------- ---------------
+mouse       Name or ID of the mouse the acquisition     string         "cm100"
+            was conducted on.
+---------- ----------------------------------------- -------------- ---------------
+directory   Location data will be saved to                string      "C:/data"
+---------- ----------------------------------------- -------------- ---------------
+runs        Number of runs for given acquisition        int               5
+---------- ----------------------------------------- -------------- ---------------
+run_length  Length of each acquisition (in seconds)     float           10.0
+---------- ----------------------------------------- -------------- ---------------
+cameras     List of camera settings                     list        See `Cameras`_
+---------- ----------------------------------------- -------------- ---------------
+arduino     Dictionary of arduino settings              dict        See `Arduino`_
+========== ========================================= ============== ===============
 
-The JSON file also contains the settings for each Camera and Arduino Object.
+**NOTE:** It is highly recommended you only alter the your
+:ref:`JSON Configuration File` , **do not directly edit the file itself**.
 
-**NOTE:** *It is highly recommended you only alter the your JSON Configuration
-file from the provided GUI's, not directly editing the file itself.*
-
-Example
--------
+Example JSON Configuration
+--------------------------
 
 .. code-block:: JSON
 
@@ -40,6 +47,16 @@ Example
     "directory":"C:/data",
     "runs": 5,
     "run_length": 2.0
+    "arduino": {}
+    "cameras": []
+  }
+
+Arduino
+-------
+
+.. code-block:: JSON
+
+  {
     "arduino": {
       "port": "COM4",
       "data_acquisition":[
@@ -74,22 +91,40 @@ Example
           "post_stim":8.0
         }
       ]
-    },
-    "cameras": [
-      {
-        "device":"andor",
-        "index":0,
-        "master":true,
-        "name":"zyla",
-        "dtype":"uint16",
-        "height":2000,
-        "width":2000,
-        "offset_x":1,
-        "offset_y":1,
-        "binning":"2x2",
-        "framerate":10.0
-      }
-    ]
+    }
+  }
+
+Cameras
+-------
+
+.. code-block:: JSON
+
+  {
+    "cameras": [{
+      "device": "test",
+      "index": 0,
+      "name": "cam1",
+      "height": 564,
+      "width": 420,
+      "offset_x": 524,
+      "offset_y": 157,
+      "binning": "1x1",
+      "dtype": "uint16",
+      "master": true,
+      "framerate": 20.0
+    }, {
+      "device": "test",
+      "index": 0,
+      "name": "cam3",
+      "height": 500,
+      "width": 400,
+      "offset_x": 1,
+      "offset_y": 50,
+      "binning": "1x1",
+      "dtype": "uint16",
+      "master": false,
+      "framerate": 10.0
+    }]
   }
 
 Default Configuration

@@ -95,7 +95,7 @@ class Camera(object):
         # TODO: build out spinnaker
 
         # Create a to store any errors that may occur
-        self.ERRORS, self.WARNINGS = [], []
+        self.ERRORS, self.WARNINGS= [], []
 
         # Create a temporary loading frame
         self.frame = loading_frame()
@@ -107,6 +107,8 @@ class Camera(object):
         config = kwargs['config'] if 'config' in kwargs else kwargs
 
         self.set(config=config)
+
+        
 
     def set(self, **kwargs):
 

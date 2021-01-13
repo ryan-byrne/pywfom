@@ -6,15 +6,18 @@ Command Line Tools
 The simplest way to configure, acquire, and view runs is with one of :py:mod:`pywfom`'s
 available `Command Line Tools`_.
 
-=============== =================================================================
-Command         Description
-=============== =================================================================
-wfom            Creates a :ref:`System Interface` and opens the :ref:`Main Frame`
---------------- -----------------------------------------------------------------
-wfom-viewer     View :ref:`Acquisition Files` in the :ref:`Run Viewer`
---------------- -----------------------------------------------------------------
-wfom-quickstart Quickly start an acquisition using the default settings
-=============== =================================================================
+====================== =================================================================
+Command                 Description
+====================== =================================================================
+:ref:`wfom`             Creates a :ref:`System Interface` and
+                        opens the :ref:`Main Frame`
+---------------------- -----------------------------------------------------------------
+:ref:`wfom-viewer`      View :ref:`Acquisition Files`
+                        in the :ref:`Run Viewer`
+---------------------- -----------------------------------------------------------------
+:ref:`wfom-quickstart`  Quickly start an acquisition
+                        using the default settings
+====================== =================================================================
 
 wfom
 ----
@@ -37,4 +40,9 @@ Argument   Name         Description
 .. code-block:: bash
 
   wfom -v -c path/to/config/myConfiguration.json
-  
+
+wfom-viewer
+-----------
+
+wfom-quickstart
+---------------

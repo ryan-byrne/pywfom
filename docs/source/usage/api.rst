@@ -12,6 +12,9 @@
 API Documentation
 =================
 
+System Interface
+----------------
+
 .. autoclass:: pywfom.System
   :members:
 

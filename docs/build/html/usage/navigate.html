@@ -101,6 +101,7 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Graphical User Interfaces</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#main-frame">Main Frame</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#run-viewer">Run Viewer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#additional-windows">Additional Windows</a></li>
 </ul>
 </li>
 </ul>
@@ -174,13 +175,113 @@
            <div itemprop="articleBody">
             
   <div class="section" id="graphical-user-interfaces">
-<span id="navigate"></span><h1>Graphical User Interfaces<a class="headerlink" href="#graphical-user-interfaces" title="Permalink to this headline">¶</a></h1>
+<h1>Graphical User Interfaces<a class="headerlink" href="#graphical-user-interfaces" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="main-frame">
 <h2>Main Frame<a class="headerlink" href="#main-frame" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="pywfom.viewing.Main">
 <em class="property">class </em><code class="sig-prename descclassname">pywfom.viewing.</code><code class="sig-name descname">Main</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">system</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.viewing.Main" title="Permalink to this definition">¶</a></dt>
-<dd><p>Monitor camera frames, Arduino status, and set file directory</p>
+<dd><p><code class="xref py py-class docutils literal notranslate"><span class="pre">tkinter.Frame</span></code> to monitor camera frames, Arduino status, and set file directory</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>system</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">pywfom.System</span></code>) -- System interface to be monitored/set</p>
+</dd>
+</dl>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="../_images/main_gui.png"><img alt="../_images/main_gui.png" src="../_images/main_gui.png" style="width: 700px;" /></a>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">(A) Selected Camera Frame</dt>
+<dd class="field-odd"><dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">Camera</span> <span class="pre">Status</span></code></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">tkinter.Label</span></code></p></li>
+<li><dl class="simple">
+<dt>Shows the selected camera's:</dt><dd><ul>
+<li><p><code class="xref py py-data docutils literal notranslate"><span class="pre">name</span></code></p></li>
+<li><p><code class="xref py py-data docutils literal notranslate"><span class="pre">device</span></code></p></li>
+<li><p><code class="xref py py-data docutils literal notranslate"><span class="pre">height</span></code></p></li>
+<li><p><code class="xref py py-data docutils literal notranslate"><span class="pre">width</span></code></p></li>
+<li><p><code class="xref py py-data docutils literal notranslate"><span class="pre">binning</span></code></p></li>
+<li><p><code class="xref py py-data docutils literal notranslate"><span class="pre">framerate</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">Edit</span></code></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">tkinter.Button</span></code></p></li>
+<li><p>Opens <a class="reference internal" href="#pywfom.viewing.CameraConfig" title="pywfom.viewing.CameraConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">CameraConfig</span></code></a></p></li>
+</ul>
+</dd>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">Remove</span></code></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">tkinter.Button</span></code></p></li>
+<li><p>Deletes selected <a class="reference internal" href="api.html#pywfom.imaging.Camera" title="pywfom.imaging.Camera"><code class="xref py py-class docutils literal notranslate"><span class="pre">pywfom.imaging.Camera</span></code></a> from <code class="xref py py-class docutils literal notranslate"><span class="pre">pywfom.System</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">(B) Camera Thumbnails</dt>
+<dd class="field-even"><dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">Thumbnails</span></code></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p>Selectable images of each <a class="reference internal" href="api.html#pywfom.imaging.Camera" title="pywfom.imaging.Camera"><code class="xref py py-class docutils literal notranslate"><span class="pre">pywfom.imaging.Camera</span></code></a> in <code class="xref py py-class docutils literal notranslate"><span class="pre">pywfom.System</span></code></p></li>
+</ul>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">Add</span> <span class="pre">Camera</span></code></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">tkinter.Button</span></code></p></li>
+<li><p>Adds a <a class="reference internal" href="api.html#pywfom.imaging.Camera" title="pywfom.imaging.Camera"><code class="xref py py-class docutils literal notranslate"><span class="pre">pywfom.imaging.Camera</span></code></a> to <code class="xref py py-class docutils literal notranslate"><span class="pre">pywfom.System</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+<dt class="field-odd">(C) Arduino and Run Status</dt>
+<dd class="field-odd"><dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">Select</span> <span class="pre">Port</span></code></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">tkinter.ttk.Spinbox</span></code></p></li>
+<li><p>Calls <a class="reference internal" href="api.html#pywfom.control.list_ports" title="pywfom.control.list_ports"><code class="xref py py-func docutils literal notranslate"><span class="pre">pywfom.control.list_ports()</span></code></a></p></li>
+<li><p>Sets <code class="xref py py-data docutils literal notranslate"><span class="pre">pywfom.control.Arduino.port</span></code></p></li>
+</ul>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">Configure</span></code></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">tkinter.Button</span></code></p></li>
+<li><p>Opens <a class="reference internal" href="#pywfom.viewing.ArduinoConfig" title="pywfom.viewing.ArduinoConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">ArduinoConfig</span></code></a></p></li>
+</ul>
+</dd>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">Arduino</span> <span class="pre">Status</span></code></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">tkinter.Label</span></code></p></li>
+<li><p>Displays <code class="xref py py-class docutils literal notranslate"><span class="pre">pywfom.control.Arduino.ERROR</span></code></p></li>
+</ul>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">Current</span> <span class="pre">Directory</span></code></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">tkinter.Label</span></code></p></li>
+<li><p>Sets <code class="xref py py-data docutils literal notranslate"><span class="pre">pywfom.System.directory</span></code></p></li>
+</ul>
+</dd>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">Browse</span></code></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">tkinter.Button</span></code></p></li>
+<li><p>Opens Dialog which sets <code class="xref py py-data docutils literal notranslate"><span class="pre">pywfom.System.directory</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">(D) Control Buttons</dt>
+<dd class="field-even"><dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">Configure</span></code></dt>
+<dd class="field-odd"><p>(<code class="xref py py-class docutils literal notranslate"><span class="pre">tkinter.Button</span></code>)</p>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -188,7 +289,82 @@
 <h2>Run Viewer<a class="headerlink" href="#run-viewer" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="pywfom.viewing.Viewer">
-<em class="property">class </em><code class="sig-prename descclassname">pywfom.viewing.</code><code class="sig-name descname">Viewer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">args</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.viewing.Viewer" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pywfom.viewing.</code><code class="sig-name descname">Viewer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">run_directory</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.viewing.Viewer" title="Permalink to this definition">¶</a></dt>
+<dd><p>View acquisition files from a specified run directory</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>run_directory</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a>) -- Path to run directory being viewed</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="additional-windows">
+<h2>Additional Windows<a class="headerlink" href="#additional-windows" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="pywfom.viewing.CameraConfig">
+<em class="property">class </em><code class="sig-prename descclassname">pywfom.viewing.</code><code class="sig-name descname">CameraConfig</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">camera</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">master</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.viewing.CameraConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="xref py py-class docutils literal notranslate"><span class="pre">tkinter.Toplevel</span></code> to configure a specified Camera's settings</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>camera</strong> (<a class="reference internal" href="api.html#pywfom.imaging.Camera" title="pywfom.imaging.Camera"><code class="xref py py-class docutils literal notranslate"><span class="pre">pywfom.imaging.Camera</span></code></a>) -- Camera whose settings will be edited</p></li>
+<li><p><strong>master</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">tkinter.Tk</span></code>) -- Window which opened <a class="reference internal" href="#pywfom.viewing.CameraConfig" title="pywfom.viewing.CameraConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">CameraConfig</span></code></a></p></li>
+</ul>
+</dd>
+</dl>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="../_images/camera.png"><img alt="../_images/camera.png" src="../_images/camera.png" style="width: 200px;" /></a>
+</div>
+</dd></dl>
+
+<dl class="py class">
+<dt id="pywfom.viewing.ArduinoConfig">
+<em class="property">class </em><code class="sig-prename descclassname">pywfom.viewing.</code><code class="sig-name descname">ArduinoConfig</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">arduino</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">master</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.viewing.ArduinoConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="xref py py-class docutils literal notranslate"><span class="pre">tkinter.Toplevel</span></code> to configure the Arduino's settings</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>arduino</strong> -- Arduino whose settings will be edited</p></li>
+<li><p><strong>master</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">tkinter.Tk</span></code>) -- Window which opened <a class="reference internal" href="#pywfom.viewing.ArduinoConfig" title="pywfom.viewing.ArduinoConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">ArduinoConfig</span></code></a></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<div class="figure align-center">
+<a class="reference internal image-reference" href="../_images/arduino.png"><img alt="../_images/arduino.png" src="../_images/arduino.png" style="width: 500px;" /></a>
+</div>
+<dl class="py class">
+<dt id="pywfom.viewing.RunConfig">
+<em class="property">class </em><code class="sig-prename descclassname">pywfom.viewing.</code><code class="sig-name descname">RunConfig</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">system</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">master</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.viewing.RunConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Configure the run file</p>
+</dd></dl>
+
+<div class="figure align-center">
+<a class="reference internal image-reference" href="../_images/run.png"><img alt="../_images/run.png" src="../_images/run.png" style="width: 200px;" /></a>
+</div>
+<dl class="py class">
+<dt id="pywfom.viewing.StimConfig">
+<em class="property">class </em><code class="sig-prename descclassname">pywfom.viewing.</code><code class="sig-name descname">StimConfig</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">arduino</span></em>, <em class="sig-param"><span class="n">index</span></em>, <em class="sig-param"><span class="n">master</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.viewing.StimConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="xref py py-class docutils literal notranslate"><span class="pre">tkinter.Toplevel</span></code> to configure the an Arduino's stim settings</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>arduino</strong> (<a class="reference internal" href="api.html#pywfom.control.Arduino" title="pywfom.control.Arduino"><code class="xref py py-class docutils literal notranslate"><span class="pre">pywfom.control.Arduino</span></code></a>) -- Arduino whose stim will be edited</p></li>
+<li><p><strong>index</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int">int</a>) -- Index of the stim</p></li>
+<li><p><strong>master</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">tkinter.Tk</span></code>) -- Window which opened <a class="reference internal" href="#pywfom.viewing.StimConfig" title="pywfom.viewing.StimConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">StimConfig</span></code></a></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<div class="figure align-center">
+<a class="reference internal image-reference" href="../_images/stim.png"><img alt="../_images/stim.png" src="../_images/stim.png" style="width: 200px;" /></a>
+</div>
+<dl class="py class">
+<dt id="pywfom.viewing.DaqView">
+<em class="property">class </em><code class="sig-prename descclassname">pywfom.viewing.</code><code class="sig-name descname">DaqView</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">arduino</span></em>, <em class="sig-param"><span class="n">master</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pywfom.viewing.DaqView" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
