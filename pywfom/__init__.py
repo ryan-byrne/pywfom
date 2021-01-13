@@ -61,6 +61,15 @@ def _get_viewer_args():
 
 def set_default(system):
 
+    settings = organize_settings(system)
+
+    if tk.messagebox.askyesno('Set as Default', 'Set current settings as default?'):
+        with open("{0}/{1}".format(pywfom.__path__[0],'utils/default.json'),'w') as f:
+            json.dump(settings, f)
+        f.close()
+
+def organize_settings(system):
+
     settings = {}
 
     for category, value in system.__dict__.items():
@@ -87,10 +96,7 @@ def set_default(system):
         else:
             continue
 
-    if messagebox.askyesno('Set as Default', 'Set current settings as default?'):
-        with open("{0}/{1}".format(pywfom.__path__[0],'utils/default.json'),'w') as f:
-            json.dump(settings, f)
-        f.close()
+    return settings
 
 # Command Line functions
 def quickstart():
@@ -312,24 +318,30 @@ class System(object):
 
             while num_frms < run_frms:
 
-                self._frames = {}
+                self._data = {}
                 fname = "{0}/frame{1}.npz".format(path, num_frms)
 
                 for cam in self.cameras:
                     t = threading.Thread(target=self._read_camera_frame, args=(cam,))
                     t.start()
                     t.join()
+                t = threading.Thread(target=self._read_arduino)
+                t.start()
+                t.join()
 
 
-                threading.Thread(target=self._save_frames, args=(fname,)).start()
+                threading.Thread(target=self._save_data, args=(fname,)).start()
 
                 num_frms+=1
 
         self.arduino.stop_strobing()
 
-    def _save_frames(self, fname):
-        data = [v for k,v in self._frames.items()]
+    def _save_data(self, fname):
+        data = [v for k,v in self._data.items()]
         np.savez(fname, *data)
 
+    def _read_arduino(self):
+        self._data['arduino'] = self.arduino.read()
+
     def _read_camera_frame(self, camera):
-        self._frames[camera.name] = camera.read()
+        self._data[camera.name] = camera.read()

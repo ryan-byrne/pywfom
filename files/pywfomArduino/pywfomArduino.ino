@@ -41,21 +41,21 @@ void setup() {
 }
 
 void loop() {
-  
+
   readMsg(); // Check Serial message
   parseMsg(); // Interpret message
 
   if (strobing){
     nextLed();
   }
-  
+
   returnData();
 }
 
 void readMsg(){
-  
+
   static int idx = 0;
-  
+
   while (Serial.available() > 0){
 
     incomingChar = Serial.read();
@@ -79,7 +79,7 @@ void readMsg(){
 }
 
 void parseMsg(){
-  
+
   if ( msgComplete == true ) {
     switch ( receivedChars[0] ) {
       case 'l':
@@ -110,29 +110,23 @@ void parseMsg(){
         setStep();
         break;
     }
-    
+
     msgComplete = false;
   }
 }
 
 void returnData(){
-   
+
   midx = 0;
 
-  if ( strobing ) {
-    msg[midx++] = 'S';
-    itoa( currentLed, pin , 10 );
-    for ( int j=0; j<2; j++ ) {
-      if (!pin[j]) { continue; }
-      else { msg[midx++] = pin[j]; }
-    }
+  itoa( currentLed, pin , 10 );
+  for ( int j=0; j<2; j++ ) {
+    if (!pin[j]) { continue; }
+    else { msg[midx++] = pin[j]; }
   }
-  else {
-    msg[midx++] = 's';
-  }
-  msg[midx++] = '_';
-  msg[midx++] = 'd';
   
+  msg[midx++] = 'd';
+
   for ( int i=0; i<numDaq; i++ ) {
     itoa( digitalRead(daqPins[i]), val , 10 );
     for ( int j=0; j<2; j++ ) {
@@ -152,25 +146,25 @@ void returnData(){
 }
 
 void nextLed(){
-  
+
   while(digitalRead(trigPin)){};
   digitalWrite(ledPins[currentLed], LOW);
   currentLed++;
-  if (currentLed > numLeds-1){currentLed = 0;}  
+  if (currentLed > numLeds-1){currentLed = 0;}
   digitalWrite(ledPins[currentLed], HIGH);
   while(!digitalRead(trigPin)){}
-  
+
 }
 
 void updateStim() {
-  // 
+  //
   // <m15,16,17,18,.200>
   pidx = 0;
   idx = 0;
   boolean recordPins = false;
-  
+
   for ( int i=1; i<sizeof(receivedChars); i++ ) {
-    
+
     c = receivedChars[i];
     if ( !c ) { continue; }
     else if ( c == ',' ) {
@@ -181,14 +175,14 @@ void updateStim() {
     else if ( c == '.' ) { recordPins = true; }
     else if ( !recordPins ) { val[pidx++] = c; }
     else { pin[pidx++] = c; }
-    
+
   }
 
   stepsPerRevolution = atoi( val );
 
   if ( numStim == 4 ) { Stepper stim( stepsPerRevolution, stimPins[0], stimPins[1], stimPins[2], stimPins[3] ); }
   else { Stepper stim( stepsPerRevolution, stimPins[0], stimPins[1]); }
-  
+
 }
 
 void setStep() {
@@ -197,11 +191,11 @@ void setStep() {
     c = receivedChars[i];
     if ( !c ) { continue; }
     else if ( c == ',' ) {
-      val[idx] = '\0'; 
+      val[idx] = '\0';
       stim.setSpeed(atoi(val));
       idx = 0;
     }
-    else { val[idx++] = c; } 
+    else { val[idx++] = c; }
   }
   val[idx] = '\0';
   stim.step(atoi(val));
@@ -212,11 +206,11 @@ void updateLedPins(){
 
   idx = 0;
   numLeds = 0;
-  
+
   for ( int i=1; i<sizeof(receivedChars); i++ ) {
-    
+
     c = receivedChars[i];
-    
+
     if (int(c) == 0){ continue; }
     else if ( c == ',' ){
       pin[idx] = '\0';
@@ -236,11 +230,11 @@ void updateDaqPins(){
 
   idx = 0;
   numDaq = 0;
-  
+
   for ( int i=1; i<sizeof(receivedChars); i++ ) {
-    
+
     c = receivedChars[i];
-    
+
     if (int(c) == 0){
       continue;
     }
@@ -264,7 +258,7 @@ void clearAllSettings(){
 
 void toggleLed() {
   clearLeds();
-  
+
 }
 
 void clearLeds() {

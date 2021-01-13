@@ -25,12 +25,7 @@ class Arduino():
 
     def __init__(self, port='COM1', **kwargs):
 
-        # TODO: turn string messages into arrays
-
-        # TODO: set stim settings
         # TODO:  test stim
-        # # TODO: add encoder monitoring
-        # TODO: Test data acquisition
 
         self.ERROR = None
         self.DAQ_MSG = ""
@@ -40,8 +35,6 @@ class Arduino():
         self.set(config=config)
 
     def set(self, **kwargs):
-
-        # TODO: Improve this
 
         settings = kwargs if 'config' not in kwargs else kwargs['config']
 
@@ -82,6 +75,9 @@ class Arduino():
         :param list_ pins: List of pins to be considered LED drivers
         """
 
+        if not self._ser:
+            return
+
         if not pins:
             leds = ','.join([str(led['pin']) for led in self.strobing['leds']])
         else:
@@ -92,6 +88,9 @@ class Arduino():
 
     def set_trigger(self, pin=None):
         """ Send command for setting trigger pin (i.e. t3) """
+
+        if not self._ser:
+            return
 
         if not pin:
             pin = self.strobing['trigger']
@@ -106,6 +105,9 @@ class Arduino():
     def set_stim(self):
         # <m15,16,17,18,.200>
 
+        if not self._ser:
+            return
+
         msg = "<m{0},.{1}>".format(
             ",".join([str(pin) for pin in self.stim[0]['pins']]),
             self.stim[0]['steps_per_revolution']
@@ -115,19 +117,21 @@ class Arduino():
 
 
     def set_daq(self, pins=None):
-        self._acquiring = False
+        if not self._ser:
+            return
         d = ','.join([str(daq['pin']) for daq in self.data_acquisition])
         self._ser.write("<d{0},>".format(d).encode())
         time.sleep(0.1)
-        threading.Thread(target=self._read_daq).start()
 
-    def _read_daq(self):
-        self._acquiring = True
-        while self._acquiring:
-            self.DAQ_MSG = self._ser.readline()
+    def read(self):
+        # TODO: Uncomment when ready
+        #return self._ser.readline()
+        return "0d{0},{1},m200,".format( random.randint(0, 200) , random.randint(0, 200) )
 
     def step(speed, steps):
         # <p60,200>
+        if not self._ser:
+            return
         self._ser.write("<p{0},{1}>".format(speed, steps))
 
     def toggle_led(self, pin):

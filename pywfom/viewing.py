@@ -610,6 +610,7 @@ class Viewer(tk.Frame):
 
         self._create_viewing_frames()
         self._create_controls()
+        self._create_arduino_data()
         self._update()
 
     def _create_viewing_frames(self):
@@ -638,6 +639,67 @@ class Viewer(tk.Frame):
 
         self.control_frm.grid(row=2,column=0,columnspan=len(self.cam_frms))
 
+    def _create_arduino_data(self):
+        # TODO: Better format this on the screen
+
+        # Create LED Widget
+        led_frm = tk.Frame(self.root)
+        tk.Label(led_frm, text='Current Led: ').pack(side='left')
+        self.current_led = tk.Label(led_frm)
+        self.current_led.pack(side='left')
+        led_frm.grid(row=3, column=0)
+
+        # Create daq widgets
+        self.daq_values = []
+        daq_frm = tk.Frame(self.root)
+        tk.Label(daq_frm, text='Data Acquisition').grid(row=0, column=0, columnspan=3)
+        tk.Label(daq_frm, text='name').grid(row=1, column=0)
+        tk.Label(daq_frm, text='pin').grid(row=1, column=1)
+        tk.Label(daq_frm, text='value').grid(row=1, column=2)
+
+        for i, daq in enumerate(self.config['arduino']['data_acquisition']):
+
+            tk.Label(daq_frm, text=daq['name']).grid(row=i+2, column=0)
+            tk.Label(daq_frm, text=daq['pin']).grid(row=i+2, column=1)
+            d = tk.Label(daq_frm)
+            d.grid(row=i+2, column=2)
+            self.daq_values.append(d)
+
+        daq_frm.grid(row=3, column=1)
+
+
+        # Create stim widgets
+        self.stim_pos = []
+        stim_frm = tk.Frame(self.root)
+        tk.Label(stim_frm, text='Stim').grid(row=0, column=3, columnspan=3)
+        tk.Label(stim_frm, text='name').grid(row=1, column=3)
+        tk.Label(stim_frm, text='type').grid(row=1, column=4)
+        tk.Label(stim_frm, text='position').grid(row=1, column=5)
+
+        for i, stim in enumerate(self.config['arduino']['stim']):
+            tk.Label(stim_frm, text=stim['name']).grid(row=i+2, column=3)
+            tk.Label(stim_frm, text=stim['type']).grid(row=i+2, column=4)
+
+            s = tk.Label(stim_frm)
+            s.grid(row=i+2, column=5)
+            self.stim_pos.append(s)
+
+        stim_frm.grid(row=3, column=2)
+
+    def _update_arduino_widgets(self, message):
+
+        self.current_led.config(
+            text=self.config['arduino']['strobing']['leds'][int(message.split('d')[0])]['name']
+        )
+
+        daq_array = message.split('d')[1].split('m')[0].split(',')[:-1]
+        for i, daq in enumerate(daq_array):
+            self.daq_values[i].config(text=daq)
+
+        stim_pos_array = message.split('d')[1].split('m')[1].split(',')[:-1]
+        for i, stim in enumerate(stim_pos_array):
+            self.stim_pos[i].config(text=stim)
+
     def _update(self):
 
         try:
@@ -646,13 +708,16 @@ class Viewer(tk.Frame):
             self.current_frame = 0
             frame = self.files[self.current_frame]
 
-        for i, frm in enumerate(frame.files):
-            canvas = self.cam_frms[i]
-            array_img = Image.fromarray(frame.get(frm))
-            img = ImageTk.PhotoImage(image=array_img)
-            canvas.create_image(0,0,image=img,anchor="nw")
-            canvas.image = img
-            canvas.config(height=img.height(),width=img.width())
+        for i, data in enumerate(frame.files):
+            if i == len(self.cam_frms):
+                self._update_arduino_widgets(str(frame.get(data)))
+            else:
+                canvas = self.cam_frms[i]
+                array_img = Image.fromarray(frame.get(data))
+                img = ImageTk.PhotoImage(image=array_img)
+                canvas.create_image(0,0,image=img,anchor="nw")
+                canvas.image = img
+                canvas.config(height=img.height(),width=img.width())
 
         if not self.paused:
             self.current_frame+=1
