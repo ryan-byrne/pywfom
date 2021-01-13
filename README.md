@@ -3,6 +3,8 @@
 
 <b><i><p align="center">Establish camera settings, start an acquisition and more on an OpenWFOM imaging system.</p></i></b>
 
+## [Documentation](https://pywfom.readthedocs.io/en/latest/)
+
 ## Compatible Cameras
 
 * [Andor SDK3]() - Andor Cameras (Neo, Zyla)
@@ -14,12 +16,9 @@
 To install ```pywfom``` and run a quick acqusition:
 
 ```bash
-pip install pywfom; wfom-quickstart
+pip install pywfom
+wfom-quickstart
 ```
-
-## Hardware Configuration
-
-Use [this guide]() to properly configure your OpenWFOM hardware.
 
 ## Versioning
 
