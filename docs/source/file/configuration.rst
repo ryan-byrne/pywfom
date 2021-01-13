@@ -6,7 +6,30 @@
 Acquisition Files
 =================
 
-Raw Data is stored as a numpy_ array, and saved as an npz_ file.
+Raw Data is stored as a individual frames in a ``run`` directory. ``frame``
+file are numpy_ array, and saved as an npz_ file with the following structure.
+
+Structure
+---------
+::
+
+  run12
+  ├── config.json
+  ├── frame0.npz
+  │   ├── cam0
+  |   |   └── array
+  │   ├── cam0
+  |   |   └── array
+  │   └──arduino
+  |       └── message
+  ├── frame1.npz
+  .
+  .
+  .
+  └── frameN.npz
+
+Numpy Frame
+-----------
 
 JSON Configuration File
 =======================

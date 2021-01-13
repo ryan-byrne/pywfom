@@ -222,9 +222,10 @@ class System(object):
         wfom.close() # Closes system
 
     :param config:
-        Path to local :ref:`JSON Configuration File`. If empty, the
-        :ref:`Default Configuration` is used.
-    :type config: `str`_
+    
+        * `str`_ : Path to local :ref:`JSON Configuration File`
+        * `dict`_ : Configure from dictionary
+        * ``None``: Use :ref:`Default Configuration`
 
     :ivar cameras: A list of :py:class:`pywfom.imaging.Camera`'s
     :vartype cameras: `list`_
@@ -268,7 +269,7 @@ class System(object):
     def acquire(self):
 
         """
-        Begin an acquiring :ref:`Acquisition Files` on your :py:mod:`pywfom`
+        Begin acquiring :ref:`Acquisition Files` on your :py:mod:`pywfom`
         System.
 
         """
