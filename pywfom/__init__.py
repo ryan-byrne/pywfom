@@ -87,7 +87,7 @@ def organize_settings(system):
         elif category == 'arduino':
             settings[category] = {}
             for setting, value in system.arduino.__dict__.items():
-                if setting[0] == '_' or setting == 'ERROR':
+                if setting[0] == '_' or setting in ['ERROR', 'DAQ_MSG']:
                     continue
                 else:
                     settings[category][setting] = value
@@ -187,13 +187,8 @@ def quickstart():
     frame.root.mainloop()
 
 def test():
-
-    root = tk.Tk()
-    frame = tk.Frame(root)
-    frame.root = root
     system = System()
-    ard = CameraConfig(system.cameras[0], frame.root)
-    root.mainloop()
+    system.close()
 
 def view():
 

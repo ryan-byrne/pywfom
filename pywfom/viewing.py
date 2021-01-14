@@ -1128,6 +1128,7 @@ class StimConfig(tk.Toplevel):
         stim_frm = tk.Frame(self)
         row = 0
         self.vars = []
+        self.names = []
         self.pins = []
 
         for i, (k,v) in enumerate(self.stim.items()):
@@ -1135,37 +1136,38 @@ class StimConfig(tk.Toplevel):
             tk.Label(stim_frm, text=k.title()).grid(row=row, column=0)
 
             if k == 'pins':
-                pin_frm = tk.Frame(stim_frm)
-                for pin in v:
-                    var = tk.IntVar()
-                    var.set(value=pin)
-                    var.trace('w', self._callback)
+                entry = tk.Frame(stim_frm)
+                for i, pin in enumerate(v):
+                    var = tk.IntVar(value=pin)
+                    tk.Spinbox(entry, width=2, from_=0, to=40,textvariable=var).pack()
+                    var.trace('w', lambda nm, idx, mode, i=i:self._callback(i, True))
                     self.pins.append(var)
-                    tk.Spinbox(pin_frm, width=2, from_=0, to=40, textvariable=var).pack()
-                pin_frm.grid(row=row, column=1)
             elif k == 'steps_per_revolution':
-                var = tk.IntVar()
-                var.set(value=v)
-                var.trace('w', self._callback)
-                self.vars.append(var)
-                tk.Spinbox(stim_frm, width=3, from_=0, to=999, textvariable=var
-                ).grid(row=row, column=1)
+                var = tk.IntVar(value=v)
+                entry = tk.Spinbox(stim_frm, width=3, from_=0, to=999)
             elif k == 'type':
-                var = tk.StringVar()
-                var.set(v)
-                var.trace('w', self._callback)
-                ttk.Combobox(
-                    stim_frm, width=10, textvariable=var, justify='center',
-                    values=pywfom.control.OPTIONS['stim_types'], state='readonly'
-                ).grid(row=row, column=1)
-                self.vars.append(var)
+                var = tk.StringVar(value=v)
+                entry = ttk.Combobox(
+                    stim_frm,
+                    values=pywfom.control.OPTIONS['stim_types'],
+                    state='readonly'
+                )
             else:
-                var = tk.StringVar()
-                var.set(v)
-                var.trace('w', self._callback)
-                tk.Entry(stim_frm, width=10, justify='center',textvariable=var
-                ).grid(row=row, column=1)
-                self.vars.append(var)
+                var = tk.StringVar(value=v)
+                entry = tk.Entry(stim_frm)
+
+            try:
+                entry.config(textvariable=var, width=10, justify='center')
+            except:
+                pass
+
+            var.trace('w', lambda nm, idx, mode, i=i:self._callback(i))
+            self.vars.append(var)
+            self.names.append(k)
+
+            entry.grid(row=row, column=1)
+
+            print(k, row)
 
             row+=1
 
@@ -1176,16 +1178,12 @@ class StimConfig(tk.Toplevel):
 
         tk.Button(self, text='Done', command=self.destroy).pack()
 
-    def _callback(self, nm, idx, mode):
+    def _callback(self, index, pins=False):
 
-        names = ['name', 'type', 'steps_per_revolution', 'pre_stim', 'stim', 'post_stim']
-
-        for i, var in enumerate(self.vars):
-            self.stim[names[i]] = var.get()
-
-        self.stim['pins'] = [pin.get() for pin in self.pins]
-
-        self.arduino.set_stim()
+        name = 'pins' if pins else self.names[index]
+        value = [pin.get() for pin in self.pins] if pins else self.vars[index].get()
+        
+        self.arduino.set_stim({name:value})
 
     def _reset(self):
         # TODO: COmplete

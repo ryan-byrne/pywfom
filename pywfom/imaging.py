@@ -89,10 +89,15 @@ class Camera(object):
 
     """
 
-    def __init__(self, device='test', index=0, **kwargs):
+    def __init__(self, device='test', index=0, config=None, **settings):
 
         # TODO: Build out andor
         # TODO: build out spinnaker
+
+        # Set the default variables in case something is missed in configuration
+        self.device, self.index, self.name, self.height = device, index, "", 500
+        self.width, self.offset_x, self.offset_y, self.binning = 500, 0, 0, '1x1'
+        self.dtype, self.master, self.framerate = 'uint8', False, 30.0
 
         # Create a to store any errors that may occur
         self.ERRORS, self.WARNINGS= [], []
@@ -103,14 +108,11 @@ class Camera(object):
         # Establish the Camera handler
         self._handler = self._startup(device, index)
 
-        # Check for configuration in keyword arguments
-        config = kwargs['config'] if 'config' in kwargs else kwargs
-
+        # Set configuration and additional keyword arguments
+        config = settings if not config else config
         self.set(config=config)
 
-
-
-    def set(self, **kwargs):
+    def set(self, **settings):
 
         """
         Establish camera settings either by including a configuration
@@ -135,7 +137,7 @@ class Camera(object):
 
         self._stop_acquiring()
 
-        settings = kwargs['config'] if 'config' in kwargs else kwargs
+        settings = settings['config'] if 'config' in settings else settings
 
         for k, v in settings.items():
 
@@ -517,8 +519,5 @@ TYPES = {
   "binning":str,
   "dtype":str,
   "master":bool,
-  "framerate":float,
-  "runs":int,
-  "run_length":float,
-  "mouse":str
+  "framerate":float
 }

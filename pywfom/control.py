@@ -23,20 +23,24 @@ class Arduino():
 
     """
 
-    def __init__(self, port='COM1', **kwargs):
+    def __init__(self, config=None, **settings):
 
         # TODO:  test stim
 
-        self.ERROR = None
+        # Set default settings
+        self.port, self.stim, self.data_acquisition, self.strobing = 'COM1', [], [], []
         self.DAQ_MSG = ""
 
-        config = kwargs if 'config' not in kwargs else kwargs['config']
+        # Check for configuration dict, otherwise use kwargs
+        settings = config if config else settings
 
-        self.set(config=config)
+        # Establish settings
+        self.set(config=settings)
 
-    def set(self, **kwargs):
 
-        settings = kwargs if 'config' not in kwargs else kwargs['config']
+    def set(self, **settings):
+
+        settings = settings['config'] if 'config' in settings else settings
 
         for k, v in settings.items():
 
@@ -102,9 +106,6 @@ class Arduino():
     def set_stim(self):
         # <m15,16,17,18,.200>
 
-        if not self._ser:
-            return
-
         msg = "<m{0},.{1}>".format(
             ",".join([str(pin) for pin in self.stim[0]['pins']]),
             self.stim[0]['steps_per_revolution']
@@ -118,6 +119,7 @@ class Arduino():
 
         if not self._ser:
             return
+
         d = ','.join([str(daq['pin']) for daq in self.data_acquisition])
         self._ser.write("<d{0},>".format(d).encode())
         time.sleep(0.1)
@@ -126,10 +128,10 @@ class Arduino():
         # TODO: Uncomment when ready
 
         # 1d123,245,100,m200
-
-        #return self._ser.readline()
-
-        return "0d{0},{1},m200,".format( random.randint(0, 200) , random.randint(0, 200) )
+        if not self._ser:
+            return "0d{0},{1},m200,".format( random.randint(0, 200) , random.randint(0, 200) )
+        else:
+            return self._ser.readline()
 
     def step(speed, steps):
         # <p60,200>
@@ -186,9 +188,37 @@ class Arduino():
         except:
             pass
 
+class Stim(object):
+    """docstring for Stim."""
+
+    def __init__(self, config=None, **settings):
+
+        self.name, self.type, self.pins = '', '2PinStepper', [0,1]
+        self.steps_per_revolution, self.pre_stim, self.stim, self.post_stim = 0,0,0,0
+
+
+
+class Daq(object):
+    """docstring for Daq."""
+
+    def __init__(self, config=None, **settings):
+        pass
+
+class Strobe(object):
+    """docstring for Strobe."""
+
+    def __init__(self, config=None, **settings):
+        pass
+
+
+
 OPTIONS = {
     'stim_types':[
         '2PinStepper',
         '4PinStepper'
     ]
+}
+
+TYPES = {
+
 }
