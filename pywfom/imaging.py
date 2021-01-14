@@ -517,5 +517,8 @@ TYPES = {
   "binning":str,
   "dtype":str,
   "master":bool,
-  "framerate":float
+  "framerate":float,
+  "runs":int,
+  "run_length":float,
+  "mouse":str
 }

@@ -781,27 +781,23 @@ class CameraConfig(tk.Toplevel):
                     settings_frm,
                     from_=self.camera.get_min(k),
                     to=self.camera.get_max(k),
-                    textvariable=var
                 )
             elif k in pywfom.imaging.OPTIONS:
                 var = tk.StringVar(value=v)
                 entry = ttk.Combobox(
                     settings_frm,
                     values=pywfom.imaging.OPTIONS[k],
-                    textvariable=var,
-                    state='readonly'
+                    state='readonly',
                 )
             else:
                 var = tk.StringVar(value=v)
-                entry = tk.Entry(
-                    settings_frm,
-                    textvariable=var
-                )
+                entry = tk.Entry(settings_frm)
+            entry.config(textvariable=var, width=10, justify='center')
             var.trace('w', lambda nm, idx, mode, i=count:self._callback(i))
             count+=1
             self.names.append(k)
             self.vars.append(var)
-            entry.grid(row=i, column=1)
+            entry.grid(row=i, column=1, pady=3, padx=5)
             tk.Label(settings_frm, text=k.title()).grid(row=i, column=0)
 
     def _create_buttons(self):
@@ -809,8 +805,9 @@ class CameraConfig(tk.Toplevel):
         button_frm = tk.Frame(self)
         button_frm.pack()
 
-        tk.Button(button_frm, text='Reset', command=self._reset).grid(row=0, column=0)
-        tk.Button(button_frm, text='Done', command=self.destroy).grid(row=0, column=1)
+        for i, (name, func) in enumerate([('Reset', self._reset), ('Done', self.destroy)]):
+            btn = tk.Button(button_frm, text=name, command=func, padx=5, pady=5)
+            btn.grid(row=0, column=i, padx=10, pady=10)
 
     def _callback(self, index):
 
@@ -1248,7 +1245,13 @@ class RunConfig(tk.Toplevel):
         self.root = master
         _set_icon(self.root, 'configure')
 
-        self._init_system = self.system.__dict__.copy()
+        self._init_settings = {}
+
+        for k,v in self.system.__dict__.items():
+            if k not in ['runs', 'run_length', 'user', 'mouse']:
+                continue
+            else:
+                self._init_settings[k] = v
 
         self.widget_frm = tk.Frame(self)
         self.button_frm = tk.Frame(self)
@@ -1261,59 +1264,53 @@ class RunConfig(tk.Toplevel):
 
     def _create_widgets(self):
 
-        self.widget_frm.destroy()
-        self.widget_frm = tk.Frame(self)
+        self.vars = []
+        self.names = []
+        count = 0
+
+        widget_frm = tk.Frame(self)
+        widget_frm.pack()
 
         for i, (k,v) in enumerate(self.system.__dict__.items()):
-            var = tk.StringVar()
-            var.set(v)
+
             if k in ['arduino', 'cameras','directory'] or k[0] == '_':
                 continue
-
             elif k == 'runs':
-
-                tk.Label(self.widget_frm,text=k.title()).grid(row=i,column=0)
-                entry = tk.Spinbox(self.widget_frm,from_=0,to=100,width=3,justify='center',textvariable=var)
-                entry.grid(row=i,column=1)
+                var = tk.IntVar()
+                entry = tk.Spinbox(widget_frm,from_=1,to=100, width=3)
             else:
+                var = tk.StringVar()
+                entry = tk.Entry(widget_frm, width=7)
 
-                tk.Label(self.widget_frm,text=k.title()).grid(row=i,column=0)
-                entry = tk.Entry(self.widget_frm, textvariable=var, width=7,justify='center')
-                entry.grid(row=i,column=1)
-
-            entry.bind('<FocusOut>',
-                lambda event, k=k:self._callback(k, event))
-            entry.bind('<Return>',
-                lambda event, k=k:self._callback(k, event))
-            entry.bind('<Button-1>',
-                lambda event, k=k:self._callback(k, event))
-
-        self.widget_frm.pack()
+            tk.Label(widget_frm, text=k.title()).grid(row=i, column=0)
+            entry.config(textvariable=var, justify='center')
+            entry.grid(row=i, column=1, padx=10, pady=5)
+            var.set(v)
+            var.trace('w', lambda nm, idx, mode, i=count:self._callback(i))
+            self.vars.append(var)
+            self.names.append(k)
+            count+=1
 
     def _create_buttons(self):
 
-        self.button_frm.destroy()
-        self.button_frm = tk.Frame(self)
+        btn_frm = tk.Frame(self)
+        btn_frm.pack()
 
-        tk.Button(self.button_frm,text='Reset',command=self._reset).pack(side='left')
-        tk.Button(self.button_frm,text='Done',command=self.destroy).pack(side='left')
+        tk.Button(btn_frm,text='Reset',command=self._reset, padx=10, pady=3).pack(side='left', padx=10)
+        tk.Button(btn_frm,text='Done',command=self.destroy, padx=10, pady=3).pack(side='left', pady=10)
 
-        self.button_frm.pack()
+    def _callback(self, index):
 
-    def _callback(self, setting, event):
-        # TODO: Spinbox changes to new value on press, not old
-        if setting == 'run_length':
-            value = float(event.widget.get())
-        elif setting == 'runs':
-            value = int(event.widget.get())
-        else:
-            value = event.widget.get()
-        setattr(self.system, setting, value)
+        name = self.names[index]
+
+        try:
+            value = pywfom.imaging.TYPES[name](self.vars[index].get())
+        except:
+            return
+
+        setattr(self.system, name, value)
 
     def _reset(self):
-        for k,v in self._init_system.items():
-            if k in ['arduino', 'cameras','directory'] or k[0] == '_':
-                continue
-            else:
-                setattr(self.system, k, v)
-        self._update()
+
+        for i, (k,v) in enumerate(self._init_settings.items()):
+            self.vars[i].set(v)
