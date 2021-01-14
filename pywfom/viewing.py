@@ -1,4 +1,5 @@
-import json, os, pywfom, pkgutil
+import json, os, pywfom, pkgutil, zipfile
+from tqdm import tqdm
 import numpy as np
 import tkinter as tk
 from tkinter import ttk, simpledialog, filedialog, messagebox
@@ -55,8 +56,8 @@ def _add_camera(frame, viewing=True):
         return
 
 # File Related functions
-def _set_dir(parent):
-    parent.system.directory = tk.filedialog.askdirectory()
+def _set_dir(system):
+    system.directory = filedialog.askdirectory()
 
 class Main(tk.Frame):
 
@@ -305,7 +306,7 @@ class Main(tk.Frame):
         tk.Button(
             file_frame,
             text="Browse",
-            command=lambda frm=self:_set_dir(self),
+            command=lambda:_set_dir(self.system),
             padx=10,
             pady=5
         ).pack(side='left')
@@ -525,7 +526,7 @@ class Viewer(tk.Frame):
 
     """
 
-    def __init__(self, run_directory=None):
+    def __init__(self, run_dir=None):
 
         # TODO:
         # Monitor other aspects of the run
@@ -534,39 +535,52 @@ class Viewer(tk.Frame):
         self.root = tk.Tk()
         s = ttk.Style(self.root)
         s.theme_use('clam')
+        _set_icon(self.root, 'view')
 
         self.root.bind('<space>', self._toggle_play)
         self.root.bind('<Right>', self._slide_right)
         self.root.bind('<Left>', self._slide_left)
         self.root.protocol("WM_DELETE_WINDOW", self.close)
         self.root.bind("<Escape>", self.close)
-        self.root.title()
 
         self.paused = False
 
-        if not run_directory:
-            run_directory = filedialog.askdirectory(
+        if not run_dir:
+            run_dir = filedialog.askdirectory(
                 title='Select a run folder to view',
                 parent=self.root
             )
 
-        self.root.title(run_directory)
+        self.frames = []
 
-        with open("{0}/config.json".format(run_directory)) as f:
-            self.config = json.load(f)
-        f.close()
+        # Determine if folder is compressed
+        comp, zip = (True, zipfile.ZipFile(run_dir, 'r')) if run_dir[-3:] == 'zip' else (False, None)
 
+        files, run_name = (zip.namelist(), run_dir.split('/')[-1][:-4]) if comp else (os.listdir(run_dir), run_dir.split('/')[-1])
+
+        # Load configuration and frames
+        for i, file in enumerate(tqdm(files, desc='Loading {0} Frames'.format(run_name), unit='frames')):
+            f = zip.open(file) if comp else os.path.join(run_dir,file)
+            if file.split('/')[-1] == 'config.json':
+                f = open(f) if not comp else f
+                self.config = json.load(f)
+            else:
+                self.frames.append(np.load(f))
+
+        # Set Framerate of Viewing
         for i, cam in enumerate(self.config['cameras']):
             if cam['master']:
                 self.framerate = cam['framerate']
-
-        self.files = []
-
-        for i in range(len(os.listdir(run_directory))-1):
-            self.files.append(np.load("{0}/frame{1}.npz".format(run_directory, i), allow_pickle=True))
-
         self.current_frame = 0
 
+        # Set Window Title
+        self.root.title("{0} - by {1} on {2}".format(
+            run_name,
+            self.config['user'],
+            self.config['mouse']
+        ))
+
+        # Create widgets
         self._create_viewing_frames()
         self._create_controls()
         self._create_arduino_data()
@@ -574,43 +588,48 @@ class Viewer(tk.Frame):
 
     def _create_viewing_frames(self):
 
+        view_frm = tk.Frame(self.root)
+        view_frm.pack()
+
         self.cam_frms = []
 
         for i, cam in enumerate(self.config['cameras']):
-            tk.Label(self.root, text=cam['name']).grid(row=0,column=i)
-            frm = tk.Canvas(self.root)
-            frm.grid(row=1,column=i)
+            tk.Label(view_frm, text=cam['name']).grid(row=0, column=i)
+            frm = tk.Canvas(view_frm)
+            frm.grid(row=1, column=i)
             self.cam_frms.append(frm)
 
     def _create_controls(self):
 
-        self.control_frm = tk.Frame(self.root)
+        control_frm = tk.Frame(self.root)
+        control_frm.pack()
 
         self.slider = tk.Scale(
-            self.control_frm, orient=tk.HORIZONTAL, from_=0, to=len(self.files), length=600
+            control_frm, orient=tk.HORIZONTAL, from_=0, to=len(self.frames), length=600
         )
-        self.slider.pack(side='left')
+        self.slider.grid(row=0, column=0)
         self.slider.bind('<Button-1>', self._slider_callback)
         self.slider.bind('<ButtonRelease-1>', self._set_frame)
 
-        self.play_pause = tk.Button(self.control_frm,command=self._toggle_play,text='||')
-        self.play_pause.pack(side='left')
-
-        self.control_frm.grid(row=2,column=0,columnspan=len(self.cam_frms))
+        self.play_pause = tk.Button(control_frm,command=self._toggle_play,text='||')
+        self.play_pause.grid(row=0, column=1)
 
     def _create_arduino_data(self):
         # TODO: Better format this on the screen
 
+        ard_frm = tk.Frame(self.root)
+        ard_frm.pack()
+
         # Create LED Widget
-        led_frm = tk.Frame(self.root)
+        led_frm = tk.Frame(ard_frm)
         tk.Label(led_frm, text='Current Led: ').pack(side='left')
         self.current_led = tk.Label(led_frm)
         self.current_led.pack(side='left')
-        led_frm.grid(row=3, column=0)
+        led_frm.grid(row=0, column=0, columnspan=2)
 
         # Create daq widgets
         self.daq_values = []
-        daq_frm = tk.Frame(self.root)
+        daq_frm = tk.Frame(ard_frm)
         tk.Label(daq_frm, text='Data Acquisition').grid(row=0, column=0, columnspan=3)
         tk.Label(daq_frm, text='name').grid(row=1, column=0)
         tk.Label(daq_frm, text='pin').grid(row=1, column=1)
@@ -624,26 +643,26 @@ class Viewer(tk.Frame):
             d.grid(row=i+2, column=2)
             self.daq_values.append(d)
 
-        daq_frm.grid(row=3, column=1)
+        daq_frm.grid(row=1, column=0)
 
 
         # Create stim widgets
         self.stim_pos = []
-        stim_frm = tk.Frame(self.root)
-        tk.Label(stim_frm, text='Stim').grid(row=0, column=3, columnspan=3)
-        tk.Label(stim_frm, text='name').grid(row=1, column=3)
-        tk.Label(stim_frm, text='type').grid(row=1, column=4)
-        tk.Label(stim_frm, text='position').grid(row=1, column=5)
+        stim_frm = tk.Frame(ard_frm)
+        tk.Label(stim_frm, text='Stim').grid(row=0, column=0, columnspan=3)
+        tk.Label(stim_frm, text='name').grid(row=1, column=0)
+        tk.Label(stim_frm, text='type').grid(row=1, column=1)
+        tk.Label(stim_frm, text='position').grid(row=1, column=2)
 
         for i, stim in enumerate(self.config['arduino']['stim']):
-            tk.Label(stim_frm, text=stim['name']).grid(row=i+2, column=3)
-            tk.Label(stim_frm, text=stim['type']).grid(row=i+2, column=4)
+            tk.Label(stim_frm, text=stim['name']).grid(row=i+2, column=0)
+            tk.Label(stim_frm, text=stim['type']).grid(row=i+2, column=1)
 
             s = tk.Label(stim_frm)
-            s.grid(row=i+2, column=5)
+            s.grid(row=i+2, column=2)
             self.stim_pos.append(s)
 
-        stim_frm.grid(row=3, column=2)
+        stim_frm.grid(row=1, column=1)
 
     def _update_arduino_widgets(self, message):
 
@@ -662,10 +681,10 @@ class Viewer(tk.Frame):
     def _update(self):
 
         try:
-            frame = self.files[self.current_frame]
+            frame = self.frames[self.current_frame]
         except:
             self.current_frame = 0
-            frame = self.files[self.current_frame]
+            frame = self.frames[self.current_frame]
 
         for i, data in enumerate(frame.files):
             if i == len(self.cam_frms):

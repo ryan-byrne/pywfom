@@ -112,8 +112,10 @@ class Arduino():
         self._ser.write(msg.encode())
         time.sleep(0.1)
 
-
     def set_daq(self, pins=None):
+
+        # <d4,5,6,>
+
         if not self._ser:
             return
         d = ','.join([str(daq['pin']) for daq in self.data_acquisition])
@@ -122,7 +124,11 @@ class Arduino():
 
     def read(self):
         # TODO: Uncomment when ready
+
+        # 1d123,245,100,m200
+
         #return self._ser.readline()
+
         return "0d{0},{1},m200,".format( random.randint(0, 200) , random.randint(0, 200) )
 
     def step(speed, steps):

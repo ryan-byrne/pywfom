@@ -1,4 +1,5 @@
-import pkgutil, argparse, sys, os, json, pywfom, cv2, threading, shutil, time, tempfile
+import pkgutil, argparse, sys, os, json, pywfom, threading, shutil, zipfile, time
+from tqdm import tqdm
 import numpy as np
 from .imaging import Camera
 from .control import Arduino
@@ -47,11 +48,19 @@ def _get_viewer_args():
 
     parser = argparse.ArgumentParser(description="Command line viewer for pywfom runs")
 
-    msg = "Specify the path to the run directory you wish to view."
+    msg = "Specify the path to the run directory you wish to view or compress"
     parser.add_argument(    '-p',
                             '--path',
                             type=str,
                             default=None,
+                            help=msg
+                            )
+
+    msg = "Remove a run directory after it has been compressed"
+    parser.add_argument(    '-r',
+                            '--remove',
+                            action='store_true',
+                            default=False,
                             help=msg
                             )
 
@@ -119,6 +128,18 @@ def save_settings(frame):
         settings = organize_settings(frame.system)
         json.dump(settings, file)
         file.close()
+
+def _compress_run(run_dir, remove):
+
+    zip = zipfile.ZipFile( run_dir+'.zip', 'w', compression=zipfile.ZIP_DEFLATED )
+    name = run_dir.split('/')[-1]
+
+    for root, dirs, files in os.walk(run_dir):
+        for i, file in enumerate(tqdm(files, 'Compressing {0}'.format(name), unit='frames')):
+            zip.write(os.path.join(root, file), os.path.relpath(os.path.join(root, file), os.path.join(root, '..')))
+
+    if remove:
+        shutil.rmtree(run_dir)
 
 # Command Line functions
 def quickstart():
@@ -197,6 +218,28 @@ def main():
         system = System(args.config)
         frame = Main(system)
         frame.root.mainloop()
+
+def archive():
+
+    root = tk.Tk()
+
+    _set_icon(root, 'zip')
+
+    args = _get_viewer_args()
+
+    args.path = tk.filedialog.askdirectory() if not args.path else args.path
+
+    if not args.path:
+        return
+
+    remove = False if not args.remove or not tk.messagebox.askyesno('Archive', 'Delete compressed Run Directory?') else True
+
+    if args.path.split('/')[-1][:3] == 'run':
+        _compress_run(args.path, remove)
+    else:
+        for subdir, dirs, files in os.walk(args.path):
+            for i, run in enumerate(tqdm(dirs)):
+                _compress_run(subdir+run, remove)
 
 def solis():
     pass
@@ -339,7 +382,7 @@ class System(object):
             num_frms = 0
             # TODO: Write frames simultaneously
             # TODO: Write to disk in thread
-
+            print('Beginning Run {0} of {1}'.format(i+1, self.runs))
             while num_frms < run_frms:
 
                 self._data = {}

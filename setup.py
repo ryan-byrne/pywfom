@@ -18,12 +18,13 @@ setup(
         "pyserial",
         "numpy",
         "h5py",
-        "Pillow"
+        "Pillow",
+        "tqdm"
     ],
     entry_points={
         'console_scripts':[
             'wfom = pywfom:main',
-            'wfom-solis = pywfom:solis',
+            'wfom-archive = pywfom:archive',
             'wfom-viewer = pywfom:view',
             'wfom-quickstart = pywfom:quickstart'
         ] },

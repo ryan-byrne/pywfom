@@ -11,11 +11,12 @@ Create Virtual Machine
 ======================
 
 It is **highly recommended** you use a `Virtual Environment`_ when installing
-:py:mod:`pywfom`
+:py:mod:`pywfom`. This is done by running the following commands:
 
 .. code-block:: shell
 
-  pip install pywfom
+  python3 -m venv myWFOM
+  source myWFOM/bin/activate
 
 Installing PyWFOM
 =================
