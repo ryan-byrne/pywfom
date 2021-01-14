@@ -108,7 +108,7 @@ class Camera(object):
 
         self.set(config=config)
 
-        
+
 
     def set(self, **kwargs):
 
@@ -495,19 +495,21 @@ OPTIONS = {
 DEFAULT_MAXIMUMS = {
     'height':2400,
     'width':2400,
-    'framerate':100.0
+    'framerate':100.0,
+    'index':10
 }
 
 DEFAULT_MINIMUMS = {
     'height':50,
     'width':50,
-    'framerate':5.0
+    'framerate':5.0,
+    'index':0
 }
 
 TYPES = {
-  "name":str,
-  "index":int,
   "device":str,
+  "index":int,
+  "name":str,
   "height":int,
   "width":int,
   "offset_x":int,

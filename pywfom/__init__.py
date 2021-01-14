@@ -192,8 +192,7 @@ def test():
     frame = tk.Frame(root)
     frame.root = root
     system = System()
-    ard = ArduinoConfig(system.arduino, frame.root)
-    StimConfig(system.arduino, 0, frame.root)
+    ard = CameraConfig(system.cameras[0], frame.root)
     root.mainloop()
 
 def view():

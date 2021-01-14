@@ -528,10 +528,6 @@ class Viewer(tk.Frame):
 
     def __init__(self, run_dir=None):
 
-        # TODO:
-        # Monitor other aspects of the run
-        #
-
         self.root = tk.Tk()
         s = ttk.Style(self.root)
         s.theme_use('clam')
@@ -744,8 +740,6 @@ class CameraConfig(tk.Toplevel):
       :align: center
       :width: 200
 
-
-
     """
 
     def __init__(self, camera=None, master=None):
@@ -765,87 +759,74 @@ class CameraConfig(tk.Toplevel):
         self.title("({0}) Settings".format(self.camera.name))
 
         self.widget_frm = tk.Frame(self)
-        self._update_widgets()
+        self._create_widgets()
+        self._create_buttons()
 
-    def _update_widgets(self):
+    def _create_widgets(self):
 
-        self.widget_frm.destroy()
-        self.widget_frm = tk.Frame(self)
+        self.names = []
+        self.vars = []
+        count = 0
 
-        setting_frm = tk.Frame(self.widget_frm)
+        settings_frm = tk.Frame(self)
+        settings_frm.pack()
 
-        for i, (k, v) in enumerate(self.camera.__dict__.items()):
+        for i, (k,v) in enumerate(self.camera.__dict__.items()):
 
-            if k[0] == '_' or k not in pywfom.imaging.TYPES:
+            if k[0] == '_' or k in ['frame', 'ERRORS', 'WARNINGS']:
                 continue
-
-            v = str(v)
-
-            lbl = tk.Label(setting_frm, text=k.title(), width=len(k))
-            lbl.grid(row=i, column=0, sticky='E', pady=5)
-
-            if k in pywfom.imaging.OPTIONS:
-                entry = ttk.Combobox(
-                    setting_frm,
-                    width=8,
-                    values=pywfom.imaging.OPTIONS[k],
-                    justify='center'
-                )
-                entry.insert(0, v)
-                entry.config(state='readonly')
-                entry.bind('<<ComboboxSelected>>', lambda event, k=k:self._callback(event,k))
-
-            elif k in ["framerate", 'name']:
-                entry = tk.Entry(
-                    setting_frm,
-                    width=8,
-                    justify='center'
-                )
-                entry.insert(0, v)
-            else:
+            elif k in ['index', 'height', 'width', 'offset_x', 'offset_y']:
+                var = tk.IntVar(value=v)
                 entry = tk.Spinbox(
-                    setting_frm,
-                    width=4,
-                    from_= self.camera.get_min(k),
-                    to = self.camera.get_max(k),
-                    justify='center'
+                    settings_frm,
+                    from_=self.camera.get_min(k),
+                    to=self.camera.get_max(k),
+                    textvariable=var
                 )
-                entry.delete(0, 'end')
-                entry.insert(0, v)
-                entry.config(
-                    command=lambda entry=entry, k=k:self._callback(entry, k)
+            elif k in pywfom.imaging.OPTIONS:
+                var = tk.StringVar(value=v)
+                entry = ttk.Combobox(
+                    settings_frm,
+                    values=pywfom.imaging.OPTIONS[k],
+                    textvariable=var,
+                    state='readonly'
                 )
-                entry.bind('<Button-1>', lambda event, k=k:self._callback(event, k))
+            else:
+                var = tk.StringVar(value=v)
+                entry = tk.Entry(
+                    settings_frm,
+                    textvariable=var
+                )
+            var.trace('w', lambda nm, idx, mode, i=count:self._callback(i))
+            count+=1
+            self.names.append(k)
+            self.vars.append(var)
+            entry.grid(row=i, column=1)
+            tk.Label(settings_frm, text=k.title()).grid(row=i, column=0)
 
-            entry.grid(row=i, column=1, sticky='W', pady=5)
-            entry.bind('<FocusOut>', lambda event, k=k:self._callback(event, k))
-            entry.bind('<Return>', lambda event, k=k:self._callback(event, k))
+    def _create_buttons(self):
 
-        setting_frm.pack()
-        button_frm = tk.Frame(self.widget_frm)
-        button_frm.pack(pady=10)
+        button_frm = tk.Frame(self)
+        button_frm.pack()
 
-        reset_btn = tk.Button(button_frm, text='Reset', command=self._reset)
-        reset_btn.pack(side='left', padx=10)
-        done_btn = tk.Button(button_frm, text='Done', command=self._close)
-        done_btn.pack(side='left')
+        tk.Button(button_frm, text='Reset', command=self._reset).grid(row=0, column=0)
+        tk.Button(button_frm, text='Done', command=self.destroy).grid(row=0, column=1)
 
-        self.widget_frm.pack()
+    def _callback(self, index):
 
-    def _callback(self, event, setting):
+        name = self.names[index]
 
-        # TODO: Fix problem with setting master
+        try:
+            value = pywfom.imaging.TYPES[name](self.vars[index].get())
+        except:
+            return
 
-        value = pywfom.imaging.TYPES[setting](event.widget.get())
-
-        if setting == 'name':
-            self.parent.thumbnail_labels[self.parent.selected_frame].config(text=value)
-
-        self.camera.set( config = {setting:value} )
+        self.camera.set(config={name:value})
 
     def _reset(self):
-        self.camera.set(config=self._init_settings)
-        self._update_widgets()
+
+        for i, (k,v) in enumerate(self._init_settings.items()):
+            self.vars[i].set(v)
 
     def _close(self, event=None):
         if event and event.widget.widgetName in ['frame', 'ttk::combobox']:
