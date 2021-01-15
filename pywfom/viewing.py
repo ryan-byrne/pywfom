@@ -55,6 +55,28 @@ def _add_camera(frame, viewing=True):
     else:
         return
 
+def convert_frame(frame, max_size):
+
+    if frame.dtype == "uint16":
+        frame = frame.astype(np.uint8)
+    else:
+        pass
+
+    # Create main viewing frame
+    max_dim = max(frame.shape[0], frame.shape[1])
+    if max_dim < max_size[0]:
+        scale = max_size[0]/max_dim
+    elif max_dim > max_size[1]:
+        scale = max_size[1]/max_dim
+    else:
+        scale = 1
+
+    w, h = int(scale*frame.shape[0]), int(scale*frame.shape[1])
+
+    img = ImageTk.PhotoImage(image = Image.fromarray(frame).resize((h, w)))
+
+    return img, scale
+
 # File Related functions
 def _set_dir(system):
     system.directory = filedialog.askdirectory()
@@ -384,11 +406,11 @@ class Main(tk.Frame):
 
         if len(self.system.cameras) == 0:
             frame = pywfom.imaging.error_frame("No Cameras Configured")
-            image = self.convert_frame(frame, (800,1000), True)
+            image, self.scale = convert_frame(frame, (800,1000))
         else:
             # Draw main image
             cam = self.system.cameras[self.selected_frame]
-            image = self.convert_frame(cam.frame, (800,1000), True)
+            image, self.scale = convert_frame(cam.frame, (800,1000))
 
             h, w, fr = cam.height, cam.width, cam.framerate
 
@@ -422,7 +444,7 @@ class Main(tk.Frame):
         thumbnail_size = (tn_height, tn_height)
 
         for i, cam in enumerate(self.system.cameras):
-            img = self.convert_frame(cam.frame, thumbnail_size, False)
+            img, _ = convert_frame(cam.frame, thumbnail_size)
             self.thumbnails[i].img = img
             self.thumbnails[i].config(image=img, borderwidth=3, relief="flat", bg="white")
             self.thumbnails[i].bind("<Button-1>",lambda event, idx=i: self.change_main_frame(event, idx))
@@ -491,31 +513,6 @@ class Main(tk.Frame):
     def change_main_frame(self, event, idx):
         self.selected_frame = idx
 
-    def convert_frame(self, frame, max_size, main):
-
-        if frame.dtype == "uint16":
-            frame = frame.astype(np.uint8)
-        else:
-            pass
-
-        # Create main viewing frame
-        max_dim = max(frame.shape[0], frame.shape[1])
-        if max_dim < max_size[0]:
-            scale = max_size[0]/max_dim
-        elif max_dim > max_size[1]:
-            scale = max_size[1]/max_dim
-        else:
-            scale = 1
-
-        w, h = int(scale*frame.shape[0]), int(scale*frame.shape[1])
-
-        if main:
-            self.scale = scale
-
-        img = ImageTk.PhotoImage(image = Image.fromarray(frame).resize((h, w)))
-
-        return img
-
 class Viewer(tk.Frame):
 
     """
@@ -546,28 +543,28 @@ class Viewer(tk.Frame):
                 title='Select a run folder to view',
                 parent=self.root
             )
+        run_name = run_dir.split('/')[-1][:-4]
 
-        self.frames = []
+        zip = zipfile.ZipFile(run_dir, 'r') if run_dir.split('/')[-1][-3:] == 'zip' else None
+        f = zip.open(run_name+'/config.json') if zip else open(run_dir+'/config.json')
 
-        # Determine if folder is compressed
-        comp, zip = (True, zipfile.ZipFile(run_dir, 'r')) if run_dir[-3:] == 'zip' else (False, None)
-
-        files, run_name = (zip.namelist(), run_dir.split('/')[-1][:-4]) if comp else (os.listdir(run_dir), run_dir.split('/')[-1])
-
-        # Load configuration and frames
-        for i, file in enumerate(tqdm(files, desc='Loading {0} Frames'.format(run_name), unit='frames')):
-            f = zip.open(file) if comp else os.path.join(run_dir,file)
-            if file.split('/')[-1] == 'config.json':
-                f = open(f) if not comp else f
-                self.config = json.load(f)
-            else:
-                self.frames.append(np.load(f))
+        self.config = json.load(f)
 
         # Set Framerate of Viewing
         for i, cam in enumerate(self.config['cameras']):
             if cam['master']:
                 self.framerate = cam['framerate']
         self.current_frame = 0
+
+        self.frames = []
+        num_frms = len(zip.infolist())-1 if zip else len(os.listdir(run_dir))-1
+
+        for i in tqdm(range(num_frms)):
+            path = run_name if zip else run_dir
+            fname = '{0}/frame{1}.npz'.format(path, i)
+            f = zip.open(fname) if zip else fname
+            self.frames.append(np.load(f))
+
 
         # Set Window Title
         self.root.title("{0} - by {1} on {2}".format(
@@ -687,8 +684,7 @@ class Viewer(tk.Frame):
                 self._update_arduino_widgets(str(frame.get(data)))
             else:
                 canvas = self.cam_frms[i]
-                array_img = Image.fromarray(frame.get(data))
-                img = ImageTk.PhotoImage(image=array_img)
+                img, _ = convert_frame(frame.get(data), (500,500))
                 canvas.create_image(0,0,image=img,anchor="nw")
                 canvas.image = img
                 canvas.config(height=img.height(),width=img.width())
@@ -1182,7 +1178,7 @@ class StimConfig(tk.Toplevel):
 
         name = 'pins' if pins else self.names[index]
         value = [pin.get() for pin in self.pins] if pins else self.vars[index].get()
-        
+
         self.arduino.set_stim({name:value})
 
     def _reset(self):
@@ -1251,12 +1247,6 @@ class RunConfig(tk.Toplevel):
             else:
                 self._init_settings[k] = v
 
-        self.widget_frm = tk.Frame(self)
-        self.button_frm = tk.Frame(self)
-        self._update()
-
-
-    def _update(self):
         self._create_widgets()
         self._create_buttons()
 
@@ -1302,7 +1292,7 @@ class RunConfig(tk.Toplevel):
         name = self.names[index]
 
         try:
-            value = pywfom.imaging.TYPES[name](self.vars[index].get())
+            value = float(self.vars[index].get()) if name == 'run_length' else self.vars[index].get()
         except:
             return
 

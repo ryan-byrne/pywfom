@@ -128,10 +128,8 @@ class Arduino():
         # TODO: Uncomment when ready
 
         # 1d123,245,100,m200
-        if not self._ser:
-            return "0d{0},{1},m200,".format( random.randint(0, 200) , random.randint(0, 200) )
-        else:
-            return self._ser.readline()
+        return "0d{0},{1},m200,".format( random.randint(0, 200) , random.randint(0, 200) )
+        #return self._ser.readline()
 
     def step(speed, steps):
         # <p60,200>

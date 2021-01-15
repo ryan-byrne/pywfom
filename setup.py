@@ -17,9 +17,9 @@ setup(
         "opencv-python",
         "pyserial",
         "numpy",
-        "h5py",
         "Pillow",
-        "tqdm"
+        "tqdm",
+        "pyfiglet"
     ],
     entry_points={
         'console_scripts':[

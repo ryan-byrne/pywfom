@@ -1,4 +1,5 @@
 import pkgutil, argparse, sys, os, json, pywfom, threading, shutil, zipfile, time
+from pyfiglet import Figlet
 from tqdm import tqdm
 import numpy as np
 from .imaging import Camera
@@ -6,6 +7,9 @@ from .control import Arduino
 from .viewing import Main, Viewer, ArduinoConfig, StimConfig, CameraConfig, _set_icon
 import tkinter as tk
 from PIL import Image, ImageTk
+
+f = Figlet(font='slant')
+print(f.renderText('pyWFOM'))
 
 # Retrieve command line arguments
 def _get_args():
@@ -328,7 +332,7 @@ class System(object):
         [cam.close() for cam in self.cameras]
         self.arduino.close()
 
-    def _make_run_directory(self, i):
+    def _make_run_directory(self):
 
         if not os.path.exists(self.directory):
             os.mkdir(self.directory)
@@ -371,15 +375,20 @@ class System(object):
 
         for i in range(self.runs):
 
-            path = self._make_run_directory(i)
+            path = self._make_run_directory()
             run_frms = self.run_length*self.cameras[master].framerate
             num_frms = 0
+
             # TODO: Write frames simultaneously
             # TODO: Write to disk in thread
-            print('Beginning Run {0} of {1}'.format(i+1, self.runs))
+            # TODO: improve speed suring webcam acquisition
+
+            pbar = tqdm(total=run_frms, unit='frame', desc='Run {0} of {1}'.format(i+1, self.runs))
+
             while num_frms < run_frms:
 
                 self._data = {}
+
                 fname = "{0}/frame{1}.npz".format(path, num_frms)
 
                 for cam in self.cameras:
@@ -390,10 +399,11 @@ class System(object):
                 t.start()
                 t.join()
 
-
                 threading.Thread(target=self._save_data, args=(fname,)).start()
-
+                pbar.update(1)
                 num_frms+=1
+
+            pbar.close()
 
         self.arduino.stop_strobing()
 
