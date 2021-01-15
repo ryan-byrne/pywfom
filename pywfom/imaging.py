@@ -1,5 +1,5 @@
 import numpy as np
-import threading, time, traceback, os, ctypes, platform, queue
+import threading, time, traceback, os, ctypes, platform, queue, cv2
 import sys
 from PIL import Image, ImageDraw, ImageFont
 
@@ -155,8 +155,6 @@ class Camera(object):
 
         """
 
-        t = time.time()
-
         if self.device == 'webcam':
             ret, img = self._handler.read()
             img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -171,7 +169,6 @@ class Camera(object):
 
         else:
             frame = np.random.randint(0,255,size=(self.height, self.width)).astype(self.dtype)
-
         return frame
 
     def close(self):
@@ -265,9 +262,6 @@ class Camera(object):
             return None
 
     def _start_webcam(self, index):
-
-        global cv2
-        import cv2
 
         try:
             cam = cv2.VideoCapture(index)
@@ -392,7 +386,7 @@ class Camera(object):
         _guide = {
             'height':int(self._handler.get(4)),
             'width':int(self._handler.get(3)),
-            'framerate':30.0
+            'framerate':24.0
         }
 
         return _guide[setting]

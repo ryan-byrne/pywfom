@@ -1,1 +1,67 @@
-{"user": "rjb2202", "mouse": "cm100", "directory": "/Users/rbyrne/projects/pywfom/data", "runs": 1, "run_length": 1.0, "arduino": {"port": "/dev/cu.Bluetooth-Incoming-Port", "stim": [{"name": "default", "type": "4PinStepper", "pins": [15, 16, 17, 18], "steps_per_revolution": 200, "pre_stim": 4.0, "stim": 7.0, "post_stim": 8.0}], "data_acquisition": [{"name": "encoder1", "pin": 12}, {"name": "encoder2", "pin": 13}], "strobing": {"leds": [{"name": "blue", "pin": 7}, {"name": "green", "pin": 8}, {"name": "red", "pin": 10}, {"name": "orange", "pin": 12}], "trigger": 5}}, "cameras": [{"device": "webcam", "index": 0, "name": "cam1", "height": 720, "width": 1280, "offset_x": 1, "offset_y": 1, "binning": "1x1", "dtype": "uint16", "master": true, "framerate": 30.0}, {"device": "test", "index": 0, "name": "cam3", "height": 500, "width": 400, "offset_x": 1, "offset_y": 50, "binning": "1x1", "dtype": "uint16", "master": false, "framerate": 10.0}]}
+{
+  "user": "rjb2202",
+  "mouse": "cm100",
+  "directory": "/Users/rbyrne/projects/pywfom/data",
+  "runs": 1,
+  "run_length": 5.0,
+  "arduino": {
+    "port": "/dev/cu.Bluetooth-Incoming-Port",
+    "stim": [{
+      "name": "default",
+      "type": "4PinStepper",
+      "pins": [15, 16, 17, 18],
+      "steps_per_revolution": 200,
+      "pre_stim": 4.0,
+      "stim": 7.0,
+      "post_stim": 8.0
+    }],
+    "data_acquisition": [{
+      "name": "encoder1",
+      "pin": 12
+    }, {
+      "name": "encoder2",
+      "pin": 13
+    }],
+    "strobing": {
+      "leds": [{
+        "name": "blue",
+        "pin": 7
+      }, {
+        "name": "green",
+        "pin": 8
+      }, {
+        "name": "red",
+        "pin": 10
+      }, {
+        "name": "orange",
+        "pin": 12
+      }],
+      "trigger": 5
+    }
+  },
+  "cameras": [{
+    "device": "webcam",
+    "index": 0,
+    "name": "cam1",
+    "height": 720,
+    "width": 1280,
+    "offset_x": 1,
+    "offset_y": 1,
+    "binning": "1x1",
+    "dtype": "uint16",
+    "master": true,
+    "framerate": 30.0
+  }, {
+    "device": "test",
+    "index": 0,
+    "name": "cam3",
+    "height": 500,
+    "width": 400,
+    "offset_x": 1,
+    "offset_y": 50,
+    "binning": "1x1",
+    "dtype": "uint16",
+    "master": false,
+    "framerate": 10.0
+  }]
+}

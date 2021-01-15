@@ -538,24 +538,23 @@ class Viewer(tk.Frame):
 
         self.paused = False
 
+        # Set directory and run name
         if not run_dir:
             run_dir = filedialog.askdirectory(
                 title='Select a run folder to view',
                 parent=self.root
             )
-        run_name = run_dir.split('/')[-1][:-4]
 
+        # Record configuration
         zip = zipfile.ZipFile(run_dir, 'r') if run_dir.split('/')[-1][-3:] == 'zip' else None
+        run_name = run_name if run_dir.split('/')[-1][:-4] == zip else run_dir.split('/')[-1]
         f = zip.open(run_name+'/config.json') if zip else open(run_dir+'/config.json')
-
         self.config = json.load(f)
 
-        # Set Framerate of Viewing
-        for i, cam in enumerate(self.config['cameras']):
-            if cam['master']:
-                self.framerate = cam['framerate']
-        self.current_frame = 0
+        # Set title to run name
+        self.root.title(run_name)
 
+        # Record frames from files
         self.frames = []
         num_frms = len(zip.infolist())-1 if zip else len(os.listdir(run_dir))-1
 
@@ -565,19 +564,36 @@ class Viewer(tk.Frame):
             f = zip.open(fname) if zip else fname
             self.frames.append(np.load(f))
 
+        # Set Framerate of Viewing
+        for i, cam in enumerate(self.config['cameras']):
+            if cam['master']:
+                self.framerate = cam['framerate']
+        self.current_frame = 0
 
-        # Set Window Title
-        self.root.title("{0} - by {1} on {2}".format(
-            run_name,
-            self.config['user'],
-            self.config['mouse']
-        ))
 
         # Create widgets
+        self._create_info_widgets()
         self._create_viewing_frames()
         self._create_controls()
         self._create_arduino_data()
         self._update()
+
+    def _create_info_widgets(self):
+
+        info_frm = tk.Frame(self.root)
+        info_frm.pack()
+
+        lbls = [
+            'Framerate:',
+            self.framerate,
+            'Mouse:',
+            self.config['mouse'],
+            'User:',
+            self.config['user']
+        ]
+
+        for i, text in enumerate(lbls):
+            tk.Label(info_frm, text=text).grid(row=0, column=i)
 
     def _create_viewing_frames(self):
 
@@ -745,6 +761,8 @@ class CameraConfig(tk.Toplevel):
         self.camera = camera
 
         self.root = master
+
+        self.root.bind('<Return>', self.destroy)
 
         self._init_settings = {}
         for setting in pywfom.imaging.TYPES:
