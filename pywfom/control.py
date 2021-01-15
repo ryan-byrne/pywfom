@@ -1,4 +1,5 @@
 import serial, os, time, sys, glob, random, threading
+from halo import Halo
 import serial.tools.list_ports
 
 def list_ports():
@@ -28,12 +29,11 @@ class Arduino():
         # TODO:  test stim
 
         # Set default settings
-        self.port, self.stim, self.data_acquisition, self.strobing = 'COM1', [], [], []
-        self.DAQ_MSG = ""
+        self.port, self.stim, self.data_acquisition, self.strobing =  "", [], [], []
+        self.DAQ_MSG, self.ERROR, self._ser = "", "", None
 
         # Check for configuration dict, otherwise use kwargs
         settings = config if config else settings
-
         # Establish settings
         self.set(config=settings)
 
@@ -152,18 +152,16 @@ class Arduino():
         self._ser.write("<s>".encode())
         time.sleep(0.1)
 
+    @Halo(text='Connecting to Arduino', spinner='dots')
     def _connect(self, port):
         """ Connect to an Arduino at a specified COM Port"""
         try:
-            print("Attempting to connect to Arduino at " + port)
             self._ser = serial.Serial(port=port , baudrate=115200)
             time.sleep(2)
-            print("Successfully connected to Arduino at {0}".format(port))
             self.port = port
             self.ERROR = None
         except serial.serialutil.SerialException as e:
             self.ERROR = "Unable to connect to Arduino at "+port
-            print(self.ERROR)
             self._ser = None
 
     def stop(self):

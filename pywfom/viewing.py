@@ -455,8 +455,17 @@ class Main(tk.Frame):
 
     def _acquire(self):
 
-        if tk.messagebox.askyesno("pywfom", message="Start acquistion?"):
-            self.system.acquire()
+
+        for cam in self.system.cameras:
+            if cam.ERRORS:
+                tk.messagebox.showerror('Camera Error',message=cam.ERRORS[0])
+                return
+
+        if self.system.arduino.ERROR:
+            tk.messagebox.showerror('Arduino Error',message=self.arduino.ERROR)
+            return
+
+        Acquisition(self.system, self.root)
 
     def close(self, event=None):
         self.system.close()
@@ -547,7 +556,7 @@ class Viewer(tk.Frame):
 
         # Record configuration
         zip = zipfile.ZipFile(run_dir, 'r') if run_dir.split('/')[-1][-3:] == 'zip' else None
-        run_name = run_name if run_dir.split('/')[-1][:-4] == zip else run_dir.split('/')[-1]
+        run_name = run_dir.split('/')[-1][:-4] if zip else run_dir.split('/')[-1]
         f = zip.open(run_name+'/config.json') if zip else open(run_dir+'/config.json')
         self.config = json.load(f)
 
@@ -558,7 +567,7 @@ class Viewer(tk.Frame):
         self.frames = []
         num_frms = len(zip.infolist())-1 if zip else len(os.listdir(run_dir))-1
 
-        for i in tqdm(range(num_frms)):
+        for i in tqdm(range(num_frms), desc='Loading {0}'.format(run_name), unit='frame'):
             path = run_name if zip else run_dir
             fname = '{0}/frame{1}.npz'.format(path, i)
             f = zip.open(fname) if zip else fname
@@ -875,6 +884,7 @@ class ArduinoConfig(tk.Toplevel):
             self._init_settings[k] = v
         _set_icon(self.root, 'configure')
         self.title("Arduino Settings")
+        self.root.bind('<Return>', self.destroy)
         self.strobe_frm = tk.Frame(self)
         self.stim_frm = tk.Frame(self)
         self.daq_frm = tk.Frame(self)
@@ -1128,6 +1138,8 @@ class StimConfig(tk.Toplevel):
 
         super().__init__(master = master)
 
+        self.root.bind('<Return>', self.destroy)
+
         self.arduino = arduino
         self.stim = arduino.stim[index]
         self._init_settings = self.stim.copy()
@@ -1215,6 +1227,8 @@ class DaqView(tk.Toplevel):
 
             super().__init__(master = master)
 
+            self.root.bind('<Return>', self.destroy)
+
             self.arduino = arduino
             self._create_widgets()
             self._update()
@@ -1255,6 +1269,7 @@ class RunConfig(tk.Toplevel):
 
         self.system = system
         self.root = master
+        self.root.bind('<Return>', self.destroy)
         _set_icon(self.root, 'configure')
 
         self._init_settings = {}
@@ -1320,3 +1335,34 @@ class RunConfig(tk.Toplevel):
 
         for i, (k,v) in enumerate(self._init_settings.items()):
             self.vars[i].set(v)
+
+class Acquisition(tk.Toplevel):
+    """
+    Configure the run file
+    """
+
+    def __init__(self, system=None, master=None):
+
+        super().__init__(master = master)
+
+        self.system = system
+        self.root = master
+
+        self.archive, self.view, self.delete = tk.BooleanVar(), tk.BooleanVar(), tk.BooleanVar()
+
+        self._create_checkboxes()
+
+    def _create_checkboxes(self):
+
+        chk_frm = tk.Frame(self)
+        chk_frm.pack()
+
+        btns = [
+            ['Compress Run?', self.archive],
+            ['View?', self.view],
+            ['Delete?', self.delete]
+        ]
+
+        tk.Label(chk_frm, text='I would like to ').grid(row=0, column=0)
+        for i, (text, var) in enumerate(btns):
+            tk.Checkbutton(chk_frm, text=text, variable=var).grid(row=i, column=1)

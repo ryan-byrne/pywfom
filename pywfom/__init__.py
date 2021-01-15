@@ -2,6 +2,7 @@ import pkgutil, argparse, sys, os, json, pywfom, threading, shutil, zipfile, tim
 from pyfiglet import Figlet
 from tqdm import tqdm
 import numpy as np
+from halo import Halo
 from .imaging import Camera
 from .control import Arduino
 from .viewing import Main, Viewer, ArduinoConfig, StimConfig, CameraConfig, _set_icon
@@ -9,6 +10,7 @@ import tkinter as tk
 from PIL import Image, ImageTk
 
 f = Figlet(font='slant')
+os.system('clear')
 print(f.renderText('pyWFOM'))
 
 # Retrieve command line arguments
@@ -141,7 +143,6 @@ def _compress_run(run_dir, remove):
     for root, dirs, files in os.walk(run_dir):
         for i, file in enumerate(tqdm(files, 'Compressing {0}'.format(name), unit='frames')):
             zip.write(os.path.join(root, file), os.path.relpath(os.path.join(root, file), os.path.join(root, '..')))
-
     if remove:
         shutil.rmtree(run_dir)
 
@@ -194,12 +195,16 @@ def test():
     system = System()
     system.close()
 
-def view():
+def view(run_dir=None):
 
-    args = _get_viewer_args()
-    run_dir = args.path if args.path else None
+    if not run_dir:
+        args = _get_viewer_args()
+        run_dir = args.path if args.path else None
+
     frame = Viewer(run_dir)
-    frame.root.mainloop()
+
+    with Halo(text='Viewing Frames'):
+        frame.root.mainloop()
 
 def main():
 
@@ -215,9 +220,11 @@ def main():
     else:
         system = System(args.config)
         frame = Main(system)
+        with Halo(text='Configuring System'):
+            frame.root.mainloop()
         frame.root.mainloop()
 
-def archive():
+def archive(run_dir=None):
 
     root = tk.Tk()
 
@@ -236,7 +243,7 @@ def archive():
         _compress_run(args.path, remove)
     else:
         for subdir, dirs, files in os.walk(args.path):
-            for i, run in enumerate(tqdm(dirs)):
+            for i, run in enumerate(tqdm(dirs, unit='run', desc=args.path.split('/')[-2])):
                 _compress_run(subdir+run, remove)
 
 def solis():
@@ -313,15 +320,6 @@ class System(object):
         System.
 
         """
-
-        for cam in self.cameras:
-            if cam.ERRORS:
-                tk.messagebox.showerror('Camera Error',message=cam.ERRORS[0])
-                return
-
-        if self.arduino.ERROR:
-            tk.messagebox.showerror('Arduino Error',message=self.arduino.ERROR)
-            return
 
         threading.Thread(target=self._acquire_frames).start()
 

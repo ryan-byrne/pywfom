@@ -5,7 +5,7 @@
   "runs": 1,
   "run_length": 5.0,
   "arduino": {
-    "port": "/dev/cu.Bluetooth-Incoming-Port",
+    "port": "COM1",
     "stim": [{
       "name": "default",
       "type": "4PinStepper",

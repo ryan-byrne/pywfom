@@ -1,6 +1,6 @@
 import numpy as np
-import threading, time, traceback, os, ctypes, platform, queue, cv2
-import sys
+import threading, time, traceback, os, ctypes, platform, queue, cv2, sys
+from halo import Halo
 from PIL import Image, ImageDraw, ImageFont
 
 PySpin, andor = None, None
@@ -261,6 +261,7 @@ class Camera(object):
         else:
             return None
 
+    @Halo(text='Starting Webcam')
     def _start_webcam(self, index):
 
         try:
@@ -273,6 +274,7 @@ class Camera(object):
             self.ERRORS.append(str(e))
             return None
 
+    @Halo(text='Starting Spinnaker')
     def _start_spinnaker(self, index):
 
         try:
@@ -301,6 +303,7 @@ class Camera(object):
             self.ERRORS.append(msg)
             return None
 
+    @Halo(text='Starting Andor')
     def _start_andor(self, index):
 
         try:

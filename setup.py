@@ -19,7 +19,8 @@ setup(
         "numpy",
         "Pillow",
         "tqdm",
-        "pyfiglet"
+        "pyfiglet",
+        'halo'
     ],
     entry_points={
         'console_scripts':[
