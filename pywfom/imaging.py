@@ -17,7 +17,7 @@ def error_frame(msg=""):
 
     img = Image.fromarray(np.zeros((500,500), "uint8"))
     draw = ImageDraw.Draw(img)
-    draw.text((10, 175), "ERROR:", 255)
+    draw.text((10, 175), "ERROR! See Console for Traceback", 255)
     draw.text((10,225), msg, 255)
     return np.asarray(img)
 
@@ -89,27 +89,23 @@ class Camera(object):
 
     """
 
-    def __init__(self, device='test', index=0, config=None, **settings):
+    def __init__(self, device='webcam', index=0, config=None):
 
         # TODO: Build out andor
         # TODO: build out spinnaker
 
-        # Set the default variables in case something is missed in configuration
-        self.device, self.index, self.name, self.height = device, index, "", 500
-        self.width, self.offset_x, self.offset_y, self.binning = 500, 0, 0, '1x1'
-        self.dtype, self.master, self.framerate = 'uint8', False, 30.0
-
         # Create a to store any errors that may occur
-        self.ERRORS, self.WARNINGS= [], []
-
-        # Create a temporary loading frame
-        self.frame = loading_frame()
-
-        # Establish the Camera handler
-        self._handler = self._startup(device, index)
+        self.ERRORS, self.WARNINGS, self._handler = [], [], None
 
         # Set configuration and additional keyword arguments
         config = settings if not config else config
+        device = device if not 'device' in config else config['device']
+        index = index if not 'device' in config else config['index']
+
+        # Initialize camera
+        self._handler = self._startup(device, index)
+
+        # Set configuration
         self.set(config=config)
 
     def set(self, **settings):
@@ -139,14 +135,67 @@ class Camera(object):
 
         settings = settings['config'] if 'config' in settings else settings
 
-        for k, v in settings.items():
-
-            if not hasattr(self, k) or v != getattr(self, k) or k in TYPES:
+        try:
+            for k, v in settings.items():
                 self._set(k,v)
-            else:
-                continue
+        except:
+            traceback.print_exc()
 
         self._start_acquiring()
+
+    def _set(self, setting, value):
+
+        # TODO: Only startup camera once
+
+        print(setting, value)
+
+        if setting == 'index':
+            self._handler = self._startup(self.device, value)
+
+        elif setting == 'device':
+            self._handler = self._startup(value, self.index)
+
+        elif not self._handler or value == getattr(self, setting):
+            pass
+
+        elif setting == 'master':
+            # TODO: COmplete
+            pass
+
+        elif setting == 'binning':
+            # TODO: Complete
+            pass
+
+        elif setting == 'dtype':
+            # TODO: Complete
+            pass
+
+        else:
+
+            value = max(min(value, self.get_max(setting)), self.get_min(setting))
+
+            if self.device == 'spinnaker':
+                self._set_spinnaker(setting, value)
+            if self.device == 'webcam':
+                self._set_webcam(setting, value)
+            elif self.device == 'andor':
+                self._set_andor(setting, value)
+            else:
+                pass
+
+        setattr(self, setting, value)
+
+    def _set_webcam(self, setting, value):
+        if setting == 'framerate':
+            self._handler.set(WEBCAM_PROPS[setting], value)
+        else:
+            return
+
+    def _set_spinnaker(self, setting, value):
+        pass
+
+    def _set_andor(self, setting, value):
+        pass
 
     def read(self):
 
@@ -169,6 +218,7 @@ class Camera(object):
 
         else:
             frame = np.random.randint(0,255,size=(self.height, self.width)).astype(self.dtype)
+
         return frame
 
     def close(self):
@@ -187,12 +237,23 @@ class Camera(object):
         :type setting: `str`_
         """
 
-        if self.device == 'webcam' or not self._handler:
+        if not self._handler:
             return getattr(self, setting)
+        elif self.device == 'webcam':
+            if setting in WEBCAM_PROPS:
+                return self._handler.get(WEBCAM_PROPS[setting])
+            else:
+                return getattr(self, setting)
         elif self.device == 'andor':
             return self._get_andor(setting)
         elif self.device == 'spinnaker':
             return self._get_spinnaker(setting)
+
+    def _get_andor(self, setting):
+        pass
+
+    def _get_spinnaker(self, setting):
+        pass
 
     def get_min(self, setting):
 
@@ -246,97 +307,123 @@ class Camera(object):
         else:
             return FUNCTIONS[self.device](setting)
 
+    def _get_webcam_max(self, setting):
+
+        _guide = {
+            'height':int(self._handler.get(4)),
+            'width':int(self._handler.get(3)),
+            'framerate':61
+        }
+
+        return _guide[setting]
+
+    def _get_webcam_min(self, setting):
+
+        _guide = {
+            'height':10,
+            'width':10,
+            'framerate':29,
+            'offset_x':1,
+            'offset_y':1
+        }
+
+        return _guide[setting]
+
+    def _get_andor_max(self, setting):
+        # TODO:
+        pass
+
+    def _get_andor_min(self, setting):
+        # TODO:
+        pass
+
+    def _get_spinnaker_max(self, setting):
+        pass
+
+    def _get_spinnaker_min(self, setting):
+        # TODO:
+        pass
+
     def _startup(self, device, index):
 
         self.ERRORS, self.WARNINGS = [], []
 
-        self.device, self.index = device, index
+        with Halo(text='Starting {0} at Index {1}'.format(device, index)) as spinner:
 
-        if device == 'webcam':
-            return self._start_webcam(index)
-        elif device == 'spinnaker':
-            return self._start_spinnaker(index)
-        elif device == 'andor':
-            return self._start_andor(index)
-        else:
-            return None
+            try:
 
-    @Halo(text='Starting Webcam')
+                self.close()
+
+                start = {
+                    'webcam':self._start_webcam,
+                    'spinnaker':self._start_spinnaker,
+                    'andor':self._start_andor,
+                    'test':None
+                }
+
+                self._handler = start[device](index) if start[device] else None
+                self.index, self.device = index, device
+                spinner.succeed()
+
+            except Exception as e:
+                msg = traceback.format_exc()
+                self.frame = error_frame(msg)
+                self.ERRORS.append(msg)
+                spinner.fail(msg)
+
     def _start_webcam(self, index):
+        cam = cv2.VideoCapture(1)
+        if not cam.isOpened():
+            raise ConnectionError('No webcam found at index:{0}'.format(index))
+        return cam
 
-        try:
-            cam = cv2.VideoCapture(index)
-            if not cam.isOpened():
-                raise ConnectionError('No webcam found at index:{0}'.format(index))
-            return cam
-        except Exception as e:
-            self.frame = error_frame(str(e))
-            self.ERRORS.append(str(e))
-            return None
-
-    @Halo(text='Starting Spinnaker')
     def _start_spinnaker(self, index):
 
-        try:
+        # TODO: startup with storing settings
+        global PySpin
+        import PySpin
 
-            # TODO: startup with storing settings
-            global PySpin
-            import PySpin
+        self._system = PySpin.System.GetInstance()
+        cam = self._system.GetCameras().GetByIndex(index)
+        cam.Init()
+        """
+        for node in cam.GetNodeMap().GetNodes():
+            pit = node.GetPrincipalInterfaceType()
+            name = node.GetName()
+            if pit == PySpin.intfICommand:
+                self.methods[name] = PySpin.CCommandPtr(node)
+            elif pit in self._pointers:
+                self.settings[name] = self._pointers[pit](node)
+        """
+        return cam
 
-            self._system = PySpin.System.GetInstance()
-            cam = self._system.GetCameras().GetByIndex(index)
-            cam.Init()
-            """
-            for node in cam.GetNodeMap().GetNodes():
-                pit = node.GetPrincipalInterfaceType()
-                name = node.GetName()
-                if pit == PySpin.intfICommand:
-                    self.methods[name] = PySpin.CCommandPtr(node)
-                elif pit in self._pointers:
-                    self.settings[name] = self._pointers[pit](node)
-            """
-            return cam
-
-        except Exception as e:
-            msg = 'Could not initialize spinnaker camera at index {0}'.format(index)
-            self.frame = error_frame(msg)
-            self.ERRORS.append(msg)
-            return None
-
-    @Halo(text='Starting Andor')
     def _start_andor(self, index):
 
-        try:
-            global andor
-            from .utils import andor
+        global andor
+        from .utils import andor
 
-            # Create camera handler
-            _hndl = andor.Open(0)
+        # Create camera handler
+        _hndl = andor.Open(index)
 
-            # Create and populate buffers of a certain byte size
-            _img_size = andor.GetInt(_hndl, "ImageSizeBytes")
-            self._buffers = queue.Queue()
-            for i in range(10):
-                _buf = np.zeros((_img_size), 'uint8')
-                andor.QueueBuffer(
-                    _hndl,
-                    buf.ctypes.data_as(andor.POINTER(andor.AT_U8)),
-                    buf.nbytes
-                )
-                self._buffers.put(buf)
+        # Create and populate buffers of a certain byte size
+        _img_size = andor.GetInt(_hndl, "ImageSizeBytes")
+        self._buffers = queue.Queue()
+        for i in range(10):
+            _buf = np.zeros((_img_size), 'uint8')
+            andor.QueueBuffer(
+                _hndl,
+                buf.ctypes.data_as(andor.POINTER(andor.AT_U8)),
+                buf.nbytes
+            )
+            self._buffers.put(buf)
 
-            # Store the image stride
-            self._img_stride = andor.GetInt(_hndl, 'AOIStride')
-            return _hndl
-
-        except Exception as e:
-            self.frame = error_frame(str(e))
-            self.ERRORS.append(str(e))
-            return None
+        # Store the image stride
+        self._img_stride = andor.GetInt(_hndl, 'AOIStride')
+        return _hndl
 
     def _start_acquiring(self):
 
-        if not self._handler and self.device != 'test':
+        if not self._handler:
             return
 
         self._acquiring = True
@@ -350,10 +437,10 @@ class Camera(object):
 
     def _stop_acquiring(self):
 
-        if not self._handler and self.device != 'test':
-            return
-
         self._acquiring = False
+
+        if not self._handler:
+            return
 
         if self.device == 'andor':
             andor.Command(self._handler, 'AcquisitionStop')
@@ -384,111 +471,25 @@ class Camera(object):
     def _shutdown(self):
         pass
 
-    def _get_webcam_max(self, setting):
-
-        _guide = {
-            'height':int(self._handler.get(4)),
-            'width':int(self._handler.get(3)),
-            'framerate':24.0
-        }
-
-        return _guide[setting]
-
-    def _get_webcam_min(self, setting):
-
-        _guide = {
-            'height':10,
-            'width':10,
-            'framerate':1.0,
-            'offset_x':1
-        }
-
-        return _guide[setting]
-
-    def _get_andor_max(self, setting):
-        # TODO:
-        pass
-
-    def _get_andor_min(self, setting):
-        # TODO:
-        pass
-
-    def _get_spinnaker_max(self, setting):
-        pass
-
-    def _get_spinnaker_min(self, setting):
-        # TODO:
-        pass
-
-    def _set(self, setting, value):
-
-        if setting == 'device':
-            self._shutdown()
-            self._handler = self._startup(value, self.index)
-
-        elif setting == 'index':
-            self._shutdown()
-            self._handler = self._startup(self.device, value)
-
-        elif setting == 'name' or not self._handler:
-            pass
-
-        elif setting == 'master':
-            # TODO: COmplete
-            pass
-
-        elif setting == 'binning':
-            # TODO: Complete
-            pass
-
-        elif setting == 'dtype':
-            # TODO: Complete
-            pass
-
-        else:
-            value = max(min(value, self.get_max(setting)), self.get_min(setting))
-            if self.device == 'webcam':
-                self._set_webcam(setting, value)
-            elif self.device == 'spinnaker':
-                self._set_spinnaker(setting, value)
-            elif self.device == 'andor':
-                self._set_andor(setting, value)
-            else:
-                pass
-
-        setattr(self, setting, value)
-
-    def _set_webcam(self, setting, value):
-
-        if setting == 'framerate':
-            self._handler.set(5, value)
-
-        setattr(self, setting, value)
-
-    def _set_spinnaker(self, setting, value):
-        pass
-
-    def _set_andor(self, setting, value):
-        pass
-
     def _update_frame(self):
 
         while self._acquiring:
 
             try:
-
                 self.frame = self.read()
 
             except Exception as e:
-                msg = self.ERRORS[0] if self.ERRORS else str(e)
-
+                msg = self.ERRORS[0] if self.ERRORS else traceback.format_exc()
                 self.frame = error_frame(msg)
+
+
 
 OPTIONS = {
     'dtype':['uint8','uint12', 'uin12p', 'uint16'],
     'device':['andor', 'spinnaker', 'webcam', 'test'],
     'binning':['1x1','2x2','4x4','8x8'],
-    'master':[True, False]
+    'master':[True, False],
+    'framerate':[30, 60]
 }
 
 DEFAULT_MAXIMUMS = {
@@ -503,6 +504,12 @@ DEFAULT_MINIMUMS = {
     'width':50,
     'framerate':5.0,
     'index':0
+}
+
+WEBCAM_PROPS = {
+    'framerate':cv2.CAP_PROP_FPS,
+    'height':cv2.CAP_PROP_FRAME_HEIGHT,
+    'width':cv2.CAP_PROP_FRAME_WIDTH
 }
 
 TYPES = {

@@ -42,7 +42,7 @@
   },
   "cameras": [{
     "device": "webcam",
-    "index": 0,
+    "index": 1,
     "name": "cam1",
     "height": 564,
     "width": 420,

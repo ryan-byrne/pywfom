@@ -1,4 +1,4 @@
-#include <Stepper.h>
+// Firmware version 0.0.1
 
 // Serial message variables
 char incomingChar;
@@ -26,7 +26,7 @@ int stimPins[4];
 int stepsPerRevolution;
 int numStim = 0;
 int stepperPos = 0;
-Stepper stim(stepsPerRevolution, stimPins[0], stimPins[1]);
+Stepper stim = Stepper(stepsPerRevolution, stimPins[0], stimPins[1], stimPins[2], stimPins[3]);
 
 // Index Settings
 int idx = 0;
@@ -48,7 +48,6 @@ void loop() {
   if (strobing){
     nextLed();
   }
-
   returnData();
 }
 
@@ -106,8 +105,13 @@ void parseMsg(){
       case 'T':
         toggleLed();
         break;
-      case 'p':
-        setStep();
+      case '+':
+        stim.step(1);
+        stepperPos++;
+        break;
+      case '-':
+        stim.step(-1);
+        stepperPos--;
         break;
     }
 
@@ -124,7 +128,7 @@ void returnData(){
     if (!pin[j]) { continue; }
     else { msg[midx++] = pin[j]; }
   }
-  
+
   msg[midx++] = 'd';
 
   for ( int i=0; i<numDaq; i++ ) {
@@ -142,7 +146,6 @@ void returnData(){
     msg[midx++] = val[i];
   }
   msg[midx++] = '\0';
-  Serial.println(msg);
 }
 
 void nextLed(){
@@ -158,7 +161,7 @@ void nextLed(){
 
 void updateStim() {
   //
-  // <m15,16,17,18,.200>
+  // <m2038.8_9_10_11_>
   pidx = 0;
   idx = 0;
   boolean recordPins = false;
@@ -166,40 +169,30 @@ void updateStim() {
   for ( int i=1; i<sizeof(receivedChars); i++ ) {
 
     c = receivedChars[i];
+
     if ( !c ) { continue; }
-    else if ( c == ',' ) {
+    else if ( c == '_' ) {
+      pin[pidx++] = '\0';
       pinMode( atoi(pin), OUTPUT);
       stimPins[idx++] = atoi(pin);
       pidx = 0;
     }
-    else if ( c == '.' ) { recordPins = true; }
+    else if ( c == '.' ) {
+      val[pidx++] = '\0';
+      recordPins = true;
+      stepsPerRevolution = atoi( val );
+      pidx=0;
+    }
     else if ( !recordPins ) { val[pidx++] = c; }
     else { pin[pidx++] = c; }
 
   }
 
-  stepsPerRevolution = atoi( val );
+  stim = Stepper(stepsPerRevolution, stimPins[0], stimPins[1], stimPins[2], stimPins[3]);
+  stim.setSpeed(10);
 
-  if ( numStim == 4 ) { Stepper stim( stepsPerRevolution, stimPins[0], stimPins[1], stimPins[2], stimPins[3] ); }
-  else { Stepper stim( stepsPerRevolution, stimPins[0], stimPins[1]); }
+  stim.step(100);
 
-}
-
-void setStep() {
-  idx = 0;
-  for ( int i=1; i<sizeof(receivedChars); i++ ) {
-    c = receivedChars[i];
-    if ( !c ) { continue; }
-    else if ( c == ',' ) {
-      val[idx] = '\0';
-      stim.setSpeed(atoi(val));
-      idx = 0;
-    }
-    else { val[idx++] = c; }
-  }
-  val[idx] = '\0';
-  stim.step(atoi(val));
-  stepperPos += atoi(val);
 }
 
 void updateLedPins(){

@@ -7,11 +7,115 @@ from .imaging import Camera
 from .control import Arduino
 from .viewing import Main, Viewer, ArduinoConfig, StimConfig, CameraConfig, _set_icon
 import tkinter as tk
+from tkinter import ttk
 from PIL import Image, ImageTk
 
 f = Figlet(font='slant')
 os.system('clear')
 print(f.renderText('pyWFOM'))
+
+# Command Line functions
+def quickstart():
+
+    system = System()
+    root = tk.Tk()
+    root.title('pyWFOM Quickstart')
+    path = "{0}/img/quick.png".format(os.path.dirname(pywfom.__file__))
+
+    _set_icon(root, 'quick')
+
+    render = ImageTk.PhotoImage( Image.open(path) )
+
+    img = tk.Label(root, image=render)
+
+    img.image = render
+
+    img.pack()
+
+
+    for setting in ['user', 'mouse']:
+
+        value = tk.simpledialog.askstring(
+            'pyWFOM Quickstart',
+            'What is the name of the {0}?'.format(setting.title())
+        )
+
+        setattr(system, setting, value)
+
+    setattr(system, 'directory', tk.filedialog.askdirectory(
+        title="Select a directory to save to..."
+    ))
+    setattr(system, 'runs', tk.simpledialog.askinteger(
+        'pyWFOM Quickstart',
+        'How many runs?'
+    ))
+    setattr(system, 'run_length', tk.simpledialog.askfloat(
+        'pyWFOM Quickstart',
+        'How long (in seconds) for each run?'
+    ))
+
+    root.destroy()
+
+    frame = Main(system)
+    frame.root.mainloop()
+
+def test():
+
+    system = System()
+    system.close()
+    #system.acquire()
+
+def view(run_dir=None):
+
+    if not run_dir:
+        args = _get_viewer_args()
+        run_dir = args.path if args.path else None
+
+    frame = Viewer(run_dir)
+
+    with Halo(text='Viewing Frames'):
+        frame.root.mainloop()
+
+def main():
+
+    args = _get_args()
+
+    if args.quiet:
+        sys.stdout = open(os.devnull, 'w')
+
+    if args.solis:
+        solis()
+    elif args.test:
+        test()
+    else:
+        system = System(args.config)
+        frame = Main(system)
+        frame.root.mainloop()
+
+def archive(run_dir=None):
+
+    root = tk.Tk()
+
+    _set_icon(root, 'zip')
+
+    args = _get_viewer_args()
+
+    args.path = tk.filedialog.askdirectory() if not args.path else args.path
+
+    if not args.path:
+        return
+
+    remove = False if not args.remove or not tk.messagebox.askyesno('Archive', 'Delete compressed Run Directory?') else True
+
+    if args.path.split('/')[-1][:3] == 'run':
+        _compress_run(args.path, remove)
+    else:
+        for subdir, dirs, files in os.walk(args.path):
+            for i, run in enumerate(tqdm(dirs, unit='run', desc=args.path.split('/')[-2])):
+                _compress_run(subdir+run, remove)
+
+def solis():
+    pass
 
 # Retrieve command line arguments
 def _get_args():
@@ -74,6 +178,7 @@ def _get_viewer_args():
 
     return args
 
+# Setting specific functions
 def set_default(system):
 
     settings = organize_settings(system)
@@ -115,7 +220,8 @@ def organize_settings(system):
 
 def load_settings(frame):
 
-    file = tk.filedialog.askopenfile(parent=frame.root, defaultextension='.json')
+    file = tk.filedialog.askopenfile(
+        parent=frame.root, defaultextension='.json', filetypes=[('Configuration File', '.json')])
 
     if file is None:
         return
@@ -126,7 +232,9 @@ def load_settings(frame):
 
 def save_settings(frame):
 
-    file = tk.filedialog.asksaveasfile(mode="w", parent=frame.root, defaultextension=".json")
+    print(frame.root)
+
+    file = tk.filedialog.asksaveasfile("w", parent=frame.root, defaultextension=".json", filetypes=[('Configuration File', '.json')])
 
     if file is None:
         return
@@ -135,6 +243,7 @@ def save_settings(frame):
         json.dump(settings, file)
         file.close()
 
+# Compression Functions
 def _compress_run(run_dir, remove):
 
     zip = zipfile.ZipFile( run_dir+'.zip', 'w', compression=zipfile.ZIP_DEFLATED )
@@ -145,109 +254,6 @@ def _compress_run(run_dir, remove):
             zip.write(os.path.join(root, file), os.path.relpath(os.path.join(root, file), os.path.join(root, '..')))
     if remove:
         shutil.rmtree(run_dir)
-
-# Command Line functions
-def quickstart():
-
-    system = System()
-    root = tk.Tk()
-    root.title('pyWFOM Quickstart')
-    path = "{0}/img/quick.png".format(os.path.dirname(pywfom.__file__))
-
-    _set_icon(root, 'quick')
-
-    render = ImageTk.PhotoImage( Image.open(path) )
-
-    img = tk.Label(root, image=render)
-
-    img.image = render
-
-    img.pack()
-
-
-    for setting in ['user', 'mouse']:
-
-        value = tk.simpledialog.askstring(
-            'pyWFOM Quickstart',
-            'What is the name of the {0}?'.format(setting.title())
-        )
-
-        setattr(system, setting, value)
-
-    setattr(system, 'directory', tk.filedialog.askdirectory(
-        title="Select a directory to save to..."
-    ))
-    setattr(system, 'runs', tk.simpledialog.askinteger(
-        'pyWFOM Quickstart',
-        'How many runs?'
-    ))
-    setattr(system, 'run_length', tk.simpledialog.askfloat(
-        'pyWFOM Quickstart',
-        'How long (in seconds) for each run?'
-    ))
-
-    root.destroy()
-
-    frame = Main(system)
-    frame.root.mainloop()
-
-def test():
-    system = System()
-    system.close()
-
-def view(run_dir=None):
-
-    if not run_dir:
-        args = _get_viewer_args()
-        run_dir = args.path if args.path else None
-
-    frame = Viewer(run_dir)
-
-    with Halo(text='Viewing Frames'):
-        frame.root.mainloop()
-
-def main():
-
-    args = _get_args()
-
-    if args.quiet:
-        sys.stdout = open(os.devnull, 'w')
-
-    if args.solis:
-        solis()
-    elif args.test:
-        test()
-    else:
-        system = System(args.config)
-        frame = Main(system)
-        with Halo(text='Configuring System'):
-            frame.root.mainloop()
-        frame.root.mainloop()
-
-def archive(run_dir=None):
-
-    root = tk.Tk()
-
-    _set_icon(root, 'zip')
-
-    args = _get_viewer_args()
-
-    args.path = tk.filedialog.askdirectory() if not args.path else args.path
-
-    if not args.path:
-        return
-
-    remove = False if not args.remove or not tk.messagebox.askyesno('Archive', 'Delete compressed Run Directory?') else True
-
-    if args.path.split('/')[-1][:3] == 'run':
-        _compress_run(args.path, remove)
-    else:
-        for subdir, dirs, files in os.walk(args.path):
-            for i, run in enumerate(tqdm(dirs, unit='run', desc=args.path.split('/')[-2])):
-                _compress_run(subdir+run, remove)
-
-def solis():
-    pass
 
 class System(object):
 
@@ -306,7 +312,6 @@ class System(object):
             config = json.load(open(config, 'r'))
 
         for k,v in config.items():
-
             if k == 'cameras':
                 v = [Camera(config=cfg) for cfg in config['cameras']]
             elif k == 'arduino':
@@ -316,8 +321,8 @@ class System(object):
     def acquire(self):
 
         """
-        Begin acquiring :ref:`Acquisition Files` on your :py:mod:`pywfom`
-        System.
+        Check acquisition settings then begin acquiring :ref:`Acquisition Files`
+        on your :py:mod:`pywfom` System.
 
         """
 
@@ -354,32 +359,13 @@ class System(object):
 
     def _acquire_frames(self):
 
-        master = []
-
-        for i, cam in enumerate(self.cameras):
-            if cam.master:
-                master.append(i)
-
-        if len(master)>1:
-            messagebox.showerror(
-                title='Acquisition Error',
-                message='Too many master cameras. There can only be one!'
-            )
-            return
-        else:
-            master = master[0]
-
         self.arduino.start_strobing()
 
         for i in range(self.runs):
 
             path = self._make_run_directory()
-            run_frms = self.run_length*self.cameras[master].framerate
+            run_frms = self.run_length*self.cameras[0].framerate
             num_frms = 0
-
-            # TODO: Write frames simultaneously
-            # TODO: Write to disk in thread
-            # TODO: improve speed suring webcam acquisition
 
             pbar = tqdm(total=run_frms, unit='frame', desc='Run {0} of {1}'.format(i+1, self.runs))
 
@@ -388,17 +374,19 @@ class System(object):
                 self._data = {}
 
                 fname = "{0}/frame{1}.npz".format(path, num_frms)
+                # TODO: Fix the speed at which two cameras are read
 
+                threads = []
                 for cam in self.cameras:
-                    t = threading.Thread(target=self._read_camera_frame, args=(cam,))
-                    t.start()
-                    t.join()
-                t = threading.Thread(target=self._read_arduino)
-                t.start()
-                t.join()
+                    threads.append(threading.Thread(target=self._read_camera_frame, args=(cam,)))
+                threads.append(threading.Thread(target=self._read_arduino))
+
+                _ = [t.start() for t in threads]
+                _ = [t.join() for t in threads]
 
                 threading.Thread(target=self._save_data, args=(fname,)).start()
                 pbar.update(1)
+
                 num_frms+=1
 
             pbar.close()

@@ -1,10 +1,9 @@
-import json, os, pywfom, pkgutil, zipfile
+import json, os, pywfom, pkgutil, zipfile, time
 from tqdm import tqdm
 import numpy as np
 import tkinter as tk
 from tkinter import ttk, simpledialog, filedialog, messagebox
 from PIL import Image, ImageTk, ImageDraw
-
 
 def _set_icon(root, name="icon"):
     path = "{0}/img/{1}.png".format(os.path.dirname(pywfom.__file__), name)
@@ -79,7 +78,9 @@ def convert_frame(frame, max_size):
 
 # File Related functions
 def _set_dir(system):
-    system.directory = filedialog.askdirectory()
+
+    if filedialog.askdirectory():
+        system.directory = filedialog.askdirectory()
 
 class Main(tk.Frame):
 
@@ -157,6 +158,7 @@ class Main(tk.Frame):
 
         # General Application Settings
         self.root = tk.Tk()
+        self.btns = []
         s = ttk.Style(self.root)
         s.theme_use('clam')
         self.root.attributes('-fullscreen', True)
@@ -344,11 +346,11 @@ class Main(tk.Frame):
     def _create_buttons(self):
 
         # Create frame for buttons
-        btn_frm = tk.Frame(self.right_side)
+        self.btn_frm = tk.Frame(self.right_side)
 
         # Create buttons
         tk.Button(
-            btn_frm,
+            self.btn_frm,
             text="Close",
             command=self.close,
             padx=10,
@@ -356,7 +358,7 @@ class Main(tk.Frame):
         ).pack(side='left', padx=10)
 
         tk.Button(
-            btn_frm,
+            self.btn_frm,
             text="Save",
             command=lambda frm=self:pywfom.save_settings(self),
             padx=10,
@@ -364,7 +366,7 @@ class Main(tk.Frame):
         ).pack(side='left', padx=10)
 
         tk.Button(
-            btn_frm,
+            self.btn_frm,
             text="Load",
             command=lambda frm=self:pywfom.load_settings(self),
             padx=10,
@@ -372,7 +374,7 @@ class Main(tk.Frame):
         ).pack(side='left', padx=10)
 
         tk.Button(
-            btn_frm,
+            self.btn_frm,
             text="Make Default",
             command=lambda:pywfom.set_default(self.system),
             padx=10,
@@ -380,14 +382,17 @@ class Main(tk.Frame):
         ).pack(side='left', padx=10)
 
         self.acquire_btn = tk.Button(
-            btn_frm,
+            self.btn_frm,
             text="Acquire",
             command=self._acquire,
             padx=10,
             pady=5
         ).pack(side='left', padx=10)
 
-        btn_frm.pack(pady=30)
+        self.btn_frm.pack(pady=30)
+
+    def _create_run_widgets(self):
+        tk.Label(self.right_side, text='Acquiring').pack()
 
     def _update(self):
 
@@ -455,7 +460,6 @@ class Main(tk.Frame):
 
     def _acquire(self):
 
-
         for cam in self.system.cameras:
             if cam.ERRORS:
                 tk.messagebox.showerror('Camera Error',message=cam.ERRORS[0])
@@ -465,7 +469,9 @@ class Main(tk.Frame):
             tk.messagebox.showerror('Arduino Error',message=self.arduino.ERROR)
             return
 
-        Acquisition(self.system, self.root)
+        if tk.messagebox.askyesno('pyWFOM', 'Start Acquisition?'):
+            self.system.acquire()
+
 
     def close(self, event=None):
         self.system.close()
@@ -633,7 +639,6 @@ class Viewer(tk.Frame):
         self.play_pause.grid(row=0, column=1)
 
     def _create_arduino_data(self):
-        # TODO: Better format this on the screen
 
         ard_frm = tk.Frame(self.root)
         ard_frm.pack()
@@ -1138,7 +1143,9 @@ class StimConfig(tk.Toplevel):
 
         super().__init__(master = master)
 
-        self.root.bind('<Return>', self.destroy)
+        self.root = master
+
+        self.bind('<Escape>', self.destroy)
 
         self.arduino = arduino
         self.stim = arduino.stim[index]
@@ -1168,9 +1175,14 @@ class StimConfig(tk.Toplevel):
                     tk.Spinbox(entry, width=2, from_=0, to=40,textvariable=var).pack()
                     var.trace('w', lambda nm, idx, mode, i=i:self._callback(i, True))
                     self.pins.append(var)
+                self.vars.append(var)
+                self.names.append(k)
+                entry.grid(row=row, column=1)
+                row+=1
+                continue
             elif k == 'steps_per_revolution':
                 var = tk.IntVar(value=v)
-                entry = tk.Spinbox(stim_frm, width=3, from_=0, to=999)
+                entry = tk.Spinbox(stim_frm, width=3, from_=0, to=3000)
             elif k == 'type':
                 var = tk.StringVar(value=v)
                 entry = ttk.Combobox(
@@ -1181,7 +1193,6 @@ class StimConfig(tk.Toplevel):
             else:
                 var = tk.StringVar(value=v)
                 entry = tk.Entry(stim_frm)
-
             try:
                 entry.config(textvariable=var, width=10, justify='center')
             except:
@@ -1193,12 +1204,10 @@ class StimConfig(tk.Toplevel):
 
             entry.grid(row=row, column=1)
 
-            print(k, row)
-
             row+=1
 
         tk.Button(stim_frm, text='Reset').grid(row=row, column=0)
-        tk.Button(stim_frm, text='Test', command=self.destroy).grid(row=row, column=1)
+        tk.Button(stim_frm, text='Test', command=self._test).grid(row=row, column=1)
 
         stim_frm.pack()
 
@@ -1206,18 +1215,24 @@ class StimConfig(tk.Toplevel):
 
     def _callback(self, index, pins=False):
 
+        tic = time.time()
+
         name = 'pins' if pins else self.names[index]
         value = [pin.get() for pin in self.pins] if pins else self.vars[index].get()
 
-        self.arduino.set_stim({name:value})
+        self.arduino.stim[0][name] = value
+
+        self.arduino.set_stim()
 
     def _reset(self):
         # TODO: COmplete
         pass
 
     def _test(self):
-        # TODO: COmplete
-        pass
+        # 10 RPM
+        for i in range(500):
+            self.arduino.increase_step()
+            time.sleep(0.01)
 
 class DaqView(tk.Toplevel):
 
@@ -1337,32 +1352,10 @@ class RunConfig(tk.Toplevel):
             self.vars[i].set(v)
 
 class Acquisition(tk.Toplevel):
+
     """
     Configure the run file
     """
 
     def __init__(self, system=None, master=None):
-
-        super().__init__(master = master)
-
-        self.system = system
-        self.root = master
-
-        self.archive, self.view, self.delete = tk.BooleanVar(), tk.BooleanVar(), tk.BooleanVar()
-
-        self._create_checkboxes()
-
-    def _create_checkboxes(self):
-
-        chk_frm = tk.Frame(self)
-        chk_frm.pack()
-
-        btns = [
-            ['Compress Run?', self.archive],
-            ['View?', self.view],
-            ['Delete?', self.delete]
-        ]
-
-        tk.Label(chk_frm, text='I would like to ').grid(row=0, column=0)
-        for i, (text, var) in enumerate(btns):
-            tk.Checkbutton(chk_frm, text=text, variable=var).grid(row=i, column=1)
+        pass

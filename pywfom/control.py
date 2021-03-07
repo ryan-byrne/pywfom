@@ -2,6 +2,8 @@ import serial, os, time, sys, glob, random, threading
 from halo import Halo
 import serial.tools.list_ports
 
+# TODO: Create function which jsonifys settings to be sent
+
 def list_ports():
     """Return a 2-item list of available COM Ports and their devices"""
     return serial.tools.list_ports.comports()
@@ -68,6 +70,7 @@ class Arduino():
             self.set_trigger()
 
         elif setting == "stim":
+            time.sleep(1)
             self.set_stim()
 
         elif setting == 'data_acquisition':
@@ -105,13 +108,20 @@ class Arduino():
 
     def set_stim(self):
         # <m15,16,17,18,.200>
+        # <m2038.11_10_9_8_>
 
-        msg = "<m{0},.{1}>".format(
-            ",".join([str(pin) for pin in self.stim[0]['pins']]),
+        msg = "<m{1}.{0}_>".format(
+            "_".join([str(pin) for pin in self.stim[0]['pins']]),
             self.stim[0]['steps_per_revolution']
         )
         self._ser.write(msg.encode())
         time.sleep(0.1)
+
+    def increase_step(self):
+        self._ser.write("<+>".encode())
+
+    def decrease_step(self):
+        self._ser.write("<->".encode())
 
     def set_daq(self, pins=None):
 
@@ -131,12 +141,6 @@ class Arduino():
         return "0d{0},{1},m200,".format( random.randint(0, 200) , random.randint(0, 200) )
         #return self._ser.readline()
 
-    def step(speed, steps):
-        # <p60,200>
-        if not self._ser:
-            return
-        self._ser.write("<p{0},{1}>".format(speed, steps))
-
     def toggle_led(self, pin):
         """ Turn on a specified LED """
         self._ser.write("<T{0}>".format(pin).encode())
@@ -152,17 +156,19 @@ class Arduino():
         self._ser.write("<s>".encode())
         time.sleep(0.1)
 
-    @Halo(text='Connecting to Arduino', spinner='dots')
     def _connect(self, port):
         """ Connect to an Arduino at a specified COM Port"""
-        try:
-            self._ser = serial.Serial(port=port , baudrate=115200)
-            time.sleep(2)
-            self.port = port
-            self.ERROR = None
-        except serial.serialutil.SerialException as e:
-            self.ERROR = "Unable to connect to Arduino at "+port
-            self._ser = None
+
+        with Halo(text='Connecting to Arduino at Port: {0}'.format(port)) as spinner:
+            try:
+                self._ser = serial.Serial(port=port , baudrate=115200, timeout=2)
+                spinner.succeed()
+                self.port = port
+                self.ERROR = None
+            except serial.serialutil.SerialException as e:
+                self.ERROR = "Unable to connect to Arduino at "+port
+                spinner.fail(self.ERROR)
+                self._ser = None
 
     def stop(self):
 
@@ -183,30 +189,6 @@ class Arduino():
             self._ser.close()
         except:
             pass
-
-class Stim(object):
-    """docstring for Stim."""
-
-    def __init__(self, config=None, **settings):
-
-        self.name, self.type, self.pins = '', '2PinStepper', [0,1]
-        self.steps_per_revolution, self.pre_stim, self.stim, self.post_stim = 0,0,0,0
-
-
-
-class Daq(object):
-    """docstring for Daq."""
-
-    def __init__(self, config=None, **settings):
-        pass
-
-class Strobe(object):
-    """docstring for Strobe."""
-
-    def __init__(self, config=None, **settings):
-        pass
-
-
 
 OPTIONS = {
     'stim_types':[
