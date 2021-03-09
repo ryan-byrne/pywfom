@@ -1,27 +1,29 @@
 from flask import Flask
+from flask import request, jsonify
+
+from . import arduino
 
 app = Flask(__name__)
+settings = {}
 
-@app.route('/list_ports')
-def say_hello():
-    return {"ports":control.list_ports()}
+# List
+# View
+# Settings
 
-# View mouse information
-@app.route('/view/<mouse_id>')
-def view_mouse(mouse_id):
-    return ""
-
-# View the mouse runs
-@app.route('/view/<mouse_id>/<run_id>')
-def view_run(mouse_id, run_id):
-    return ""
-
-# View the mouse runs
-@app.route('/get/<category>')
-def get_settings(category):
-    if category == 'cameras':
-        return {}
-    elif category == 'arduino':
-        return {}
-    else:
-        return {}
+@app.route('/setup/<device>/<function>',methods=['POST', 'GET'])
+@app.route('/setup/<device>/<function>/<index>',methods=['POST', 'GET'])
+def handle(device, function, index=None):
+    # Devices: Arduino, Camera
+    if device == 'arduino':
+        # Arduino Setup Functions: set, get, list, connect, update
+        if function == 'set':
+            # TODO: Deploy settings to arduino
+            print(request.get_json())
+            return(jsonify(success='success'))
+        elif function == 'list':
+            return(jsonify(arduino.list_ports()))
+        elif function == 'get':
+            return(jsonify(settings={}))
+    elif device == 'camera':
+        # Camera Setup Functions
+        pass

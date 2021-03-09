@@ -6,7 +6,7 @@ import serial.tools.list_ports
 
 def list_ports():
     """Return a 2-item list of available COM Ports and their devices"""
-    return serial.tools.list_ports.comports()
+    return [port.__dict__ for port in serial.tools.list_ports.comports()]
 
 class Arduino():
     """ Methods pertaining to Communication with the Arduino
