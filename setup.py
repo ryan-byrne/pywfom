@@ -12,23 +12,14 @@ setup(
     keywords = "wide field optical mapping",
     url = "https://github.com/ryan-byrne/pyfom",
     include_package_data=True,
-    packages=find_packages(where='src'),
+    packages=find_packages(where='source'),
+    package_dir={'':'source',},
     install_requires=[
         "opencv-python",
         "pyserial",
-        "numpy",
-        "Pillow",
-        "tqdm",
-        "pyfiglet",
-        'halo'
+        "numpy"
     ],
-    entry_points={
-        'console_scripts':[
-            'wfom = pywfom:main',
-            'wfom-archive = pywfom:archive',
-            'wfom-viewer = pywfom:view',
-            'wfom-quickstart = pywfom:quickstart'
-        ] },
+    entry_points = {"console_scripts": ["pywfom = pywfom:main"]},
     long_description=long_description,
     long_description_content_type='text/markdown',
     python_requires='>3.5',

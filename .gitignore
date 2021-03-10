@@ -1,16 +1,19 @@
 *.pyc
-/pywfom.egg-info
+/src/pywfom.egg-info
+/src/pywfom.egg-info
 /dist
+/legacy
 /build
 .DS_STORE
 /data
-/wfom
 .gitignore
-pywfom/venv
+/env
 # dependencies
-/node_modules
-/.pnp
+/pywfom/client/node_modules
+/pywfom/client/.pnp
 .pnp.js
+
+/pywfom/client/node_modules
 
 # testing
 /coverage
