@@ -1,6 +1,9 @@
 import {useState,useEffect} from 'react';
 import Button from 'react-bootstrap/Button';
+import ButtonGroup from 'react-bootstrap/ButtonGroup';
+import InputGroup from 'react-bootstrap/InputGroup';
 import Modal from 'react-bootstrap/Modal';
+import Table from 'react-bootstrap/Table';
 import Form from 'react-bootstrap/Form';
 import Tab from 'react-bootstrap/Tab';
 import Tabs from 'react-bootstrap/Tabs';
@@ -232,41 +235,18 @@ const DaqTab = (props) => {
   )
 }
 
-const MessageAlert = (props) => {
-
-  useEffect(() => {
-    setTimeout(() => {
-      props.setMessage(false)
-    }, 5000)
-  },[])
-
-  return (
-    <Alert variant={props.message.variant} dismissible onClose={() => props.setMessage(false)}>
-      <Alert.Heading>{props.message.heading}</Alert.Heading>
-      <p>{props.message.text}</p>
-    </Alert>
-  )
-}
-
-const Configuration = () => {
+const Configuration = (props) => {
 
   // State variables
-  const [show, setShow] = useState(false);
   const [sending, setSending] = useState(false);
-  const [message, setMessage] = useState(false);
   const [config, setConfig] = useState({
     leds:[],daq:[],port:null,trig:null,stim:[]
   });
-  const [ports, setPorts] = useState([]);
-
-  // Close and open COnfiguration
-  const handleShow = () => setShow(true);
-  const handleHide = () => setShow(false);
 
   // Send settings to Python
   const handleSave = () => {
     // TODO: Send values to Python API
-    fetch('/setup/arduino/set', {
+    fetch('/settings/arduino/set', {
       method: "POST",
       headers: {
         'Accept': 'application/json',
@@ -278,98 +258,159 @@ const Configuration = () => {
       .then(data => console.log(data))
       .catch(err => console.log(err))
     )
-    setShow(false);
+    props.handleConfig();
   };
 
-  const sendMessage = () => {
-    setMessage({
-      text:"Successfully delivered to Arduino",
-      variant:"success",
-      heading:"Success:"
-    });
-  }
-
-  const selectPort = (event) => setConfig({...config, port:event.target.value})
-
   useEffect(() => {
-    fetch('/setup/arduino/list')
-      .then( resp => resp.json()
-      .then( data => setPorts(data))
-    )
-    fetch('/setup/arduino/get')
+    fetch('/settings/arduino/get')
       .then( resp => resp.json()
       .then( data => console.log(data))
     )
   }, []);
 
-  useEffect(() => {
-    console.log(config.port);
-  },[config.port])
-
   return(
-    <div>
-      <Container>
-        <Row>
-          <Col>
+    <Modal show={props.show} onHide={props.handleConfig}>
+      <Modal.Header closeButton>
+        <Modal.Title>Arduino Configuration</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
 
-            <Form.Control as="select" custom>
-              { ports.length === 0 ?
-                <option disabled>No Arduinos Found</option> :
-                ports.map((port, idx) => <option onClick={selectPort} key={idx}>{port.device}</option>)}
-            </Form.Control>
-          </Col>
-          <Col>
-            <Button variant="primary" onClick={handleShow}>Configure</Button>
-          </Col>
-        </Row>
-        <Row>
-          <Col>Arduino</Col>
-        </Row>
-      </Container>
-      <Modal show={show} onHide={handleHide}>
-        <Modal.Header closeButton>
-          <Modal.Title>Arduino Configuration</Modal.Title>
-        </Modal.Header>
-        <Button onClick={sendMessage}>Message</Button>
-        <Modal.Body>
+        <Tabs>
+          <Tab eventKey='strobingTab' title="Strobing">
+            <StrobingTab config={config} setConfig={setConfig}/>
+          </Tab>
+          <Tab eventKey='stimTab' title="Stim">
+            <StimTab config={config} setConfig={setConfig}/>
+          </Tab>
+          <Tab eventKey='daqTab' title="Data Acquisition">
+            <DaqTab config={config} setConfig={setConfig}/>
+          </Tab>
+        </Tabs>
 
-          <Tabs>
-            <Tab eventKey='strobingTab' title="Strobing">
-              <StrobingTab config={config} setConfig={setConfig}/>
-            </Tab>
-            <Tab eventKey='stimTab' title="Stim">
-              <StimTab config={config} setConfig={setConfig}/>
-            </Tab>
-            <Tab eventKey='daqTab' title="Data Acquisition">
-              <DaqTab config={config} setConfig={setConfig}/>
-            </Tab>
-          </Tabs>
-
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleHide}>
-            Close
+      </Modal.Body>
+      <Modal.Footer>
+        <Button variant="secondary" onClick={props.handleConfig}>
+          Close
+        </Button>
+        { !sending ?
+          <Button variant="primary" onClick={handleSave}>
+            Save Changes
           </Button>
-          { !sending ?
-            <Button variant="primary" onClick={handleSave}>
-              Save Changes
-            </Button>
-            :
-            <Button variant="primary" disabled>
-              <Spinner as="span" size="sm" animation="border" role="status"/>
-              Sending to Arduino
-            </Button>
-          }
-        </Modal.Footer>
-        { message ? <MessageAlert setMessage={setMessage} message={message}/> : <Row></Row> }
-      </Modal>
-    </div>
+          :
+          <Button variant="primary" disabled>
+            <Spinner as="span" size="sm" animation="border" role="status"/>
+            Sending to Arduino
+          </Button>
+        }
+      </Modal.Footer>
+    </Modal>
   )
 }
 
 export default function Arduino(){
 
+  // Modal View Controllers
+  const [config, showConfig] = useState(false);
+  const [info, showInfo] = useState(false);
+  const [message, setMessage] = useState(null);
+  const [disabled, setDisabled] = useState(true);
+
+  // UI State Variables
+  const [ports, setPorts] = useState([]);
+  const [port, setPort] = useState(0);
+
+  // Close and open Configuration Window
+  const handleConfig = () => showConfig(!config);
+
+  const handleInfo = () => showInfo(!info);
+
+  const listPorts = () => {
+    fetch('/find/arduinos').then(resp=>resp.json().then(data =>setPorts(data)))
+  }
+
+  const connectPort = () => {
+    setMessage((
+      <Alert variant='warning'>
+        <Spinner animation='border' className='mr-3' size='sm'></Spinner>
+        Connecting to <b>{ports[port].device}</b>...
+      </Alert>
+    ))
+    fetch('/connect/arduino', {
+      method: "POST",
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(ports[port])})
+      .then(resp => resp.json()
+      .then(data => {
+        if (data.status === 'error') {
+          setMessage((
+            <Alert variant='danger'>
+              <p>
+                <b>ERROR:</b> Arduino at <b>{ports[port].device}</b> does not have
+                compatible firmware.
+                <Button className='ml-3'>Upload Firmware...</Button>
+              </p>
+            </Alert>
+          ))
+          setDisabled(true);
+        }
+      }))
+  }
+
+  // List available arduinos on Render
+  useEffect(() => {
+    listPorts();
+  }, [])
+
+  useEffect(() => {
+    if (ports.length === 0) {}
+    else { connectPort() }
+  },[ports, port])
+
   return(
-    <Configuration/>
+    <Container>
+        <Form.Text className='text-muted'>Select an Arduino</Form.Text>
+          <InputGroup className="text-center mb-3">
+            <Form.Control as="select" custom>
+              { ports.length === 0 ?
+                <option disabled defaultValue>No Arduinos Found.</option> :
+                ports.map((port, idx) => {
+                  return(
+                    <option onClick={()=>setPort(idx)} key={idx}>
+                      {port.product} - {port.device}
+                    </option>
+                  )
+                })
+              }
+            </Form.Control>
+            <ButtonGroup>
+              <Button variant="secondary" onClick={()=>listPorts()}>Refresh</Button>
+              <Button variant="secondary" onClick={handleInfo}
+                disabled={ports.length === 0 ? true : false}>
+                { info ? "Hide Info" : "Show Info" }
+              </Button>
+              <Button variant="primary" disabled={disabled} onClick={handleConfig}>Configure</Button>
+            </ButtonGroup>
+          </InputGroup>
+        <Configuration port={port} show={config} handleConfig={handleConfig}/>
+        { message }
+        { info ?
+            <Table>
+              <tbody>
+              {Object.keys(ports[port]).map((key,index)=>{
+                return (
+                  <tr key={index}>
+                    <th>{key.charAt(0).toUpperCase()+key.slice(1)}</th>
+                    <td>{ports[port][key]}</td>
+                  </tr>
+                )
+              })}
+              </tbody>
+            </Table>
+          : null
+        }
+      </Container>
   )
 }

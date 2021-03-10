@@ -6,8 +6,7 @@
 /data
 /wfom
 .gitignore
-/env
-client/venv
+pywfom/venv
 # dependencies
 /node_modules
 /.pnp

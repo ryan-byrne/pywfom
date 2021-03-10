@@ -1,7 +1,7 @@
 import Tabs from 'react-bootstrap/Tabs';
 import Tab from 'react-bootstrap/Tab';
 
-import Run from './components/Run';
+import File from './components/File';
 import Cameras from './components/Cameras';
 import Arduino from './components/Arduino';
 
@@ -10,8 +10,8 @@ export default function App(){
 
   return (
     <Tabs defaultActiveKey="profile" id="uncontrolled-tab-example">
-      <Tab eventKey='runTab' title="Run">
-        <Run/>
+      <Tab eventKey='runTab' title="File">
+        <File/>
       </Tab>
       <Tab eventKey='camerasTab' title="Cameras">
         <Cameras/>
