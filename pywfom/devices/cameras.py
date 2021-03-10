@@ -1,16 +1,28 @@
-import cv2, threading, time
+import cv2, threading, time, cv2, sys
+
+from pywfom.devices.utils import *
+
+"""
+import win32com.client
+
+wmi = win32com.client.GetObject ("winmgmts:")
+for usb in wmi.InstancesOf ("Win32_USBHub"):
+    print usb.DeviceID
+"""
 
 def find_cameras():
+
     cameras = []
-    # TODO: Add additional cameras
-    for device in ['webcam']:
-        for index in range(10):
-            try:
-                cam = Camera(index, device)
-                cameras.append(cam.info())
-                cam.close()
-            except:
-                continue
+
+    # OpenCV
+    for i in range(10):
+        cap = cv2.VideoCapture(i)
+        if cap.read()[0]:
+            cameras.append({'interface':'opencv','index':i})
+        else:
+            continue
+        cap.release()
+
     return cameras
 
 class Camera(object):

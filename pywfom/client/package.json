@@ -16,7 +16,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "build": "react-scripts build && cd .. && cd .. && env/bin/python setup.py install",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },

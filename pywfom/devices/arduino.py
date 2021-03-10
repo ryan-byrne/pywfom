@@ -1,7 +1,7 @@
 import serial.tools.list_ports as ports
 import serial
 
-def find():
+def find_arduinos():
     arduinos = []
     port_dict = [port.__dict__ for port in ports.comports()]
     for port in port_dict:
@@ -11,10 +11,6 @@ def find():
             arduinos.append(port)
     return arduinos
 
-def connect(port):
-    ser = serial.Serial(port=port)
-    print(ser)
-
 class Arduino(object):
     """docstring for Arduino."""
 
@@ -22,4 +18,7 @@ class Arduino(object):
         self._serial = serial.Serial(port=port, timeout=3.0)
 
     def test(self):
-        return self._serial.readline()
+        if self._serial.readline()[:3] == b'<pw':
+            return True
+        else:
+            return False
