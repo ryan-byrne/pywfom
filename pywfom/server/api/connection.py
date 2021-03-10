@@ -1,9 +1,9 @@
-from pywfom.server.api import api 
+from pywfom.server.api import api
 
-@app.route('/api/connection', methods=['GET'])
+@api.route('/api/connection', methods=['GET'])
 def connection_state():
     pass
 
-@app.route('/api/connection', methods=['POST'])
+@api.route('/api/connection', methods=['POST'])
 def connection_command():
     pass

@@ -1,12 +1,14 @@
+from pywfom.server.api import api
+
 # LOGIN
-@app.route('/api/login', methods=['POST'])
+@api.route('/api/login', methods=['POST'])
 def api_login():
     pass
 
-@app.route('/api/logout', methods=['POST'])
+@api.route('/api/logout', methods=['POST'])
 def api_logout():
     pass
 
-@app.route('/api/currentuser', methods=['GET'])
+@api.route('/api/currentuser', methods=['GET'])
 def current_user():
     pass

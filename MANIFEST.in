@@ -1,1 +1,1 @@
-recursive-include pywfom *
+recursive-include pywfom/client/build/ *

@@ -1,4 +1,6 @@
+from pywfom.server.api import api
+
 # SERVER
-@app.route('/api/server', methods=['GET'])
+@api.route('/api/server', methods=['GET'])
 def server_info():
     pass

@@ -1,4 +1,6 @@
+from pywfom.server.api import api
+
 # FIND
-@app.route('/api/find', methods=['GET'])
+@api.route('/api/find', methods=['GET'])
 def find_devices():
     pass

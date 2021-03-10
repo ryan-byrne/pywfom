@@ -1,4 +1,6 @@
+from pywfom.server.api import api
+
 # VERSION
-@app.route('/api/version', methods=['GET'])
+@api.route('/api/version', methods=['GET'])
 def version_info():
     pass
