@@ -141,34 +141,16 @@ export default function Cameras(){
 
   }
 
-  /*
-  {
-    !cameras[selected] ?
-    <Alert variant='warning'>No Camera Selected</Alert> :
-      <Image src={'/feed/'+selected.toString()} fluid></Image>
-  }
-  {
-    cameras.length === 0 ? null :
-    cameras.map((cam, idx) => {
-      return(
-        <Col><Image fluid src={'/feed/'+idx.toString()}></Image></Col>
-      )
-    })
-  }
-  */
-
   return (
     <Container className="text-center mt-3">
-      <Row className='text-center col-md-3'><FakeCamera height={400} width={500} className='col-lg-3'/></Row>
-      <Row>
       {
-        [...Array(3).keys()].map((idx) => {
+        cameras.length === 0 ? null :
+        cameras.map((cam, idx) => {
           return(
-            <Col><FakeCamera className='float-left' height={50} width={50}/></Col>
+            <Col><Image fluid src={'/feed/'+idx.toString()}></Image></Col>
           )
         })
       }
-      </Row>
       <Button className="m-3" onClick={()=>showAdd(true)}>Edit Camera(s)</Button>
       <EditCameras show={add} handleAdd={handleAdd} currentCameras={cameras}
         setCurrentCameras={setCameras}/>

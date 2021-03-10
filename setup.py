@@ -12,7 +12,7 @@ setup(
     keywords = "wide field optical mapping",
     url = "https://github.com/ryan-byrne/pyfom",
     include_package_data=True,
-    packages=find_packages(),
+    packages=find_packages(where='src'),
     install_requires=[
         "opencv-python",
         "pyserial",
