@@ -17,7 +17,7 @@ import Alert from 'react-bootstrap/Alert';
 import Spinner from 'react-bootstrap/Spinner';
 import Container from 'react-bootstrap/Container';
 
-export default function Arduino(){
+export default function Arduino(props){
 
   // Modal View Controllers
   const [config, showConfig] = useState(false);
@@ -37,27 +37,39 @@ export default function Arduino(){
   const listPorts = () => {
     fetch('/api/find/arduinos')
       .then(resp=> resp.json()
-      .then(data => setPorts(data)
-      ))
+      .then(data => {
+        setPorts(data);
+        if (data.length === 0) {
+          setMessage(
+            <Alert variant='danger'>No Arduinos Found</Alert>
+          )
+        }
+      }))
   }
 
   const connectPort = () => {
-    setMessage((
+
+    setMessage(
       <Alert variant='warning'>
         <Spinner animation='border' className='mr-3' size='sm'></Spinner>
         Connecting to <b>{ports[port].device}</b>...
       </Alert>
-    ))
-    fetch('/api/connection/arduino', {
+    )
+
+    const arduinoSettings = { device:'arduino', settings:ports[port] }
+
+    fetch('/api/connection', {
       method: "POST",
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(ports[port])})
+      body: JSON.stringify(arduinoSettings)})
       .then(resp => resp.json()
       .then(data => {
-        if (data.status === 'error') {
+
+        if (!data.status) {
+
           setMessage((
             <Alert variant='danger'>
               <p>
@@ -67,8 +79,15 @@ export default function Arduino(){
               </p>
             </Alert>
           ))
+
           setDisabled(true);
-        } else {
+
+        }
+
+        else {
+
+          props.setArduinoConfig({...props.arduinoConfig, port:ports[port]})
+
           setMessage((
             <Alert variant='success'>
               <p>
@@ -78,12 +97,14 @@ export default function Arduino(){
           ))
         }
       }))
-  }
+    }
 
   useEffect(() => {
     if (ports.length === 0) {}
     else { connectPort() }
   },[ports, port])
+
+  useEffect(() => { listPorts() },[]);
 
   return(
     <Container>

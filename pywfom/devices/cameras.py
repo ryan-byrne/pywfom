@@ -1,4 +1,4 @@
-import cv2, threading, time, cv2, sys
+import cv2, threading, time, cv2, sys, queue
 
 from pywfom.devices.utils import *
 
@@ -25,35 +25,88 @@ def find_cameras():
 
     return cameras
 
+class CameraException(Exception):
+    pass
+
+
 class Camera(object):
 
-    def __init__(self, index, device):
+    def __init__(self, config=None, **kwargs):
 
-        self.index = index
-        self.device = device
-        self.name = "New Camera"
-        self.feed = None
+        """
 
-        if ( device == 'webcam' ):
-            self._camera = cv2.VideoCapture(index)
-            if not self._camera.isOpened():
-                raise
+        interface : ['opencv', 'andor', 'spinnaker']
+        index : int
+        primary : bool
 
-        self._active = True
 
-    def info(self):
-        return({'device':self.device,'index':self.index})
 
-    def close(self):
-        self._active = False
-        if self.device == 'webcam':
-            self._camera.release()
+        """
+
+        [setattr(self, k, v) for k,v in config.items()]
+
+        print('pywfom :: Initalizing {0}:{1}'.format(self.interface, self.index))
+
+        self._capturing = False
+        self.feeding = True
+        self._saving = False
+
+        self._frame_buffer = queue.Queue()
+
+        if ( self.interface == 'opencv' ):
+            self._camera_handler = cv2.VideoCapture(self.index)
 
     def read(self):
-        return self._camera.read()[1]
+        if (self.interface == 'opencv'):
+            return self._camera_handler.read()[1]
 
-    def feed(self):
-        while True:
-            img = self.read()
-            frame = cv2.imencode('.jpg', img)[1].tobytes()
-            yield (b'--frame\r\n'b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+    def start(self):
+
+        # Start capturing frames
+        pass
+
+    def stop(self):
+
+        # Stop Capturing Frames
+        self.feeding = False
+        self._capturing = False
+        self._saving = False
+
+    def set(self):
+
+        # Declare settings
+        pass
+
+    def get(self):
+
+        # Return Settings
+        pass
+
+    def clear(self):
+
+        # Clear the buffer
+        pass
+
+    def trigger(self):
+
+        # Trigger the release of a frame
+        pass
+
+    def close(self):
+
+        self.stop()
+
+        if (self.interface == 'opencv'):
+            self._camera_handler.release()
+
+    def json(self):
+
+        # Return Camera settings as a dictionary
+
+        json_settings = {}
+
+        for k, v in self.__dict__.items():
+            if k[0] != '_':
+                json_settings[k] = v
+
+        return json_settings
