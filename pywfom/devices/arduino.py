@@ -14,10 +14,23 @@ def find_arduinos():
 class Arduino(object):
     """docstring for Arduino."""
 
-    def __init__(self, port):
-        self._serial = serial.Serial(port=port, timeout=3.0)
+    def __init__(self, **config):
+        self.set(**config)
+        self.active = False
+        self.firmware_version = None
+        self._serial = None
 
-    def read(self):
+    def _connect_to_port(self, port):
+        self._serial = serial.Serial(port=port, timeout=3.0)
+        msg = self._serial.readline()[:3]
+        self.firmware_version = None if msg[:3] != b'<py' else msg[7:12]
+
+    def start(self):
+        self.active = True
+        while self.active:
+            self.feed = self._read_serial_message()
+
+    def _read_serial_message(self):
         """
 
         Example Message: <pywfom_0.0.1><t1><l0,1,0,><d56,254,><s86>
@@ -29,12 +42,19 @@ class Arduino(object):
         5) <s86> = Stim Position (86)
 
         """
+        return self._serial.readline()
 
-    def test(self):
-        if self._serial.readline()[:3] == b'<pw':
-            return True
-        else:
-            return False
+    def close(self):
+        self.active = False
+        self._serial.close()
+
+    def set(self, **settings):
+        [self._set(k,v) for k,v in settings.items()]
+
+    def _set(self, setting, value):
+        if setting == 'port':
+            self._connect_to_port(value)
+
 
     def json(self):
 

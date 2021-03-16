@@ -1,4 +1,4 @@
-import {useEffect} from 'react';
+import {useEffect, useState} from 'react';
 
 import Form from 'react-bootstrap/Form';
 import InputGroup from 'react-bootstrap/InputGroup';
@@ -10,17 +10,16 @@ import DropdownButton from 'react-bootstrap/DropdownButton';
 
 export default function File(props){
 
-  const handleUpdate = (event) => {
-    props.setFileConfig({...props.fileConfig, [event.target.id]: event.target.value});
-  }
+  const [config, setConfig] = useState({});
 
-  useEffect(() => {
-    fetch('/api/configure/file')
-      .then(res => res.json()
-      .then(data => {
-        props.setFileConfig({...props.fileConfig, directory:data.directory})
-      }))
-  },[])
+  const handleUpdate = (event) => console.log(event);
+
+  const closeSession = (event) => {
+    fetch('/api/settings', {method:'DELETE'})
+      .then(resp => resp.json()
+      .then(data => console.log(data))
+    )
+  }
 
   return (
     <Container fluid="sm">
@@ -44,17 +43,17 @@ export default function File(props){
       </InputGroup>
       <InputGroup className="m-3">
         <Form.Control className='text-center' type="text" id="directory" disabled
-          placeholder={"Saving Files to "+props.fileConfig.directory}>
+          placeholder={"Saving Files to "+config.directory}>
         </Form.Control>
       </InputGroup>
         <ButtonGroup className="float-right">
-          <Button variant="danger" className='ml-1'>Close</Button>
+          <Button variant="danger" className='ml-1' onClick={closeSession}>Close</Button>
           <DropdownButton variant="secondary" className='ml-1' as={ButtonGroup}
             title="File">
             <Dropdown.Item eventKey="1">Save Configuration</Dropdown.Item>
             <Dropdown.Item eventKey="2">Load Configuration</Dropdown.Item>
-            <Dropdown.Item eventKey="3">Set to Default</Dropdown.Item>
-            <Dropdown.Item eventKey="4">Make Default</Dropdown.Item>
+            <Dropdown.Item eventKey="3">Load Default</Dropdown.Item>
+            <Dropdown.Item eventKey="4">Set to Default</Dropdown.Item>
           </DropdownButton>
           <Button className='ml-1'>Start Acquisition</Button>
         </ButtonGroup>

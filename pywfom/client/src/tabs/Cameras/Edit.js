@@ -5,19 +5,14 @@ import Alert from 'react-bootstrap/Alert';
 import Table from 'react-bootstrap/Table';
 import Spinner from 'react-bootstrap/Spinner';
 import Button from 'react-bootstrap/Button';
-import Form from 'react-bootstrap/Form';
-import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import Col from 'react-bootstrap/Col';
 import Row from 'react-bootstrap/Row';
 import Container from 'react-bootstrap/Container';
-import Overlay from 'react-bootstrap/Overlay';
-import Tooltip from 'react-bootstrap/Tooltip';
 
 export default function EditCameras(props){
 
   const [foundCameras, setFoundCameras] = useState([]);
   const [isSearching, setSearching] = useState(false);
-  const [showToolTip, setShowToolTip] = useState(false);
 
   const searchCameras = (event) => {
     setFoundCameras([]);
@@ -45,22 +40,16 @@ export default function EditCameras(props){
     event.target.disabled = true;
     const id = generateId(10);
     // Send Message to API
-    fetch('/api/configure', {
+    fetch('/api/settings/'+id, {
       method: "POST",
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({command:"open",device:id,config:{...foundCameras[idx],id:id}})})
+      body: JSON.stringify({...foundCameras[idx],id:id})})
       .then(resp => resp.json()
-      .then(data => {
-        if (data.status === 'success'){
-          props.setCameras({...props.cameras, [data.config.id]:data.config});
-          setFoundCameras(foundCameras.shift(idx))
-        } else {
-          console.log(data);
-        }
-      })
+      .then(data => props.setCameras({...props.cameras, [id]:data}))
+      .catch(err=> console.log(err))
     )
   }
 
@@ -72,7 +61,7 @@ export default function EditCameras(props){
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({command:"close",device:id,config:null})})
+      body: JSON.stringify({command:"close",key:id,config:null})})
     .then(resp => resp.json()
     .then(data => {
       if (data.status === 'success') {
@@ -94,11 +83,10 @@ export default function EditCameras(props){
     return (
       <Table className="text-center">
         <tbody>
-          <th></th><th>Interface</th><th>Index</th><th></th>
+          <tr><th></th><th>Interface</th><th>Index</th><th></th></tr>
           {
           cameras.map((cam, idx)=>{
-            const [func, id] = (text == 'Add') ? [addCamera,idx] : [removeCamera,cam.id]
-            let add;
+            const [func, id] = (text === 'Add') ? [addCamera,idx] : [removeCamera,cam.id]
             if (text === 'Add') {
               const add = Object.values(props.cameras).map((c)=>{
                 if (c.interface === cam.interface && c.index === cam.index) {
@@ -110,7 +98,7 @@ export default function EditCameras(props){
               if (!add.every(v=>v===true)) {return null}
             }
             return(
-              <tr>
+              <tr key={idx}>
                 <td>
                   <Button onClick={(e)=>func(e, id)}>{text}</Button>
                 </td>
@@ -130,7 +118,7 @@ export default function EditCameras(props){
 
   return(
     <div>{
-      <Modal show={props.editing} onHide={props.hideEditing}>
+      <Modal show={props.show} onHide={props.hideEditing}>
         <Modal.Header>
           <Modal.Title>
             Choosing Cameras

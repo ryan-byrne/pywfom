@@ -1,4 +1,5 @@
-import cv2, threading, time, cv2, sys, queue
+import cv2, threading, time, sys, queue
+import numpy as np
 
 from pywfom.devices.utils import *
 
@@ -28,10 +29,9 @@ def find_cameras():
 class CameraException(Exception):
     pass
 
-
 class Camera(object):
 
-    def __init__(self, config=None, **kwargs):
+    def __init__(self, interface=None, index=None, id=None, **config):
 
         """
 
@@ -39,74 +39,130 @@ class Camera(object):
         index : int
         primary : bool
 
-
-
         """
 
-        [setattr(self, k, v) for k,v in config.items()]
+        for setting in [interface, index, id]:
+            if setting == None:
+                raise CameraException("Incomplete camera configuration")
 
-        print('pywfom :: Initalizing {0}:{1}'.format(self.interface, self.index))
+        if ( interface == 'opencv' ):
+            self._camera = _OpenCV(index=index, id=id, **config)
+        elif ( interface == 'andor' ):
+            self._camera = _Andor(index=index, id=id, **config)
+        elif ( interface == 'spinnaker' ):
+            self._camera = _Spinnaker(index=index, id=id, **config)
 
-        self._capturing = False
-        self.feeding = True
-        self._saving = False
+        self.start()
 
-        self._frame_buffer = queue.Queue()
-
-        if ( self.interface == 'opencv' ):
-            self._camera_handler = cv2.VideoCapture(self.index)
-
-    def read(self):
-        if (self.interface == 'opencv'):
-            return self._camera_handler.read()[1]
+    def _loading_feed(self):
+        return (np.zeros(
+            (self._camera.aoi['height'], self._camera.aoi['width']),
+            np.uint8)
+        )
 
     def start(self):
+        self.active = True
+        threading.Thread(target=self._capture_frames).start()
 
-        # Start capturing frames
-        pass
+    def _capture_frames(self):
+        while self.active:
+            self.feed = self._camera.read_frame()
+
+    def get(self, setting):
+        self._camera.get(setting)
+
+    def start(self):
+        self.feed = self._loading_feed()
+        self.active = True
+        threading.Thread(target=self._capture_frames).start()
 
     def stop(self):
+        print('stopping camera')
+        self._camera.stop()
 
-        # Stop Capturing Frames
-        self.feeding = False
-        self._capturing = False
-        self._saving = False
-
-    def set(self):
-
-        # Declare settings
-        pass
-
-    def get(self):
-
-        # Return Settings
-        pass
-
-    def clear(self):
-
-        # Clear the buffer
-        pass
-
-    def trigger(self):
-
-        # Trigger the release of a frame
-        pass
+    def set(self, **settings):
+        self._camera.set(settings)
 
     def close(self):
-
-        self.stop()
-
-        if (self.interface == 'opencv'):
-            self._camera_handler.release()
+        print('closing camera')
+        self.active = False
+        self._camera.close()
+        del self._camera
 
     def json(self):
+        return self._camera.json()
 
+class _OpenCV(object):
+    """docstring for _OpenCV."""
+
+    def __init__(self, index=None, id=None, **config):
+
+        self.set(**config)
+
+        self.index = index
+        self.id = id
+
+        self._video_cap = cv2.VideoCapture(self.index)
+        self._capturing = False
+
+        self._PROPS = {
+            "fullWidth":3,
+            "fullHeight":4,
+            "width":3,
+            "height":4,
+            "framerate":5
+        }
+
+        self.aoi = {
+            "x":0,
+            "y":0,
+            "width":int(self.get('width')),
+            "height":int(self.get('height')),
+            "fullHeight":int(self.get('height')),
+            "fullWidth":int(self.get('width')),
+            "hBin":2,
+            "vBin":2,
+            "centered":False
+        }
+        self.framerate = self.get('framerate')
+        self.primary = False
+
+    def set(self, **settings):
+        [setattr(self,k,v) for k,v in settings.items()]
+
+    def read_frame(self):
+        if not self._video_cap.isOpened():
+            return None
+        else:
+            ret, img = self._video_cap.read()
+            if not ret:
+                return None
+            else:
+                return img
+
+    def close(self):
+        pass
+
+    def get(self, setting):
+        return self._video_cap.get( self._PROPS[setting] )
+
+    def json(self):
         # Return Camera settings as a dictionary
 
         json_settings = {}
 
         for k, v in self.__dict__.items():
-            if k[0] != '_':
+            if k[0] != '_' and k:
                 json_settings[k] = v
 
         return json_settings
+
+class _Andor(object):
+
+    def __init__(self):
+        pass
+
+class _Spinnaker(object):
+
+    def __init__(self):
+        pass

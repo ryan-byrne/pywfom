@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import {useState,useEffect} from 'react';
 
 import EditCameras from './Edit';
 import ConfigureCamera from './Configure';
@@ -8,42 +8,48 @@ import Button from 'react-bootstrap/Button';
 import Image from 'react-bootstrap/Image';
 import Col from 'react-bootstrap/Col';
 import Row from 'react-bootstrap/Row';
-import Modal from 'react-bootstrap/Modal';
-
+import Tooltip from 'react-bootstrap/Tooltip';
+import Overlay from 'react-bootstrap/Overlay';
 
 export default function Cameras(props){
 
-  const [editing, setEditing] = useState(false);
-  const [configuring, setConfiguring] = useState(null);
+  // State for storing camera configuration
+  const [cameras, setCameras] = useState({});
 
-  const handleThumbnail = (idx) => setConfiguring(idx);
+  // Viewing states
+  const [editing, showEditing] = useState(false);
+  const [selectedCamera, setSelectedCamera] = useState(null);
+
+  useEffect(() => {
+    fetch('/api/settings/cameras')
+      .then(resp => resp.json()
+      .then(data => setCameras(data)))
+      .catch(err => console.log(err))
+  },[])
 
   return (
-    <div>
+    <div className="mt-3">
     {<Container className="text-center h-100">
         <Row className="align-items-center">
-          {Object.keys(props.camerasConfig).map((key, idx) => {
-            const cam = props.camerasConfig[key]
+          {Object.keys(cameras).map((key, idx) => {
+            const cam = cameras[key]
             return (
-              <Col>
+              <Col key={idx}>
                 <Image src={"api/feed/"+cam.id} fluid style={{cursor:'pointer'}}
-                  onClick={()=>handleThumbnail(idx)}/>
+                  onClick={()=>setSelectedCamera(cam.id)} alt={cam.id}/>
               </Col>
             )
           })}
         </Row>
-        <Row><Col>
-          <Button onClick={()=>setEditing(true)}>
-            {props.camerasConfig.length === 0 ? "Add Camera(s)" : "Edit Camera(s)"}
+        <Row className="mt-3"><Col>
+          <Button onClick={()=>showEditing(true)}>
+            {cameras.length === 0 ? "Add Camera(s)" : "Edit Camera(s)"}
           </Button>
         </Col></Row>
-      {
-        !configuring ? null :
-        <ConfigureCamera config={props.camerasConfig} camera={props.camerasConfig[configuring]}
-          setConfig={props.setCamerasConfig}/>
-      }
-      <EditCameras cameras={props.camerasConfig} setCameras={props.setCamerasConfig}
-        hideEditing={()=>setEditing(false)} editing={editing}/>
+      <EditCameras cameras={cameras} setCameras={setCameras}
+        hideEditing={()=>showEditing(false)} show={editing}/>
+      <ConfigureCamera cameras={cameras} setCameras={setCameras} selected={selectedCamera}
+        onHide={()=>setSelectedCamera(null)}/>
     </Container>}
     </div>
   )

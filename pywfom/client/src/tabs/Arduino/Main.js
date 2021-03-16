@@ -1,5 +1,5 @@
 // React Components
-import {useState,useEffect} from 'react';
+import {useState,useEffect, useRef} from 'react';
 
 // Load Components
 import Configuration from './Configuration';
@@ -8,57 +8,57 @@ import Configuration from './Configuration';
 import Button from 'react-bootstrap/Button';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import InputGroup from 'react-bootstrap/InputGroup';
-import Modal from 'react-bootstrap/Modal';
 import Table from 'react-bootstrap/Table';
 import Form from 'react-bootstrap/Form';
-import Tab from 'react-bootstrap/Tab';
-import Tabs from 'react-bootstrap/Tabs';
 import Alert from 'react-bootstrap/Alert';
 import Spinner from 'react-bootstrap/Spinner';
 import Container from 'react-bootstrap/Container';
 
 export default function Arduino(props){
 
-  // Modal View Controllers
-  const [config, showConfig] = useState(false);
-  const [info, showInfo] = useState(false);
-  const [message, setMessage] = useState(null);
-  const [disabled, setDisabled] = useState(true);
-
   // UI State Variables
-  const [ports, setPorts] = useState([]);
-  const [port, setPort] = useState(0);
+  const [config, setConfig] = useState({})
+  const [availablePorts, setAvailablePorts] = useState([]);
+  const [selectedPort, setSelectedPort] = useState(0);
+  const [statusMessage, setStatusMessage] = useState(null);
+
+  // Modal View Controllers
+  const [configWindow, showConfigWindow] = useState(false);
+  const [info, showInfo] = useState(false);
 
   // Close and open Configuration Window
-  const handleConfig = () => showConfig(!config);
+  const handleConfig = () => showConfigWindow(!configWindow);
 
   const handleInfo = () => showInfo(!info);
 
   const listPorts = () => {
+    setAvailablePorts([]);
     fetch('/api/find/arduinos')
       .then(resp=> resp.json()
       .then(data => {
-        setPorts(data);
         if (data.length === 0) {
-          setMessage(
-            <Alert variant='danger'>No Arduinos Found</Alert>
-          )
+          setStatusMessage(<Alert variant='danger'>No Arduinos Found</Alert>)
+        } else {
+          setStatusMessage(null);
+          setAvailablePorts(data)
         }
       }))
   }
 
   const connectPort = () => {
 
-    setMessage(
+    const port = availablePorts[selectedPort];
+
+    setStatusMessage(
       <Alert variant='warning'>
         <Spinner animation='border' className='mr-3' size='sm'></Spinner>
-        Connecting to <b>{ports[port].device}</b>...
+        Connecting to <b>{port.device}</b>...
       </Alert>
     )
 
-    const arduinoSettings = { device:'arduino', settings:ports[port] }
+    const arduinoSettings = {key:'arduino',config:{port:port.device}, command:'open'}
 
-    fetch('/api/connection', {
+    fetch('/api/configure', {
       method: "POST",
       headers: {
         'Accept': 'application/json',
@@ -68,30 +68,27 @@ export default function Arduino(props){
       .then(resp => resp.json()
       .then(data => {
 
-        if (!data.status) {
+        if (!data.firmware_version) {
 
-          setMessage((
+          setStatusMessage((
             <Alert variant='danger'>
               <p>
-                <b>ERROR:</b> Arduino at <b>{ports[port].device}</b> does not have
+                <b>ERROR:</b> Arduino at <b>{port.device}</b> does not have
                 compatible firmware.
                 <Button className='ml-3'>Upload Firmware...</Button>
               </p>
             </Alert>
           ))
 
-          setDisabled(true);
-
         }
 
         else {
 
-          props.setArduinoConfig({...props.arduinoConfig, port:ports[port]})
-
-          setMessage((
+          setConfig(data);
+          setStatusMessage((
             <Alert variant='success'>
               <p>
-                Successfully connected to the Arduino at <b>{ports[port].device}</b>
+                Successfully connected to the Arduino at <b>{port.device}</b>
               </p>
             </Alert>
           ))
@@ -100,22 +97,21 @@ export default function Arduino(props){
     }
 
   useEffect(() => {
-    if (ports.length === 0) {}
+    if (availablePorts.length === 0) {}
     else { connectPort() }
-  },[ports, port])
+  },[availablePorts, selectedPort])
 
-  useEffect(() => { listPorts() },[]);
 
   return(
     <Container>
         <Form.Text className='text-muted'>Select an Arduino</Form.Text>
           <InputGroup className="text-center mb-3">
             <Form.Control as="select" custom>
-              { ports.length === 0 ?
+              { availablePorts.length === 0 ?
                 <option disabled defaultValue>No Arduinos Found.</option> :
-                ports.map((port, idx) => {
+                availablePorts.map((port, idx) => {
                   return(
-                    <option onClick={()=>setPort(idx)} key={idx}>
+                    <option onClick={()=>setSelectedPort(idx)} key={idx}>
                       {port.product} - {port.device}
                     </option>
                   )
@@ -125,22 +121,23 @@ export default function Arduino(props){
             <ButtonGroup>
               <Button variant="secondary" onClick={()=>listPorts()}>Refresh</Button>
               <Button variant="secondary" onClick={handleInfo}
-                disabled={ports.length === 0 ? true : false}>
+                disabled={availablePorts.length === 0 ? true : false}>
                 { info ? "Hide Info" : "Show Info" }
               </Button>
-              <Button variant="primary" disabled={disabled} onClick={handleConfig}>Configure</Button>
+              <Button variant="primary" disabled={config.firmware_version? false:true }
+                onClick={handleConfig}>Configure</Button>
             </ButtonGroup>
           </InputGroup>
-        <Configuration port={port} show={config} handleConfig={handleConfig}/>
-        { message }
+        <Configuration port={availablePorts[selectedPort]} show={configWindow} handleConfig={handleConfig}/>
+        { statusMessage }
         { info ?
             <Table>
               <tbody>
-              {Object.keys(ports[port]).map((key,index)=>{
+              {Object.keys(availablePorts[selectedPort]).map((key,index)=>{
                 return (
                   <tr key={index}>
                     <th>{key.charAt(0).toUpperCase()+key.slice(1)}</th>
-                    <td>{ports[port][key]}</td>
+                    <td>{availablePorts[selectedPort][key]}</td>
                   </tr>
                 )
               })}

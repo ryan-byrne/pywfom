@@ -1,4 +1,4 @@
-import {useState, useEffect} from 'react';
+import {useState} from 'react';
 
 import Modal from 'react-bootstrap/Modal';
 import Tab from 'react-bootstrap/Tab';
