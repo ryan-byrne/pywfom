@@ -1,13 +1,14 @@
 import cv2, time
 from datetime import datetime
 from flask import Response, render_template_string
+import time
 
 from pywfom.server.api import api
 from pywfom.server import Configuration
 
 def _generate_camera_feed(cam):
     while cam.active:
-        frame = cv2.imencode('.jpg', cam.feed)[1].tobytes()
+        frame = cv2.imencode('.jpg', cam.feed.get())[1].tobytes()
         yield (b'--frame\r\n'b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
 def _generate_arduino_feed():

@@ -62,29 +62,28 @@ class Camera(object):
 
     def start(self):
         self.active = True
+        self.feed = queue.Queue()
         threading.Thread(target=self._capture_frames).start()
 
     def _capture_frames(self):
         while self.active:
-            self.feed = self._camera.read_frame()
+            # Keep the buffer size small for the feed
+            if self.feed.qsize() > 1:
+                with self.feed.mutex:
+                    self.feed.queue.clear()
+            else:
+                self.feed.put(self._camera.get_frame())
 
     def get(self, setting):
         self._camera.get(setting)
 
-    def start(self):
-        self.feed = self._loading_feed()
-        self.active = True
-        threading.Thread(target=self._capture_frames).start()
-
     def stop(self):
-        print('stopping camera')
         self._camera.stop()
 
     def set(self, **settings):
         self._camera.set(settings)
 
     def close(self):
-        print('closing camera')
         self.active = False
         self._camera.close()
         del self._camera
@@ -130,7 +129,7 @@ class _OpenCV(object):
     def set(self, **settings):
         [setattr(self,k,v) for k,v in settings.items()]
 
-    def read_frame(self):
+    def get_frame(self):
         if not self._video_cap.isOpened():
             return None
         else:

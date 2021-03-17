@@ -18,7 +18,6 @@ def _session_response(id):
 
 # ****** Create Responses ********
 def _get_response(id):
-    print("Getting response from Session")
     if not id:
         # Get settings for everything in the session
         return jsonify({key:session[key] for key in session})
@@ -29,7 +28,6 @@ def _get_response(id):
         return jsonify(session[id])
 
 def _post_response(id, settings):
-    print("Posting settings to Session")
     try:
 
         if not id:
@@ -54,7 +52,6 @@ def _post_response(id, settings):
         return "Unable to establish new settings", 400
 
 def _put_response(id, settings):
-    print("Putting settings in Session")
     try:
         if not id:
             # Put settings for everything specified
@@ -69,7 +66,6 @@ def _put_response(id, settings):
         return "Unable to establish settings in the Session", 400
 
 def _delete_response(id):
-    print("Deleting settings from Session")
     try:
 
         if not id:
