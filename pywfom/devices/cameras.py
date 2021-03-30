@@ -41,9 +41,8 @@ class Camera(object):
 
         """
 
-        for setting in [interface, index, id]:
-            if setting == None:
-                raise CameraException("Incomplete camera configuration")
+        if None in [interface, index, id]:
+            raise CameraException("Incomplete camera configuration")
 
         if ( interface == 'opencv' ):
             self._camera = _OpenCV(index=index, id=id, **config)
@@ -72,7 +71,7 @@ class Camera(object):
                 with self.feed.mutex:
                     self.feed.queue.clear()
             else:
-                self.feed.put(self._camera.get_frame())
+                self.feed.put(self._camera.get_next_frame())
 
     def get(self, setting):
         self._camera.get(setting)
@@ -85,8 +84,11 @@ class Camera(object):
 
     def close(self):
         self.active = False
-        self._camera.close()
-        del self._camera
+        try:
+            self._camera.close()
+            del self._camera
+        except:
+            pass
 
     def json(self):
         return self._camera.json()
@@ -100,6 +102,7 @@ class _OpenCV(object):
 
         self.index = index
         self.id = id
+        self.interface = 'opencv'
 
         self._video_cap = cv2.VideoCapture(self.index)
         self._capturing = False
@@ -119,17 +122,17 @@ class _OpenCV(object):
             "height":int(self.get('height')),
             "fullHeight":int(self.get('height')),
             "fullWidth":int(self.get('width')),
-            "hBin":2,
-            "vBin":2,
+            "binning":"1x1",
             "centered":False
         }
         self.framerate = self.get('framerate')
         self.primary = False
+        self.dtype = '8-bit'
 
     def set(self, **settings):
         [setattr(self,k,v) for k,v in settings.items()]
 
-    def get_frame(self):
+    def get_next_frame(self):
         if not self._video_cap.isOpened():
             return None
         else:

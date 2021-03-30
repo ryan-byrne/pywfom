@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import {useState, useEffect} from 'react';
 
 import Modal from 'react-bootstrap/Modal';
 import Tab from 'react-bootstrap/Tab';
@@ -7,228 +7,231 @@ import Col from 'react-bootstrap/Col';
 import Row from 'react-bootstrap/Row';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
+import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import Container from 'react-bootstrap/Container';
 import Spinner from 'react-bootstrap/Spinner';
 
 const StrobingTab = (props) => {
 
   const addLed = (event) => {
-    props.setConfig(
-      {...props.config,
-        leds:[...props.config.leds, {'name':'New Lew','pin':0}]
-      }
-    )
+    props.setConfig({...props.config,
+      leds:[...props.config.leds, {name:'New LED',pin:0}]
+    })
   }
 
-  const handleLed = (idx, value, type) => {
-    let newLeds = [...props.leds];
-    newLeds[idx][type] = value;
-    props.setConfig({...props.config, leds:newLeds});
+  const removeLed = (idx) => {
+    let newLeds = [...props.config.leds];
+    newLeds.splice(idx, 1)
+    props.setConfig({...props.config, leds:newLeds})
   }
 
-  const handleTrig = (value) => props.setConfig({...props.config, trig:value});
+  const testLed = (idx) => {
+    // TODO:
+  }
+
+  const handleLed = (event, idx) => {
+    const {value, type} = event.target;
+    const key = type === 'text' ? 'name' : 'pin';
+    let leds = [...props.config.leds];
+    leds[idx][key] = value;
+    props.setConfig({...props.config, leds:leds})
+  }
 
   return (
-    <Form>
-
-      <Container>
-        <Row></Row>
-        <Row>
-          <Col></Col>
-          <Col>
-            <Form.Control type="number" min="0" step="1" placeholder="Trigger Pin"
-              onChange={(e)=>handleTrig(e.target.value)}/>
-            <Form.Text className="text-muted">
-              Set the Trigger Pin
-            </Form.Text>
+    <div>{
+      <Container className="mt-3">
+        <Form.Group as={Row} className="justify-content-center">
+          <Col xs={4} sm={3}>
+            <Form.Control type="number" min="0" max="40" step="1" value={props.config.trigger}
+              onChange={(e)=>props.setConfig({...props.config, trigger:e.target.value})}/>
+            <Form.Text muted>Trigger Pin</Form.Text>
           </Col>
-          <Col></Col>
+        </Form.Group>
+        <Form.Group>
+        {
+          props.config.leds.map((led, idx) => {
+            return (
+              <Form.Group key={idx} as={Row} className="justify-content-center">
+                <Form.Group as={Col} xs={5}>
+                  <Form.Control value={led.name} onChange={(e)=>handleLed(e, idx)}/>
+                  <Form.Text muted>LED Name</Form.Text>
+                </Form.Group>
+                <Form.Group as={Col} xs={4} sm={3}>
+                  <Form.Control type="number" min="0" max="40" step="1" value={led.pin}
+                    onChange={(e)=>handleLed(e, idx)}/>
+                  <Form.Text muted>LED Pin</Form.Text>
+                </Form.Group>
+                <ButtonGroup as={Col} sm={4} className="h-50">
+                  <Button size="sm" variant="secondary" onClick={()=>removeLed(idx)}>Remove</Button>
+                  <Button size="sm" onClick={()=>testLed(idx)}>Test</Button>
+                </ButtonGroup>
+              </Form.Group>
+            )
+          })
+        }
+        </Form.Group>
+        <Row className="text-center">
+          <Col><Button onClick={addLed}>Add LED</Button></Col>
         </Row>
-
-      {props.config.leds.map((led, idx)=>{
-        return(
-          <Row key={idx}>
-            <Col>
-              <Form.Control type="text" placeholder="LED Name"
-                onChange={(e)=>handleLed(idx, e.target.value, 'name')}/>
-            </Col>
-            <Col>
-              <Form.Control type="number" min="0" step="1" placeholder="LED Pin"
-                onChange={(e)=>handleLed(idx, e.target.value, 'pin')}/>
-            </Col>
-            <Col>
-              <Button variant='secondary'>Remove</Button>
-            </Col>
-            <Col>
-              <Button variant='primary'>Test</Button>
-            </Col>
-          </Row>
-        )
-      })}
-
-        <Row>
-          <Col></Col><Col><Button onClick={addLed}>Add LED</Button></Col><Col></Col>
-        </Row>
-        <Form.Text className="text-muted">
-          Configure LEDs
-        </Form.Text>
       </Container>
-
-    </Form>
+      }</div>
   )
 }
 
 const StimTab = (props) => {
 
-  // TODO: Test Stim
-  // TODO: Format Stim
-  // TODO: Remove Stim
-
-  const addStim = (event) => {
-    props.setConfig(
-      {
-        ...props.config,
-        stim:[...props.config.stim, {'name':'','type':'2PinStepper','pins':["0","1"]}]
-      }
-    )
-  }
+  const addStim = (event) => props.setConfig({
+    ...props.config, stim:[...props.config.stim, {
+      type:'2PinStepper',name:"New Stim",pins:[0,1],stepSize:5
+    }]
+  })
 
   const removeStim = (idx) => {
-    let newStim = [...props.config.stim]
-    newStim.splice(idx,1)
-    props.setConfig({...props.config,stim:newStim})
+    let newStim = [...props.config.stim];
+    newStim.splice(idx, 1)
+    props.setConfig({...props.config, stim:newStim})
   }
 
-  const handleStim = (idx, event, type) => {
+  const testStim = (idx) => {
+    // TODO:
+  }
+
+  const handleChange = (event, idx) => {
+    const {type, value, id, key} = event.target;
     let newStim = [...props.config.stim]
-    if (type === 'type' && event.target.value !== props.stim[idx].type){
-      if (event.target.value==='4PinStepper') {
-          newStim[idx].pins.push('0','1');
-      } else {
-        newStim[idx].pins.splice(-2,2);
-      }
+    if (type === 'select-one'){
+      newStim[idx].type = value;
+    } else if (type === 'text') {
+      newStim[idx].name = value;
+    } else if (id.slice(0,3) === 'pin') {
+      newStim[idx].pins[parseInt(id.substring(3))] = value;
+
+    } else {
+      newStim[idx].stepSize = value
     }
-    newStim[idx][type] = event.target.value;
     props.setConfig({...props.config, stim:newStim})
-  }
-
-  const handlePin = (event, idx, pidx) => {
-    let newStim = [...props.config.stim]
-    newStim[idx].pins[pidx] = event.target.value
-    props.setConfig({...props.config, stim:newStim})
-
   }
 
   return (
-    <Form>
-
-      <Form.Group as={Row}></Form.Group>
-
-      <Form.Group controlId="stims">
-        {props.config.stim.map((stim, idx)=>{
-          return(
-            <Container>
-              <Row key={idx}>
-                <Col>
-                  <Form.Control type="text" placeholder="Stim Name"
-                    onChange={(e)=>handleStim(idx,e,'name')}/>
-                </Col>
-                <Col>
-                  <Form.Control onChange={(e)=>handleStim(idx,e,'type')} as="select">
-                    <option>2PinStepper</option>
-                    <option>4PinStepper</option>
-                  </Form.Control>
-                </Col>
-                <Col>
-                  <Button variant='secondary' onClick={()=>removeStim(idx)}>Remove</Button>
-                </Col>
-                <Col>
-                  <Button variant='primary'>Test</Button>
-                </Col>
-              </Row>
-              {stim.pins.map((pin, pidx) => {
-                return (
+    <div>{
+        <Container className="mt-3">
+          {
+            props.config.stim.map((s, idx) => {
+              return(
+                <Form.Group key={idx} as={Row} className="justify-content-center">
+                  <Row className="justify-content-center">
+                    <Form.Group as={Col} xs={6} sm={5}>
+                        <Form.Control value={s.name} onChange={(e)=>handleChange(e, idx)}/>
+                        <Form.Text muted>Name</Form.Text>
+                      </Form.Group>
+                      <Form.Group as={Col} xs={6} sm={5}>
+                        <Form.Control as="select" custom value={s.type} onChange={(e)=>handleChange(e, idx)}>
+                          <option>2PinStepper</option>
+                          <option>4PinStepper</option>
+                        </Form.Control>
+                        <Form.Text muted>Type</Form.Text>
+                      </Form.Group>
+                      <Form.Group as={Col} sm={10}>
+                        <Row>
+                          {
+                            [...Array(parseInt(s.type.charAt(0))).keys()].map((pin,pidx)=>{
+                              return(
+                                <Col key={pidx}>
+                                  <Form.Control type="number" id={"pin"+pidx} key={pidx}
+                                    value={s.pins[pidx]} onChange={(e)=>handleChange(e,idx)}
+                                    min="0" max="40" step="1"/>
+                                </Col>
+                              )
+                            })
+                          }
+                        </Row>
+                        <Form.Text muted>Pins</Form.Text>
+                      </Form.Group>
+                      <Form.Group as={Col} xs={4} sm={3}>
+                        <Form.Control type="number" min="1" step="1" value={s.stepSize}
+                          onChange={(e)=>handleChange(e,idx)}/>
+                        <Form.Text muted>Step Size</Form.Text>
+                      </Form.Group>
+                    </Row>
                   <Row>
-                    <Form.Control type="number" min="0" step="1" placeholder="Pin"
-                      onChange={(e)=> handlePin(e,idx,pidx)}/>
+                    <ButtonGroup as={Col}>
+                      <Button size="sm" variant="secondary" onClick={()=>removeStim(idx)}>
+                        Remove
+                      </Button>
+                      <Button size="sm">Test</Button>
+                    </ButtonGroup>
                   </Row>
-                )
-              })}
-            </Container>
-          )
-        })}
-        </Form.Group>
-
-        <Form.Group>
-        <Row>
-          <Col></Col><Col><Button onClick={addStim}>Add Stim</Button></Col><Col></Col>
-        </Row>
-        <Row>
-          <Col>
-            <Form.Text className="text-muted">
-              Configure Stim
-            </Form.Text>
-          </Col>
-        </Row>
-        </Form.Group>
-
-    </Form>
+                </Form.Group>
+              )
+            })
+          }
+          <Row className="mt-3 text-center">
+            <Col><Button onClick={addStim}>Add Stim</Button></Col>
+          </Row>
+        </Container>
+      }</div>
   )
 }
 
 const DaqTab = (props) => {
 
-  // TODO: Test DAQ
-  // TODO: Remove DAQ
+  const handleChange = (event, idx) => {
+      let newDaq = [...props.config.daq]
+      if (event.target.type==="number") {
+        newDaq[idx].pin = event.target.value;
+      } else {
+        newDaq[idx].name = event.target.value;
+      }
+      props.setConfig({...props.config, daq:newDaq})
+  }
 
-  const addDaq = (event) => props.setConfig({...props.config, daq:[{'name':'New DAQ','pin':0}]})
+  const addDaq = (event) => props.setConfig({
+    ...props.config,daq:[...props.config.daq, {name:'New Daq',pin:0}]
+  })
 
   const removeDaq = (idx) => {
-    let newDaq = props.config.daq
-    newDaq.splice(idx,1)
-    props.setConfig({...props.config,daq:newDaq})
+    let newDaq = [...props.config.daq]
+    newDaq.splice(idx, 1)
+    props.setConfig({...props.config, daq:newDaq})
+  }
+
+  const testDaq = (idx) => {
+    // TODO:
   }
 
   return (
-    <Form>
-
-      <Form.Group as={Row}></Form.Group>
-
-      <Form.Group controlId="stims">
-        {props.config.daq.map((daq, idx)=>{
-          return(
-            <Row key={idx}>
-              <Col>
-                <Form.Control type="text" placeholder="DAQ Name"/>
-              </Col>
-              <Col>
-                <Form.Control type="number" min="0" step="1" placeholder="DAQ Pin"/>
-              </Col>
-              <Col>
-                <Button onClick={(e)=>removeDaq(idx)} variant='secondary'>Remove</Button>
-              </Col>
-              <Col>
-                <Button variant='primary'>Test</Button>
-              </Col>
-            </Row>
-          )
-        })}
-      </Form.Group>
-
-      <Form.Group>
-        <Row>
-          <Col><Button onClick={addDaq}>Add DAQ</Button></Col>
-        </Row>
-        <Row>
-          <Col>
-            <Form.Text className="text-muted">
-              Configure Data Acquisition
-            </Form.Text>
-          </Col>
-        </Row>
-      </Form.Group>
-
-    </Form>
+    <div>{
+        <Container className="mt-3">
+          {
+            props.config.daq.map((d, idx)=> {
+              return(
+                <Form.Group as={Row} key={idx} className="justify-content-center">
+                  <Form.Group as={Col} xs={5}>
+                    <Form.Control value={d.name} onChange={(e)=>handleChange(e,idx)}/>
+                    <Form.Text muted>Name</Form.Text>
+                  </Form.Group>
+                  <Form.Group as={Col} xs={4} sm={3}>
+                    <Form.Control value={d.pin} type="number" min="0" max="40"
+                      step="1" onChange={(e)=>handleChange(e,idx)}/>
+                    <Form.Text muted>Pin</Form.Text>
+                  </Form.Group>
+                  <ButtonGroup as={Col} className='h-50'>
+                    <Button size="sm" variant="secondary" onClick={()=>removeDaq(idx)}>
+                      Remove
+                    </Button>
+                    <Button size="sm">
+                      Test
+                    </Button>
+                  </ButtonGroup>
+                </Form.Group>
+              )
+            })
+          }
+          <Row className="justify-content-center">
+            <Button onClick={addDaq}>Add DAQ</Button>
+          </Row>
+        </Container>
+      }</div>
   )
 }
 
@@ -236,14 +239,12 @@ export default function Configuration(props) {
 
   // State variables
   const [sending, setSending] = useState(false);
-  const [config, setConfig] = useState({
-    "device":"arduino", leds:[],daq:[],port:null,trig:null,stim:[]
-  });
+  const [config, setConfig] = useState({});
 
   // Send settings to Python
-  const handleSave = () => {
+  const handleConfigure = () => {
     // TODO: Send values to Python API
-    fetch('/api/connection/', {
+    fetch('/api/settings/arduino', {
       method: "POST",
       headers: {
         'Accept': 'application/json',
@@ -255,8 +256,13 @@ export default function Configuration(props) {
       .then(data => console.log(data))
       .catch(err => console.log(err))
     )
-    props.handleConfig();
   };
+
+  useEffect(() => {
+    fetch('/api/settings/arduino')
+      .then(resp => resp.json()
+      .then(data => setConfig(data)))
+  },[])
 
   return(
     <Modal show={props.show} onHide={props.handleConfig}>
@@ -283,8 +289,8 @@ export default function Configuration(props) {
           Close
         </Button>
         { !sending ?
-          <Button variant="primary" onClick={handleSave}>
-            Save Changes
+          <Button variant="primary" onClick={handleConfigure}>
+            Configure
           </Button>
           :
           <Button variant="primary" disabled>

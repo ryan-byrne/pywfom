@@ -4,7 +4,7 @@ from pywfom.devices.cameras import find_cameras
 
 from pywfom.server.api import api
 
-@api.route('find/<device>', methods=['GET'])
+@api.route('devices/<device>', methods=['GET'])
 def api_find(device):
     if device == 'cameras':
         return jsonify(find_cameras())

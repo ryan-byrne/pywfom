@@ -1,5 +1,4 @@
 import {useRef,useEffect,useState} from 'react';
-
 import Modal from 'react-bootstrap/Modal';
 import Image from 'react-bootstrap/Image';
 import Container from 'react-bootstrap/Container';
@@ -11,10 +10,12 @@ import FormControl from 'react-bootstrap/FormControl';
 import Tabs from 'react-bootstrap/Tabs';
 import Tab from 'react-bootstrap/Tab';
 import Form from 'react-bootstrap/Form';
+import Alert from 'react-bootstrap/Alert';
 
 const ImageDraw = (props) => {
 
-  const [coor, setCoor] = useState({draw:false,x:0,y:0,ix:0,iy:0})
+  const [coor, setCoor] = useState({draw:false,x:0,y:0,ix:0,iy:0});
+  const [cropper, setCropper] = useState({height:null,width:null,objectFit:'cover'})
 
   const canvasRef = useRef();
   const imageRef = useRef();
@@ -22,50 +23,36 @@ const ImageDraw = (props) => {
 
   const handleUp = (event) => {
     const { height, naturalHeight } = imageRef.current;
-    const { x, y, iy, ix } = coor;
     const scale = height/naturalHeight;
-    const size = {
-      x:Math.min(x,ix),
-      y:Math.min(y,iy),
-      height:Math.abs(y-iy),
-      width:Math.abs(x-ix)
+    const { x, y, iy, ix } = coor;
+    const { fullHeight, fullWidth } = props.camera.aoi;
+    let aoi;
+    if (event.button === 2) {
+      aoi = { ...props.camera.aoi, height:fullHeight, width:fullWidth, x:0, y:0 }
+    } else {
+      setCropper({...cropper, height:Math.abs(y-iy)+"px",width:Math.abs(x-ix)+"px"})
+      aoi = {
+        ...props.camera.aoi,
+        height:parseInt(Math.abs(y-iy)/scale),
+        width:parseInt(Math.abs(x-ix)/scale),
+        x:parseInt(Math.min(x, ix)/scale),
+        y:parseInt(Math.min(y, iy)/scale)
+      }
     }
-    props.setCamera({...props.camera, aoi:{
-      ...props.camera.aoi,
-      x:parseInt(size.x/scale),
-      y:parseInt(size.y),
-      height:parseInt(size.height/scale),
-      width:parseInt(size.width/scale)
-    }})
+    props.setCamera({...props.camera, aoi:aoi})
     setCoor({draw:false,x:0,y:0,ix:0,iy:0})
   }
 
   const handleDown = (event) => {
-    if (event.button===2){
-      const {fullWidth, fullHeight} = props.camera.aoi;
-      console.log(fullHeight, fullWidth);
-      props.setCamera(
-        {...props.camera, aoi:{...props.camera.aoi, x:0, y:0, width:fullWidth, height:fullHeight}
-      })
-    } else {
-      const { left, top} =  canvasRef.current.getBoundingClientRect()
-      const { clientX, clientY } = event;
-      setCoor({...coor,
-        ix:clientX-left,
-        iy:clientY-top,
-        x:clientX-left,
-        y:clientY-top,
-        draw:true})
-    }
+    const { left, top} =  canvasRef.current.getBoundingClientRect()
+    const { clientX, clientY } = event;
+    setCoor({ix:clientX-left,iy:clientY-top,x:clientX-left,y:clientY-top,draw:true})
   }
 
   const handleMove = (event) => {
     const { left, top} =  canvasRef.current.getBoundingClientRect()
     const { clientX, clientY } = event;
-    if (coor.draw) {
-      setCoor({...coor, x:clientX-left,y:clientY-top})
-    } else {
-    }
+    if (coor.draw) { setCoor({...coor, x:clientX-left,y:clientY-top}) }
   }
 
   useEffect(()=>{
@@ -80,17 +67,16 @@ const ImageDraw = (props) => {
     if (coor.draw) {ctx.strokeRect(ix,iy,x-ix,y-iy)}
   })
 
-  const containerStyle = {
-    position:'relative',
-    overflow:'hidden'
-  }
+  useEffect(()=>{
+    const scale = imageRef.current.naturalHeight/imageRef.current.height;
+  },[props.camera.aoi])
 
   return (
-    <div ref={containerRef} style={containerStyle}>
-      <canvas style={{cursor:'crosshair'}} className="position-absolute"
-        ref={canvasRef} onMouseDown={handleDown} onMouseUp={handleUp} onMouseMove={handleMove}
-        onContextMenu={(e)=>e.preventDefault()}/>
-      <Image ref={imageRef} src={"/api/feed/"+props.camera.id} fluid draggable={false}/>
+    <div onMouseDown={handleDown} onMouseMove={handleMove} onMouseUp={handleUp}>
+      <canvas ref={canvasRef} onContextMenu={(e)=>e.preventDefault()} className="position-absolute"
+        style={cropper}/>
+      <Image ref={imageRef} src={"/api/feed/"+props.camera.id} fluid draggable={false}
+        style={cropper}/>
     </div>
   )
 }
@@ -102,16 +88,38 @@ export default function ConfigureCamera(props) {
 
   const handleSave = () => console.log(camera);
 
-  const handleChange = (event, key) => {}
+  const handleSwitch = (event) => {
+    if (event.target.id === 'primary'){
+      setCamera({...camera, primary:event.target.checked})
+    } else {
+      var newX; var newY;
+      const {fullWidth, fullHeight, x, y, height, width} = camera.aoi;
+      if( event.target.checked) {
+        newX = (fullWidth-width)/2
+        newY = (fullHeight-height)/2
+      } else { newX=x; newY=y}
+      setCamera({...camera, aoi:{...camera.aoi, centered:event.target.checked, x:newX, y:newY}})
+    }
+  }
 
-  const handleSwitch = (event, key) => {}
+  const handleSelect = (event) => {
+    if (event.target.id === 'binning'){
+      setCamera({...camera,aoi:{...camera.aoi, binning:event.target.value}})
+    } else {
+      setCamera({...camera, dtype:event.target.value})
+    }
+  }
 
-  const handleSelect = (event, key) => {}
+  const handleNumber = (event) => {
+    setCamera({...camera, aoi:{...camera.aoi,
+      [event.target.id]:event.target.value
+    }});
+  }
 
-  const handleAoi = (event, key) => {}
+  const calculateFrameSize = () => {return "4898"}
 
   useEffect(() => {
-    setCamera(props.cameras[props.selected])
+    setCamera({...props.cameras[props.selected]})
   },[props.selected])
 
   return (
@@ -120,114 +128,91 @@ export default function ConfigureCamera(props) {
       onHide={props.onHide} size='xl'>
       {
         <div>
-        <Modal.Header>
+        <Modal.Header closeButton>
           <Modal.Title>
             Configuring Camera
           </Modal.Title>
         </Modal.Header>
-        { !camera ? null :
-        <Modal.Body className='text-center'>
-          <ImageDraw camera={camera} setCamera={setCamera}/>
-            <Tabs className='mt-3 mb-3'>
-              <Tab eventKey="aoi" title="AOI">
-                <Container className='h-100'>
-                  <Row className='h-100 align-self-center justify-content-center' xs="auto">
-                    <InputGroup>
-                      <InputGroup.Prepend>
-                        <InputGroup.Text>Binning</InputGroup.Text>
-                      </InputGroup.Prepend>
-                      <Col xs="auto">
-                        <FormControl as="select" custom></FormControl>
-                        <Form.Text muted>Horizontal</Form.Text>
-                      </Col>
-                      <div className='h-100 align-self-center'>X</div>
-                      <Col xs="auto">
-                        <FormControl as="select" custom></FormControl>
-                        <Form.Text muted>Vertical</Form.Text>
-                      </Col>
-                      <Col xs="auto">
-                        <Form.Check type="switch" label="Centered" id="centered-switch"
-                          value={camera.aoi.centered} onChange={(e)=>handleSwitch(e,"centered")}/>
-                      </Col>
+        { !camera.aoi ? null :
+          <Modal.Body>
+            <Row className="justify-content-center"><ImageDraw camera={camera} setCamera={setCamera}/></Row>
+            <Tabs className="mt-3">
+              <Tab eventKey="aoiTab" title="AOI">
+                <Container>
+                  <Row className="justify-content-center mt-3 align-items-center" xs={1} sm={4}>
+                    <InputGroup as={Col}>
+                      <InputGroup.Text>Binning</InputGroup.Text>
+                      <FormControl as="select" custom className="text-center"
+                        value={camera.aoi.binning} onChange={handleSelect} id="binning">
+                        {
+                          ['1x1','2x2','4x4','8x8'].map(bin=><option key={bin}>{bin}</option>)
+                        }
+                      </FormControl>
                     </InputGroup>
+                    <Col className="text-center">
+                      <Form.Check type="switch" id="centered" label="Centered"
+                        value={camera.aoi.centered} onChange={handleSwitch}>
+                      </Form.Check>
+                    </Col>
                   </Row>
-                  <Row className='mt-3 justify-content-center' sm={2} md={2} lg={4}>
+                  <Row className="justify-content-center mt-3" xs={2} sm={6}>
                     {
-                      ['x','y','width','height'].map((key,idx)=>{
-                        return(
-                          <Col key={idx}>
-                            <InputGroup.Prepend>
-                              <InputGroup.Text>
-                                {key.charAt(0).toUpperCase()+key.slice(1)}:
-                              </InputGroup.Text>
-                              <Form.Control onChange={(e)=>handleAoi(e,key)}
-                                value={camera.aoi[key]} type="number"
-                                min={0} step={1}>
-                              </Form.Control>
-                            </InputGroup.Prepend>
-                          </Col>
+                      ["height", "width", "x", "y"].map(setting => {
+                        return (
+                          <Form.Group as={Col} key={setting}>
+                            <Form.Control type="number" min="0" step="1" className="text-center"
+                              value={camera.aoi[setting]} id={setting} onChange={handleNumber}/>
+                            <Form.Text muted>
+                              {setting.charAt(0).toUpperCase()+setting.slice(1)}
+                            </Form.Text>
+                          </Form.Group>
                         )
                       })
                     }
                   </Row>
                 </Container>
               </Tab>
-              <Tab eventKey="framerate" title="Framerate">
-                <Container className='h-100'>
-                  <Row className='h-100 align-items-center'>
-                    <Col>
-                      <Form.Check type="switch" id="primarySwitch" label="Primary"
-                        className="mr-5" onChange={(e)=>handleSwitch(e, "primary")}>
-                      </Form.Check>
+              <Tab eventKey="framerateKey" title="Framerate">
+                <Container className="mt-3">
+                  <Row className="align-items-center">
+                    <Col className="text-center">
+                      <Form.Check type="switch" label="Primary" value={camera.primary}
+                        onChange={handleSwitch} id="primary"></Form.Check>
                     </Col>
-                    <Col>
-                      <InputGroup>
-                        <InputGroup.Prepend>
-                          <FormControl onChange={(e)=>handleChange(e,"framerate")}
-                            value={camera.framerate}
-                            disabled={camera.primary?true:false} type='number' step={0.01} min={1}>
-                          </FormControl>
-                          <InputGroup.Text>FPS</InputGroup.Text>
-                        </InputGroup.Prepend>
-                      </InputGroup>
+                    <Col className="justify-content-center">
+                      <Form.Control type="number" min="0" step="0.01"
+                        value={camera.framerate} disabled={camera.primary?false:true}
+                        onChange={handleNumber}>
+                      </Form.Control>
+                      <Form.Text muted>Framerate</Form.Text>
                     </Col>
                   </Row>
                 </Container>
               </Tab>
-              <Tab eventKey="pixel-format" title="Pixel Format">
-                <Container className='h-100'>
-                  <Row className='h-100 align-items-center text-center'>
-                    <Col>
-                      <InputGroup>
-                        <InputGroup.Prepend>
-                          <InputGroup.Text>Pixel Size</InputGroup.Text>
-                            <Form.Control custom as='select' onChange={(e)=>handleSelect(e,'dtype')}
-                              value={camera.dtype}>
-                            {
-                              ['8-bit','16-bit','32-bit'].map((bit, idx)=>{
-                                return(
-                                  <option key={idx}>{bit}</option>
-                                )
-                              })
-                            }
-                            </Form.Control>
-                        </InputGroup.Prepend>
-                      </InputGroup>
-                    </Col>
-                    <Col>
-                      <InputGroup>
-                        <InputGroup.Prepend>
-                          <InputGroup.Text>Frame Size</InputGroup.Text>
-                          <Form.Control as="text">Hello</Form.Control>
-                        </InputGroup.Prepend>
-                      </InputGroup>
-                    </Col>
-                  </Row>
+              <Tab eventKey="pixelKey" title="Pixel Format">
+                <Container>
+                  <Form.Group as={Row} className="mt-3">
+                    <Form.Group as={Col}>
+                      <Form.Control as="select" custom value={camera.dtype}
+                        onChange={handleSelect}>
+                        {['8-bit','12-bit','16-bit','32-bit'].map(bit=>{
+                          return(<option key={bit}>{bit}</option>)
+                        })}
+                      </Form.Control>
+                      <Form.Text muted>Bits Per Pixel</Form.Text>
+                    </Form.Group>
+                    <Form.Group as={Col}>
+                      <InputGroup.Prepend>
+                        <InputGroup.Text>{calculateFrameSize()}</InputGroup.Text>
+                        <InputGroup.Text>MB</InputGroup.Text>
+                      </InputGroup.Prepend>
+                      <Form.Text muted>MB per Frame</Form.Text>
+                    </Form.Group>
+                  </Form.Group>
                 </Container>
               </Tab>
-              <Tab eventKey="info" title="Info"></Tab>
             </Tabs>
-        </Modal.Body>
+          </Modal.Body>
         }
         <Modal.Footer>
           <Button variant="secondary" onClick={props.onHide}>Close</Button>

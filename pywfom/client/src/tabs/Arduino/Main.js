@@ -13,6 +13,8 @@ import Form from 'react-bootstrap/Form';
 import Alert from 'react-bootstrap/Alert';
 import Spinner from 'react-bootstrap/Spinner';
 import Container from 'react-bootstrap/Container';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
 
 export default function Arduino(props){
 
@@ -33,7 +35,7 @@ export default function Arduino(props){
 
   const listPorts = () => {
     setAvailablePorts([]);
-    fetch('/api/find/arduinos')
+    fetch('/api/devices/arduinos')
       .then(resp=> resp.json()
       .then(data => {
         if (data.length === 0) {
@@ -56,9 +58,9 @@ export default function Arduino(props){
       </Alert>
     )
 
-    const arduinoSettings = {key:'arduino',config:{port:port.device}, command:'open'}
+    const arduinoSettings = {key:'arduino',port:port.device}
 
-    fetch('/api/configure', {
+    fetch('/api/settings/arduino', {
       method: "POST",
       headers: {
         'Accept': 'application/json',
@@ -88,8 +90,9 @@ export default function Arduino(props){
           setStatusMessage((
             <Alert variant='success'>
               <p>
-                Successfully connected to the Arduino at <b>{port.device}</b>
+                Connected to the Arduino at <b>{port.device}</b>
               </p>
+              <p>Firmware Version: <b>{data.firmware_version}</b></p>
             </Alert>
           ))
         }
@@ -101,11 +104,17 @@ export default function Arduino(props){
     else { connectPort() }
   },[availablePorts, selectedPort])
 
+  const getConfiguration = () => {
+    
+  }
+
+  useEffect(() => { listPorts(); getConfiguration()},[])
 
   return(
-    <Container>
-        <Form.Text className='text-muted'>Select an Arduino</Form.Text>
-          <InputGroup className="text-center mb-3">
+    <div>{
+      <Container>
+        <Row className="mt-3 justify-content-center">
+          <Form.Group as={Col} sm={1} lg={4}>
             <Form.Control as="select" custom>
               { availablePorts.length === 0 ?
                 <option disabled defaultValue>No Arduinos Found.</option> :
@@ -118,6 +127,9 @@ export default function Arduino(props){
                 })
               }
             </Form.Control>
+            <Form.Text muted>Select an Arduino</Form.Text>
+          </Form.Group>
+          <Form.Group as={Col} sm={4}>
             <ButtonGroup>
               <Button variant="secondary" onClick={()=>listPorts()}>Refresh</Button>
               <Button variant="secondary" onClick={handleInfo}
@@ -127,24 +139,13 @@ export default function Arduino(props){
               <Button variant="primary" disabled={config.firmware_version? false:true }
                 onClick={handleConfig}>Configure</Button>
             </ButtonGroup>
-          </InputGroup>
+          </Form.Group>
+        </Row>
+        <Row className='justify-content-center'>
+          <Col xs={12} md={8}>{statusMessage}</Col>
+        </Row>
         <Configuration port={availablePorts[selectedPort]} show={configWindow} handleConfig={handleConfig}/>
-        { statusMessage }
-        { info ?
-            <Table>
-              <tbody>
-              {Object.keys(availablePorts[selectedPort]).map((key,index)=>{
-                return (
-                  <tr key={index}>
-                    <th>{key.charAt(0).toUpperCase()+key.slice(1)}</th>
-                    <td>{availablePorts[selectedPort][key]}</td>
-                  </tr>
-                )
-              })}
-              </tbody>
-            </Table>
-          : null
-        }
       </Container>
+    }</div>
   )
 }

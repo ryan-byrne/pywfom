@@ -17,10 +17,15 @@ export default function EditCameras(props){
   const searchCameras = (event) => {
     setFoundCameras([]);
     setSearching(true);
-    fetch('/api/find/cameras')
+    fetch('/api/devices/cameras')
       .then(resp => resp.json()
       .then(data => {
-        setFoundCameras(data);
+        // Filter out cameras that are already added
+        let filteredCameras = data
+        Object.values(props.cameras).map(cam=> {
+          console.log(cam);
+        })
+        setFoundCameras(filteredCameras);
         setSearching(false);
       }))
   }
@@ -48,37 +53,38 @@ export default function EditCameras(props){
       },
       body: JSON.stringify({...foundCameras[idx],id:id})})
       .then(resp => resp.json()
-      .then(data => props.setCameras({...props.cameras, [id]:data}))
+      .then(data => {
+        let oldCameras = [...foundCameras]
+        oldCameras.splice(idx, 1)
+        setFoundCameras(oldCameras);
+        props.setCameras({...props.cameras, [id]:data})
+      })
       .catch(err=> console.log(err))
     )
   }
 
   const removeCamera = (event, id) => {
     //Send Message to API
-    fetch('/api/configure', {
-      method: "POST",
+    fetch('/api/settings/'+id, {
+      method: "DELETE",
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({command:"close",key:id,config:null})})
-    .then(resp => resp.json()
-    .then(data => {
-      if (data.status === 'success') {
-        let cameras = {...props.cameras};
-        setFoundCameras([])
-        delete cameras[id];
-        props.setCameras(cameras)
-      } else {
-        console.log(data);
+      body: JSON.stringify({config:null})})
+    .then(resp => {
+      if (resp.ok) {
+        let newCameras = {...props.cameras};
+        delete newCameras[id];
+        props.setCameras(newCameras)
       }
-    }))
+    })
+    .catch(err=> console.log(err))
   }
 
   useEffect(()=> {
     searchCameras(null)
   },[])
-
   const cameraTable = (cameras, text) => {
     return (
       <Table className="text-center">
@@ -119,7 +125,7 @@ export default function EditCameras(props){
   return(
     <div>{
       <Modal show={props.show} onHide={props.hideEditing}>
-        <Modal.Header>
+        <Modal.Header closeButton>
           <Modal.Title>
             Choosing Cameras
           </Modal.Title>

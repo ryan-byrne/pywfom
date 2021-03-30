@@ -43,7 +43,7 @@ export default function Cameras(props){
         </Row>
         <Row className="mt-3"><Col>
           <Button onClick={()=>showEditing(true)}>
-            {cameras.length === 0 ? "Add Camera(s)" : "Edit Camera(s)"}
+            {Object.keys(cameras).length === 0 ? "Add Camera(s)" : "Edit Camera(s)"}
           </Button>
         </Col></Row>
       <EditCameras cameras={cameras} setCameras={setCameras}

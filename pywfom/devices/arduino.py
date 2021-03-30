@@ -1,5 +1,5 @@
 import serial.tools.list_ports as ports
-import serial
+import serial, time
 
 def find_arduinos():
     arduinos = []
@@ -15,15 +15,30 @@ class Arduino(object):
     """docstring for Arduino."""
 
     def __init__(self, **config):
-        self.set(**config)
         self.active = False
-        self.firmware_version = None
-        self._serial = None
+        [setattr(self, key, []) for key in ['leds','stim','daq']]
+        [setattr(self, key, None) for key in ['trigger', '_serial', 'firmware_version']]
+        self.stim = [
+            {
+                "name":"New Stepper",
+                "type":"2PinStepper",
+                "pins":[12,14],
+                "stepSize":4
+            }
+        ]
+        self.daq = [
+            {"name":"encoder","pin":18}
+        ]
+        self.trigger = 5
+        self.set(**config)
 
     def _connect_to_port(self, port):
-        self._serial = serial.Serial(port=port, timeout=3.0)
-        msg = self._serial.readline()[:3]
-        self.firmware_version = None if msg[:3] != b'<py' else msg[7:12]
+        self._serial = serial.Serial(port=port, baudrate=115200, timeout=3.0)
+        msg = self._serial.readline().decode("utf-8").split(">")
+        if msg[0][0] != '<':
+            # Check to see if the initial message was incomplete
+            msg = self._serial.readline().decode("utf-8").split(">")
+        self.firmware_version = None if msg[0][:3] != '<py' else msg[0][8:]
 
     def start(self):
         self.active = True
@@ -46,14 +61,19 @@ class Arduino(object):
 
     def close(self):
         self.active = False
-        self._serial.close()
+        try:
+            self._serial.close()
+        except:
+            pass
 
     def set(self, **settings):
         [self._set(k,v) for k,v in settings.items()]
 
     def _set(self, setting, value):
+        # TODO: Fill out for other settings
         if setting == 'port':
             self._connect_to_port(value)
+        setattr(self, setting, value)
 
 
     def json(self):

@@ -12,6 +12,7 @@ import Spinner from 'react-bootstrap/Spinner';
 import File from './tabs/File/Main';
 import Cameras from './tabs/Cameras/Main';
 import Arduino from './tabs/Arduino/Main';
+import Login from './Login';
 
 const StatusPage = (props) => {
 
@@ -39,26 +40,11 @@ export default function Main() {
 
   const [loading, setLoading] = useState({});
   const [settings, setSettings] = useState({})
-  /*
-  useEffect(()=>{
-    setLoading({message:"Loading settings from Python API", variant:'info'})
-    fetch('/api/settings')
-      .then(resp=>resp.json()
-      .then(data=>{
-        const {arduino, file, ...cameras} = data;
-        setSettings({arduino:arduino,file:file, cameras:cameras});
-        setLoading({})
-      })
-      .catch(err=>{
-        setLoading({message:"Unable to connect to server"})
-      }))
-  },[]);
-  */
+  const [loggedIn, setLoggedIn] = useState(false);
 
   return (
     <div>
       {
-        loading.message ? <StatusPage message={loading.message} variant={loading.variant}/>:
         <Tabs defaultActiveKey="profile" id="uncontrolled-tab-example">
           <Tab eventKey='runTab' title="Run">
             <File />
