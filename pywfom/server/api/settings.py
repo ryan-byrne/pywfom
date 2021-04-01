@@ -1,105 +1,54 @@
 from flask import request, jsonify, session
 import traceback
 
-from pywfom.server.api import api
+from . import api
 
+from pywfom.system import System
 from pywfom.devices.arduino import Arduino
 from pywfom.devices.cameras import Camera
-from pywfom.acquisition import current_acquisition
-
-def _session_response(id):
-    return (jsonify(session) if not id else jsonify(session[id]))
 
 # ****** Create Responses ********
-def _get_response(id):
 
-    if not id:
-        # Get settings for everything in the session
-        return jsonify({key:session[key] for key in session})
-    elif id == 'file' and 'file' not in session:
-        # If file is not in session, create it
-        session['file'] = current_acquisition.file
-        return jsonify(session['file'])
-    elif id == 'cameras':
-        # Return all session objects that are not arduino or file
-        return jsonify( {key:session[key] for key in session if key not in ['arduino', 'file']} )
-    else:
-        # Get settings from specific id
-        return jsonify(session[id])
+def _get_response(id):
+    _settings = {
+        'file':System.file,
+        'arduino':System.arduino.json(),
+        'cameras':{key:cam.json() for key, cam in System.cameras.items()}
+    }
+    return jsonify(_settings[id] if id else _settings)
+
 
 def _post_response(id, settings):
-
-    try:
-        if not id:
-            # Post settings to everything in the session
-            pass
-        elif id == 'arduino':
-            current_acquisition.arduino = Arduino(**settings)
-            session[id] = current_acquisition.arduino.json()
-        elif id == 'file':
-            current_acquisition.set(**settings)
-            session[id] = current_acquisition.file
-        else:
-            current_acquisition.cameras[id] = Camera(**settings)
-            session[id] = current_acquisition.cameras[id].json()
-
-        return _session_response(id)
-
-    except Exception as e:
-        traceback.print_exc()
-        return "Unable to establish new settings", 400
+    if id == 'file':
+        System.file = settings
+        return jsonify(setting)
+    elif id == 'arduino':
+        System.arduino = Arduino(**settings)
+        return jsonify(System.arduino.json())
+    else:
+        System.cameras[id] = Camera(**settings)
+        return jsonify(System.cameras[id].json())
 
 def _put_response(id, settings):
-    try:
-        if not id:
-            return "Unable to PUT settings without a specified ID", 400
-        elif id == 'file':
-            current_acquisition.set(**settings)
-            session['file'] = current_acquisition.file
-        elif id == 'arduino':
-            current_acquisition.arduino.set(**settings)
-            session['arduino'] = current_acquisition.arduino.json()
-        else:
-            current_acquisition.cameras[id].set(**settings)
-            session[id] = current_acquisition.cameras[id].json()
-
-        return _session_response(id)
-
-    except Exception as e:
-        return "Unable to establish settings in the Session", 400
+    if id == 'file':
+        System.file = settings
+        return jsonify(setting)
+    elif id == 'arduino':
+        System.arduino.set(**settings)
+        return jsonify(System.arduino.json())
+    else:
+        System.cameras[id].set(**settings)
+        return jsonify(System.cameras[id].json())
 
 def _delete_response(id):
-    try:
-
-        if not id:
-            # Delete and close arduino information from acquisition
-            if current_acquisition.arduino:
-                current_acquisition.arduino.close()
-            current_acquisition.arduino = None
-            # Delete and close camera information from acquisition
-            if current_acquisition.cameras:
-                [current_acquisition.cameras[key].close() for key in current_acquisition.cameras]
-            current_acquisition.cameras = {}
-            # Delete all cameras and arduino from session
-            for key in list(session):
-                if key != 'file':
-                    session.pop(key, None)
-        elif id == 'file':
-            return "You are not allowed to delete file information", 405
-        elif id == 'arduino':
-            # Delete and close arduino information from acquisition
-            current_acquisition.arduino.close()
-            del current_acquisition['arduino']
-            session.pop('arduino', None)
-        else:
-            current_acquisition.cameras[id].close()
-            session.pop(id, None)
-
-        return "Successfully cleared settings", 200
-
-    except Exception as e:
-        traceback.print_exc()
-        return "Unable to remove settings from session", 400
+    if id == 'file':
+        System.file = {}
+    elif id == 'arduino':
+        System.arduino.close()
+    else:
+        System.cameras[id].close()
+        del System.cameras[id]
+    return "Successfully closed {}".format(id), 200
 
 # ************* ROUTING FUNCTIONS ******************
 @api.route('/settings', methods=['GET'])

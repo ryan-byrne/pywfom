@@ -17,7 +17,7 @@ export default function File(props){
 
   const closeSession = (event) => {
     fetch('/api/settings', {method:'DELETE'})
-      .then(resp => { if (resp.ok) {} else {} })
+      .then(resp => { if (resp.ok) {console.log("Success")} })
   }
 
   const loadConfiguration = (event) => {
@@ -26,13 +26,20 @@ export default function File(props){
       .then(data => console.log(data)))
   }
 
+  const saveConfiguration = (event) => {}
+
+  const setAsDefault = (event) => {}
+
+  const loadDefault = (event) => {}
+
   const handleChange = (event) => setFileConfig({...fileConfig, [event.target.id]:event.target.value})
 
   useEffect(() => {
     fetch('/api/settings/file')
-      .then(resp => resp.json()
-      .then(data=> setFileConfig(data)))
-      .catch(error => console.log(error))
+      .then(resp => {
+        if (resp.ok) {return resp.json()}
+        else { console.error(resp) }})
+      .then(data=>setFileConfig(data))
   },[])
 
   return (
@@ -85,10 +92,10 @@ export default function File(props){
             <Button variant="danger" className='ml-1' onClick={closeSession}>Close</Button>
             <DropdownButton variant="secondary" className='ml-1' as={ButtonGroup}
               title="File">
-              <Dropdown.Item eventKey="1">Save Configuration</Dropdown.Item>
+              <Dropdown.Item eventKey="1" onClick={saveConfiguration}>Save Configuration</Dropdown.Item>
               <Dropdown.Item eventKey="2" onClick={loadConfiguration}>Load Configuration</Dropdown.Item>
-              <Dropdown.Item eventKey="3">Load Default</Dropdown.Item>
-              <Dropdown.Item eventKey="4">Set to Default</Dropdown.Item>
+              <Dropdown.Item eventKey="3" onClick={loadDefault}>Load Default</Dropdown.Item>
+              <Dropdown.Item eventKey="4" onClick={setAsDefault}>Set As Default</Dropdown.Item>
             </DropdownButton>
             <Button className='ml-1'>Start Acquisition</Button>
           </ButtonGroup>

@@ -1,0 +1,10 @@
+{
+  "file":{"directory":"/pywfom"},
+  "arduino":{"port":"COM1"},
+  "cameras":{
+    "938495":{
+      "interface":"opencv",
+      "index":0
+    }
+  }
+}

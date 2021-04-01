@@ -67,7 +67,10 @@ export default function Arduino(props){
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(arduinoSettings)})
-      .then(resp => resp.json()
+      .then(resp => {
+        if (resp.ok) {return resp.json()}
+        else { console.error(resp.message) }
+      })
       .then(data => {
 
         if (!data.firmware_version) {
@@ -96,7 +99,7 @@ export default function Arduino(props){
             </Alert>
           ))
         }
-      }))
+      })
     }
 
   useEffect(() => {
@@ -105,7 +108,7 @@ export default function Arduino(props){
   },[availablePorts, selectedPort])
 
   const getConfiguration = () => {
-    
+
   }
 
   useEffect(() => { listPorts(); getConfiguration()},[])

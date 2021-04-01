@@ -18,27 +18,20 @@ class Arduino(object):
         self.active = False
         [setattr(self, key, []) for key in ['leds','stim','daq']]
         [setattr(self, key, None) for key in ['trigger', '_serial', 'firmware_version']]
-        self.stim = [
-            {
-                "name":"New Stepper",
-                "type":"2PinStepper",
-                "pins":[12,14],
-                "stepSize":4
-            }
-        ]
-        self.daq = [
-            {"name":"encoder","pin":18}
-        ]
-        self.trigger = 5
+        self.trigger = None
         self.set(**config)
 
     def _connect_to_port(self, port):
-        self._serial = serial.Serial(port=port, baudrate=115200, timeout=3.0)
-        msg = self._serial.readline().decode("utf-8").split(">")
-        if msg[0][0] != '<':
-            # Check to see if the initial message was incomplete
+        
+        try:
+            self._serial = serial.Serial(port=port, baudrate=115200, timeout=3.0)
             msg = self._serial.readline().decode("utf-8").split(">")
-        self.firmware_version = None if msg[0][:3] != '<py' else msg[0][8:]
+            if msg[0][0] != '<':
+                # Check to see if the initial message was incomplete
+                msg = self._serial.readline().decode("utf-8").split(">")
+            self.firmware_version = None if msg[0][:3] != '<py' else msg[0][8:]
+        except serial.serialutil.SerialException:
+            self._serial = None
 
     def start(self):
         self.active = True

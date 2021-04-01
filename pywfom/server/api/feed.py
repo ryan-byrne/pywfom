@@ -3,8 +3,8 @@ from datetime import datetime
 from flask import Response, render_template_string
 import time
 
-from pywfom.server.api import api
-from pywfom.acquisition import current_acquisition
+from . import api
+from pywfom.system import System
 
 def _generate_camera_feed(cam):
     while cam.active:
@@ -22,7 +22,7 @@ def camera_feed(id):
             _generate_arduino_feed()
         )
     else:
-        camera = current_acquisition.cameras[id]
+        camera = System.cameras[id]
         return Response(
             _generate_camera_feed(camera),
             mimetype='multipart/x-mixed-replace; boundary=frame'

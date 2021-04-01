@@ -51,16 +51,18 @@ export default function EditCameras(props){
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({...foundCameras[idx],id:id})})
-      .then(resp => resp.json()
+      body: JSON.stringify({...foundCameras[idx],id:id}) })
+      .then(resp => {
+        if (resp.ok) { return resp.json()}
+        else { console.error(resp.message) }
+      })
       .then(data => {
         let oldCameras = [...foundCameras]
         oldCameras.splice(idx, 1)
         setFoundCameras(oldCameras);
         props.setCameras({...props.cameras, [id]:data})
       })
-      .catch(err=> console.log(err))
-    )
+
   }
 
   const removeCamera = (event, id) => {

@@ -22,10 +22,13 @@ export default function Cameras(props){
 
   useEffect(() => {
     fetch('/api/settings/cameras')
-      .then(resp => resp.json()
-      .then(data => setCameras(data)))
-      .catch(err => console.log(err))
+      .then(resp => {
+        if (resp.ok){ return resp.json() }
+        else { console.error(resp.message) } })
+      .then(data => setCameras(data))
   },[])
+
+  console.log(cameras);
 
   return (
     <div className="mt-3">

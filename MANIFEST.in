@@ -1,2 +1,2 @@
 recursive-include pywfom/client/build/ *
-include pywfom/acquisition/default.json
+include pywfom/default.json

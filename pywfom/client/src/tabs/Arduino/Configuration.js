@@ -252,16 +252,19 @@ export default function Configuration(props) {
       },
       body: JSON.stringify(config)
     })
-    .then(resp => resp.json()
-      .then(data => console.log(data))
-      .catch(err => console.log(err))
-    )
+    .then( resp => {
+      if (resp.ok) {return resp.json()}
+      else { console.error(resp.message)} })
+    .then( data =>  setConfig(data))
+
   };
 
   useEffect(() => {
     fetch('/api/settings/arduino')
-      .then(resp => resp.json()
-      .then(data => setConfig(data)))
+      .then(resp => {
+        if (resp.ok) {return resp.json()}
+        else { console.error(resp) } } )
+      .then( data => setConfig(data) )
   },[])
 
   return(

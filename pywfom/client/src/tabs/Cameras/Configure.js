@@ -174,34 +174,35 @@ export default function ConfigureCamera(props) {
               </Tab>
               <Tab eventKey="framerateKey" title="Framerate">
                 <Container className="mt-3">
-                  <Row className="align-items-center">
-                    <Col className="text-center">
-                      <Form.Check type="switch" label="Primary" value={camera.primary}
-                        onChange={handleSwitch} id="primary"></Form.Check>
-                    </Col>
-                    <Col className="justify-content-center">
-                      <Form.Control type="number" min="0" step="0.01"
-                        value={camera.framerate} disabled={camera.primary?false:true}
-                        onChange={handleNumber}>
-                      </Form.Control>
-                      <Form.Text muted>Framerate</Form.Text>
-                    </Col>
-                  </Row>
+                  <Form.Group as={Row} className="justify-content-center">
+                    <Form.Check type="switch" label="Primary" value={camera.primary}
+                        onChange={handleSwitch} id="primary"/>
+                    </Form.Group>
+                    <Form.Group as={Row} xs={4} className="justify-content-center">
+                      <Form.Group>
+                        <Form.Control type="number" min="0" step="0.01"
+                          value={camera.framerate} disabled={camera.primary?false:true}
+                          onChange={handleNumber}/>
+                        <Form.Text muted>Framerate</Form.Text>
+                      </Form.Group>
+                    </Form.Group>
                 </Container>
               </Tab>
               <Tab eventKey="pixelKey" title="Pixel Format">
-                <Container>
-                  <Form.Group as={Row} className="mt-3">
-                    <Form.Group as={Col}>
+                <Container className="mt-3">
+                  <Form.Group as={Row} className="justify-content-center">
+                    <Form.Group>
                       <Form.Control as="select" custom value={camera.dtype}
-                        onChange={handleSelect}>
-                        {['8-bit','12-bit','16-bit','32-bit'].map(bit=>{
-                          return(<option key={bit}>{bit}</option>)
-                        })}
+                          onChange={handleSelect}>
+                          {['8-bit','12-bit','16-bit','32-bit'].map(bit=>{
+                            return(<option key={bit}>{bit}</option>)
+                          })}
                       </Form.Control>
                       <Form.Text muted>Bits Per Pixel</Form.Text>
                     </Form.Group>
-                    <Form.Group as={Col}>
+                  </Form.Group>
+                  <Form.Group as={Row} className="justify-content-center">
+                    <Form.Group>
                       <InputGroup.Prepend>
                         <InputGroup.Text>{calculateFrameSize()}</InputGroup.Text>
                         <InputGroup.Text>MB</InputGroup.Text>

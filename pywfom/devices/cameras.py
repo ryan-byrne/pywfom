@@ -44,6 +44,8 @@ class Camera(object):
         if None in [interface, index, id]:
             raise CameraException("Incomplete camera configuration")
 
+        print("Initialzing {}:{}:{}".format(interface, index, id))
+
         if ( interface == 'opencv' ):
             self._camera = _OpenCV(index=index, id=id, **config)
         elif ( interface == 'andor' ):
