@@ -15,6 +15,7 @@ def _get_response(id):
         'arduino':System.arduino.json(),
         'cameras':{key:cam.json() for key, cam in System.cameras.items()}
     }
+
     return jsonify(_settings[id] if id else _settings)
 
 

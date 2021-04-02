@@ -2,7 +2,10 @@
   "file":{"directory":"/pywfom"},
   "arduino":{
     "port":"/dev/cu.usbmodem142101",
-    "trigger":5
+    "trigger":5,
+    "leds":[
+      {"name":"new led", "pin":15}
+    ]
   },
   "cameras":{
     "938495":{

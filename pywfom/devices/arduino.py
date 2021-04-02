@@ -17,21 +17,23 @@ class Arduino(object):
     def __init__(self, **config):
         self.active = False
         [setattr(self, key, []) for key in ['leds','stim','daq']]
-        [setattr(self, key, None) for key in ['trigger', '_serial', 'firmware_version']]
+        [setattr(self, key, None) for key in ['trigger', '_serial', 'firmware_version', 'port']]
         self.trigger = None
         self.set(**config)
 
     def _connect_to_port(self, port):
-        
+
         try:
+            print("Connecting to Arduino at {}".format(port))
             self._serial = serial.Serial(port=port, baudrate=115200, timeout=3.0)
-            msg = self._serial.readline().decode("utf-8").split(">")
-            if msg[0][0] != '<':
-                # Check to see if the initial message was incomplete
-                msg = self._serial.readline().decode("utf-8").split(">")
-            self.firmware_version = None if msg[0][:3] != '<py' else msg[0][8:]
-        except serial.serialutil.SerialException:
+            time.sleep(2)
+            print("Checking Arduino Firmware Version...")
+            self._serial.write("<f>".encode())
+            self.firmware_version = self._serial.readline().decode("utf-8")[:-2]
+            print("Connected to Arduino. Firmware Version : {}".format(self.firmware_version))
+        except serial.serialutil.SerialException as e:
             self._serial = None
+            self.firmware_version = None
 
     def start(self):
         self.active = True
@@ -60,14 +62,19 @@ class Arduino(object):
             pass
 
     def set(self, **settings):
-        [self._set(k,v) for k,v in settings.items()]
-
-    def _set(self, setting, value):
-        # TODO: Fill out for other settings
-        if setting == 'port':
-            self._connect_to_port(value)
-        setattr(self, setting, value)
-
+        _msg = ""
+        for setting, value in settings.items():
+            if setting == 'port' and value != self.port:
+                self._connect_to_port(value)
+            elif not self._serial:
+                return
+            elif setting == 'trigger':
+                _msg += "<t{}>".format(value)
+            elif setting == 'leds':
+                _msg += "<l{},>".format(','.join(str(led['pin']) for led in value))
+            elif setting == 'daq':
+                _msg += "<d{},>".format(','.join(str(daq['pin']) for daq in value))
+            setattr(self, setting, value)
 
     def json(self):
 

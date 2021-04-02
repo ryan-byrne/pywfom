@@ -245,7 +245,7 @@ export default function Configuration(props) {
   const handleConfigure = () => {
     // TODO: Send values to Python API
     fetch('/api/settings/arduino', {
-      method: "POST",
+      method: "PUT",
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json'

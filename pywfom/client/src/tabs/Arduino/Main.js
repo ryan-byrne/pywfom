@@ -58,10 +58,10 @@ export default function Arduino(){
       </Alert>
     )
 
-    const arduinoSettings = {key:'arduino',port:port.device}
+    const arduinoSettings = {port:port.device}
 
     fetch('/api/settings/arduino', {
-      method: "POST",
+      method: "PUT",
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
