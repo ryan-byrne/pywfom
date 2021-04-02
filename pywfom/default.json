@@ -1,6 +1,9 @@
 {
   "file":{"directory":"/pywfom"},
-  "arduino":{"port":"COM1"},
+  "arduino":{
+    "port":"/dev/cu.usbmodem142101",
+    "trigger":5
+  },
   "cameras":{
     "938495":{
       "interface":"opencv",

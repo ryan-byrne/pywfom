@@ -16,7 +16,7 @@ import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 
-export default function Arduino(props){
+export default function Arduino(){
 
   // UI State Variables
   const [config, setConfig] = useState({})

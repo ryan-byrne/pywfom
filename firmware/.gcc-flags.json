@@ -1,8 +1,0 @@
-{
-  "execPath": "/Users/rbyrne/.platformio/packages/toolchain-atmelavr/bin/avr-g++",
-  "gccDefaultCFlags": "-fsyntax-only -std=gnu11 -fno-fat-lto-objects -Os -Wall -ffunction-sections -fdata-sections -flto -mmcu=atmega328p -DPLATFORMIO=50100 -DARDUINO_AVR_UNO -DF_CPU=16000000L -DARDUINO_ARCH_AVR -DARDUINO=10808 -D__AVR_ATmega328P__",
-  "gccDefaultCppFlags": "-fsyntax-only -fno-exceptions -fno-threadsafe-statics -fpermissive -std=gnu++11 -Os -Wall -ffunction-sections -fdata-sections -flto -mmcu=atmega328p -DPLATFORMIO=50100 -DARDUINO_AVR_UNO -DF_CPU=16000000L -DARDUINO_ARCH_AVR -DARDUINO=10808 -D__AVR_ATmega328P__",
-  "gccErrorLimit": 15,
-  "gccIncludePaths": "/Users/rbyrne/projects/pywfom/firmware/include,/Users/rbyrne/projects/pywfom/firmware/src,/Users/rbyrne/.platformio/packages/framework-arduino-avr/cores/arduino,/Users/rbyrne/.platformio/packages/framework-arduino-avr/variants/standard,/Users/rbyrne/.platformio/packages/framework-arduino-avr/libraries/EEPROM/src,/Users/rbyrne/.platformio/packages/framework-arduino-avr/libraries/HID/src,/Users/rbyrne/.platformio/packages/framework-arduino-avr/libraries/SPI/src,/Users/rbyrne/.platformio/packages/framework-arduino-avr/libraries/SoftwareSerial/src,/Users/rbyrne/.platformio/packages/framework-arduino-avr/libraries/Wire/src,/Users/rbyrne/.platformio/packages/toolchain-atmelavr/lib/gcc/avr/7.3.0/include,/Users/rbyrne/.platformio/packages/toolchain-atmelavr/lib/gcc/avr/7.3.0/include-fixed,/Users/rbyrne/.platformio/packages/toolchain-atmelavr/avr/include",
-  "gccSuppressWarnings": false
-}

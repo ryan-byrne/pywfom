@@ -28,8 +28,6 @@ export default function Cameras(props){
       .then(data => setCameras(data))
   },[])
 
-  console.log(cameras);
-
   return (
     <div className="mt-3">
     {<Container className="text-center h-100">
