@@ -116,10 +116,6 @@ export default function ConfigureCamera(props) {
 
   const calculateFrameSize = () => {return "4898"}
 
-  useEffect(() => {
-    setCamera({...props.cameras[props.selected]})
-  },[props.selected])
-
   return (
     <div>{
     <Modal show={props.selected === null ? false : true}

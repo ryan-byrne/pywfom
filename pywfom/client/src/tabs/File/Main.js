@@ -14,29 +14,30 @@ import DropdownButton from 'react-bootstrap/DropdownButton';
 export default function File(props){
 
   const handleChange = (event) => {
-    let prevFile = {...props.file}
+    let prevFile = {...props.config.file}
     prevFile[event.target.id] = event.target.value;
-    props.setFile(prevFile);
+    setFile(prevFile);
   }
+
+  const setFile = (data) => props.setConfig({...props.config, file:data})
 
   useEffect(() => {
     fetch('/api/system/file')
       .then(resp => {
         if (resp.ok) {return resp.json()}
         else { console.error(resp) }})
-      .then(data=>props.setFile(data))
+      .then(data=>setFile(data))
   },[])
 
   return (
     <div>{
-        !props.file ? null :
       <Container>
         <Form.Group as={Row} className="mt-3 justify-content-center">{
           [["Enter Username", "user"], ["Enter MouseID", "mouse"]].map(([pl,lbl], idx) => {
             return (
               <Form.Group as={Col} sm={1} md={2} key={idx}>
                 <Form.Control placeholder={pl} id={lbl} onChange={handleChange}
-                  value={props.file[lbl]}/>
+                  value={props.config.file[lbl]}/>
                 <Form.Text muted>{lbl.charAt(0).toUpperCase() + lbl.slice(1)}</Form.Text>
               </Form.Group>
             )
@@ -46,11 +47,11 @@ export default function File(props){
         <Form.Group as={Row} className="justify-content-center">
           <Form.Group as={Col} xs={4} md={1} className="pr-0">
             <Form.Control type="number" min="0" step="0.01" placeholder="Enter Length of Run"
-              id="run_length" value={props.file.run_length} onChange={handleChange}/>
+              id="run_length" value={props.config.file.run_length} onChange={handleChange}/>
             <Form.Text muted>Run Duration</Form.Text>
           </Form.Group>
           <Form.Group as={Col} xs={4} md={1} className="pl-0">
-            <Form.Control as="select" value={props.file.run_length_unit}
+            <Form.Control as="select" value={props.config.file.run_length_unit}
               onChange={handleChange} id="run_length_unit" custom>
               {['sec', 'min', 'hr'].map(dur=>{
                 return (
@@ -61,7 +62,7 @@ export default function File(props){
           </Form.Group>
           <Form.Group as={Col} xs={4} md={1} >
             <Form.Control type="number" min="0" step="1" placeholder="Enter Number of Runs"
-              value={props.file.number_of_runs}  onChange={handleChange} id="number_of_runs"/>
+              value={props.config.file.number_of_runs}  onChange={handleChange} id="number_of_runs"/>
             <Form.Text muted>Number of Runs</Form.Text>
           </Form.Group>
         </Form.Group>
@@ -69,7 +70,7 @@ export default function File(props){
       <Form.Group as={Row} className="justify-content-center">
         <Col md={4}>
           <Alert variant="success" className="text-center">
-            Files to be Saved to: <b>{props.file.directory}</b>
+            Files to be Saved to: <b>{props.config.file.directory}</b>
           </Alert>
         </Col>
       </Form.Group>

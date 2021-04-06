@@ -10,7 +10,7 @@ import Image from 'react-bootstrap/Image';
 import Start from './popups/Start';
 import LoadConfig from './popups/LoadConfig';
 import SaveConfig from './popups/SaveConfig';
-import YesNo from './popups/YesNo';
+import LoadSettings from './popups/LoadSettings';
 
 // Each Tab's Components
 import File from './tabs/File/Main';
@@ -35,10 +35,7 @@ export default function Main() {
 
   const [popup, setPopup] = useState({visible:false,content:null});
 
-  const [config, setConfig] = useState({})
-  const [arduino, setArduino] = useState({});
-  const [cameras, setCameras] = useState([]);
-  const [file, setFile] = useState({});
+  const [config, setConfig] = useState({arduino:{},file:{},cameras:[]})
 
   const hidePopup = () => setPopup({...popup, visible:false})
 
@@ -49,7 +46,7 @@ export default function Main() {
 
   const handleLoad = () => setPopup({
     visible:true,
-    content:<LoadConfig onHide={hidePopup} setFile={setFile} setArduino={setArduino} setCameras={setCameras}/>
+    content:<LoadConfig onHide={hidePopup}/>
   })
 
   const handleSave = () => setPopup({
@@ -62,8 +59,8 @@ export default function Main() {
     const data = await resp.json();
     setPopup({
       visible:true,
-      content:<YesNo question="Load Default System Settings?" settings={data}
-      onYes={()=>console.log("yes")} onNo={hidePopup}/>
+      content:<LoadSettings question="Load Default Settings?" settings={data}
+      onYes={(e)=>setConfig(data)} onNo={hidePopup}/>
     })
   }
 
@@ -71,36 +68,29 @@ export default function Main() {
 
   const handleClose = () => {}
 
-  useEffect(() => {
-    setConfig({file:file,arduino:arduino,cameras:cameras})
-  },[file, arduino, cameras])
-
   useEffect(()=> {
     // get current system settings
     fetch('/api/system')
       .then(resp => {if(resp.ok){return resp.json()}})
-      .then(data => {
-        const {file, arduino, cameras} = data;
-        setFile(file);
-        setArduino(arduino);
-        setCameras(cameras)
-      })
+      .then(data => setConfig(data))
   },[]);
+
+  console.log(config);
 
   return (
     <div>
       {
         <Tabs defaultActiveKey="profile" id="uncontrolled-tab-example">
           <Tab eventKey='runTab' title={<span><img height="25px" src={runIcon}/> Run</span>}>
-            <File file={file} setFile={setFile} handleStart={handleStart}
+            <File config={config} setConfig={setConfig} handleStart={handleStart}
               handleLoad={handleLoad} handleSave={handleSave} handleClose={handleClose}
               handleLoadDefault={handleLoadDefault} handleSaveDefault={handleSaveDefault}/>
           </Tab>
           <Tab eventKey='camerasTab' title={<span><img height="25px" src={camIcon}/> Cameras</span>}>
-            <Cameras cameras={cameras} setCameras={setCameras}/>
+            <Cameras config={config} setConfig={setConfig}/>
           </Tab>
           <Tab eventKey='arduinoTab' title={<span><img height="25px" src={arduinoIcon}/> Arduino</span>}>
-            <Arduino arduino={arduino} setArduino={setArduino}/>
+            <Arduino config={config} setConfig={setConfig}/>
           </Tab>
         </Tabs>
       }

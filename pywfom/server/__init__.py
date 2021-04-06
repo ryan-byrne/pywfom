@@ -8,6 +8,7 @@ app = Flask('pywfom')
 app.secret_key = os.urandom(12).hex()
 app.register_blueprint(api, url_prefix='/api')
 
+# TODO: Get credentials from HTTP
 pwd = os.environ['MONGODB_PASSWORD']
 
 print('Connecting to MongoDB...')

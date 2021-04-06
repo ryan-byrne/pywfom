@@ -32,6 +32,8 @@ export default function Arduino(props){
 
   const handleInfo = () => showInfo(!info);
 
+  const setArduino = (data) => props.setConfig({...props.confing, arduino:data})
+
   const listPorts = () => {
     setAvailablePorts([]);
     fetch('/api/devices/arduinos')
@@ -88,7 +90,7 @@ export default function Arduino(props){
 
         else {
 
-          props.setArduino(data);
+          setArduino(data);
           setStatusMessage((
             <Alert variant='success'>
               <p>
@@ -138,7 +140,7 @@ export default function Arduino(props){
                 disabled={availablePorts.length === 0 ? true : false}>
                 { info ? "Hide Info" : "Show Info" }
               </Button>
-              <Button variant="primary" disabled={props.arduino.firmware_version? false:true }
+              <Button variant="primary" disabled={props.config.arduino.firmware_version? false:true }
                 onClick={handleConfig}>Configure</Button>
             </ButtonGroup>
           </Form.Group>
