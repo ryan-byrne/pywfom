@@ -4,7 +4,7 @@ from flask import Response, render_template_string
 import time
 
 from . import api
-from pywfom.system import System
+from .system import System
 
 def _generate_camera_feed(cam):
     while cam.active:
@@ -22,7 +22,7 @@ def camera_feed(id):
             _generate_arduino_feed()
         )
     else:
-        camera = System.cameras[id]
+        camera = System.cameras[int(id)]
         return Response(
             _generate_camera_feed(camera),
             mimetype='multipart/x-mixed-replace; boundary=frame'

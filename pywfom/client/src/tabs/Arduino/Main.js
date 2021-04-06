@@ -16,10 +16,9 @@ import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 
-export default function Arduino(){
+export default function Arduino(props){
 
   // UI State Variables
-  const [config, setConfig] = useState({})
   const [availablePorts, setAvailablePorts] = useState([]);
   const [selectedPort, setSelectedPort] = useState(0);
   const [statusMessage, setStatusMessage] = useState(null);
@@ -60,7 +59,7 @@ export default function Arduino(){
 
     const arduinoSettings = {port:port.device}
 
-    fetch('/api/settings/arduino', {
+    fetch('/api/system/arduino', {
       method: "PUT",
       headers: {
         'Accept': 'application/json',
@@ -89,7 +88,7 @@ export default function Arduino(){
 
         else {
 
-          setConfig(data);
+          props.setArduino(data);
           setStatusMessage((
             <Alert variant='success'>
               <p>
@@ -139,7 +138,7 @@ export default function Arduino(){
                 disabled={availablePorts.length === 0 ? true : false}>
                 { info ? "Hide Info" : "Show Info" }
               </Button>
-              <Button variant="primary" disabled={config.firmware_version? false:true }
+              <Button variant="primary" disabled={props.arduino.firmware_version? false:true }
                 onClick={handleConfig}>Configure</Button>
             </ButtonGroup>
           </Form.Group>

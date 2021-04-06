@@ -1,5 +1,10 @@
 {
-  "file":{"directory":"/pywfom"},
+  "file":{
+    "directory":"/hello/data",
+    "run_length":30.0,
+    "run_length_unit":"min",
+    "number_of_runs":3
+  },
   "arduino":{
     "port":"/dev/cu.usbmodem142101",
     "trigger":5,

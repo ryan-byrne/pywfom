@@ -4,59 +4,104 @@ import { useState, useEffect } from 'react';
 import Tabs from 'react-bootstrap/Tabs';
 import Tab from 'react-bootstrap/Tab';
 import Modal from 'react-bootstrap/Modal';
-import Alert from 'react-bootstrap/Alert';
-import Button from 'react-bootstrap/Button';
-import Spinner from 'react-bootstrap/Spinner';
+import Image from 'react-bootstrap/Image';
+
+// Popup Components
+import Start from './popups/Start';
+import LoadConfig from './popups/LoadConfig';
+import SaveConfig from './popups/SaveConfig';
 
 // Each Tab's Components
 import File from './tabs/File/Main';
 import Cameras from './tabs/Cameras/Main';
 import Arduino from './tabs/Arduino/Main';
-import Login from './Login';
 
-const StatusPage = (props) => {
+import arduinoIcon from './img/arduino.png';
+import runIcon from './img/run.png';
+import camIcon from './img/cam.png';
 
+const Popup = (props) => {
   return (
     <div>{
-      <Modal className='h-100' show={props.message ? true : false}>
-          <Alert variant={props.variant}>
-            <Alert.Heading>
-              {props.variant === 'danger' ? "ERROR:" :
-                <div><Spinner animation="grow"></Spinner> Loading pyWFOM</div>
-              }
-            </Alert.Heading>
-            <p>{props.message}</p>
-              {
-                props.variant !== 'danger'? null :
-                <Button onClick={()=>window.location.reload()}>Refresh</Button>
-              }
-          </Alert>
-      </Modal>
+        <Modal show={props.visible} onHide={props.onHide}>
+          {props.content}
+        </Modal>
       }</div>
   )
 }
 
 export default function Main() {
 
-  const [loading, setLoading] = useState({});
-  const [settings, setSettings] = useState({})
-  const [loggedIn, setLoggedIn] = useState(false);
+  const [popup, setPopup] = useState({visible:false,content:null});
+
+  const [config, setConfig] = useState({})
+  const [arduino, setArduino] = useState({});
+  const [cameras, setCameras] = useState([]);
+  const [file, setFile] = useState({});
+
+  const hidePopup = () => setPopup({...popup, visible:false})
+
+  const handleStart = () => setPopup({
+    visible:true,
+    content:<Start onHide={hidePopup} config={config}/>
+  })
+
+  const handleLoad = () => setPopup({
+    visible:true,
+    content:<LoadConfig onHide={hidePopup} config={config} setFile={setFile} setArduino={setArduino} setCameras={setCameras}/>
+  })
+
+  const handleSave = () => setPopup({
+    visible:true,
+    content:<SaveConfig onHide={hidePopup} config={config}/>
+  })
+
+  const handleLoadDefault = () => {
+    fetch('/api/file/default')
+      .then(resp => {if(resp.ok){return resp.json()}})
+      .then(data => console.log(data))
+      .catch(error => console.log(error))
+  }
+
+  const loadSystemSettings = () => {
+    fetch('/api/system')
+      .then(resp => {if(resp.ok){return resp.json()}})
+      .then(data => {
+        setConfig({file:data.file,arduino:data.arduino,cameras:cameras})
+      })
+  }
+
+  const handleSaveDefault = () => {}
+
+  const handleClose = () => {}
+
+  useEffect(() => {
+    setConfig({file:file,arduino:arduino,cameras:cameras})
+  },[file, arduino, cameras])
+
+  useEffect(()=> {
+    // Get default settings for specified user
+    loadSystemSettings();
+  },[]);
 
   return (
     <div>
       {
         <Tabs defaultActiveKey="profile" id="uncontrolled-tab-example">
-          <Tab eventKey='runTab' title="Run">
-            <File />
+          <Tab eventKey='runTab' title={<span><img height="25px" src={runIcon}/> Run</span>}>
+            <File file={file} setFile={setFile} handleStart={handleStart}
+              handleLoad={handleLoad} handleSave={handleSave} handleClose={handleClose}
+              handleLoadDefault={handleLoadDefault} handleSaveDefault={handleSaveDefault}/>
           </Tab>
-          <Tab eventKey='camerasTab' title="Cameras">
-            <Cameras />
+          <Tab eventKey='camerasTab' title={<span><img height="25px" src={camIcon}/> Cameras</span>}>
+            <Cameras cameras={cameras} setCameras={setCameras}/>
           </Tab>
-          <Tab eventKey='arduinoTab' title="Arduino">
-            <Arduino />
+          <Tab eventKey='arduinoTab' title={<span><img height="25px" src={arduinoIcon}/> Arduino</span>}>
+            <Arduino arduino={arduino} setArduino={setArduino}/>
           </Tab>
         </Tabs>
       }
+      <Popup content={popup.content} visible={popup.visible} onHide={hidePopup}/>
     </div>
   )
 }

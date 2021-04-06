@@ -10,7 +10,6 @@ import FormControl from 'react-bootstrap/FormControl';
 import Tabs from 'react-bootstrap/Tabs';
 import Tab from 'react-bootstrap/Tab';
 import Form from 'react-bootstrap/Form';
-import Alert from 'react-bootstrap/Alert';
 
 const ImageDraw = (props) => {
 
@@ -19,7 +18,6 @@ const ImageDraw = (props) => {
 
   const canvasRef = useRef();
   const imageRef = useRef();
-  const containerRef = useRef();
 
   const handleUp = (event) => {
     const { height, naturalHeight } = imageRef.current;

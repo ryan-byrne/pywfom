@@ -31,7 +31,7 @@ class CameraException(Exception):
 
 class Camera(object):
 
-    def __init__(self, interface=None, index=None, id=None, **config):
+    def __init__(self, interface=None, index=None, primary=False, **config):
 
         """
 
@@ -41,17 +41,17 @@ class Camera(object):
 
         """
 
-        if None in [interface, index, id]:
+        if None in [interface, index]:
             raise CameraException("Incomplete camera configuration")
 
-        print("Initialzing {}:{}:{}".format(interface, index, id))
+        print("Initialzing {}:{}".format(interface, index))
 
         if ( interface == 'opencv' ):
-            self._camera = _OpenCV(index=index, id=id, **config)
+            self._camera = _OpenCV(index=index, **config)
         elif ( interface == 'andor' ):
-            self._camera = _Andor(index=index, id=id, **config)
+            self._camera = _Andor(index=index, **config)
         elif ( interface == 'spinnaker' ):
-            self._camera = _Spinnaker(index=index, id=id, **config)
+            self._camera = _Spinnaker(index=index, **config)
 
         self.start()
 
@@ -98,12 +98,11 @@ class Camera(object):
 class _OpenCV(object):
     """docstring for _OpenCV."""
 
-    def __init__(self, index=None, id=None, **config):
+    def __init__(self, index=None, **config):
 
         self.set(**config)
 
         self.index = index
-        self.id = id
         self.interface = 'opencv'
 
         self._video_cap = cv2.VideoCapture(self.index)

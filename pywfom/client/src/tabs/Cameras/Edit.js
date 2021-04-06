@@ -30,28 +30,17 @@ export default function EditCameras(props){
       }))
   }
 
-  const generateId = (length) => {
-    var result           = '';
-    var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    var charactersLength = characters.length;
-    for ( var i = 0; i < length; i++ ) {
-       result += characters.charAt(Math.floor(Math.random() * charactersLength));
-    }
-    return result;
-  }
-
   const addCamera = (event, idx) => {
     event.target.textContent = 'Adding...';
     event.target.disabled = true;
-    const id = generateId(10);
     // Send Message to API
-    fetch('/api/settings/'+id, {
+    fetch('/api/system/camera', {
       method: "POST",
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({...foundCameras[idx],id:id}) })
+      body: JSON.stringify({...foundCameras[idx]})})
       .then(resp => {
         if (resp.ok) { return resp.json()}
         else { console.error(resp.message) }
@@ -60,14 +49,14 @@ export default function EditCameras(props){
         let oldCameras = [...foundCameras]
         oldCameras.splice(idx, 1)
         setFoundCameras(oldCameras);
-        props.setCameras({...props.cameras, [id]:data})
+        props.setCameras(data)
       })
 
   }
 
-  const removeCamera = (event, id) => {
+  const removeCamera = (event, idx) => {
     //Send Message to API
-    fetch('/api/settings/'+id, {
+    fetch('/api/system/'+idx, {
       method: "DELETE",
       headers: {
         'Accept': 'application/json',
@@ -76,9 +65,9 @@ export default function EditCameras(props){
       body: JSON.stringify({config:null})})
     .then(resp => {
       if (resp.ok) {
-        let newCameras = {...props.cameras};
-        delete newCameras[id];
-        props.setCameras(newCameras)
+        let newCameras = [...props.cameras];
+        newCameras.splice(idx, 1);
+        props.setCameras(newCameras);
       }
     })
     .catch(err=> console.log(err))
@@ -94,7 +83,7 @@ export default function EditCameras(props){
           <tr><th></th><th>Interface</th><th>Index</th><th></th></tr>
           {
           cameras.map((cam, idx)=>{
-            const [func, id] = (text === 'Add') ? [addCamera,idx] : [removeCamera,cam.id]
+            const [func, id] = (text === 'Add') ? [addCamera,idx] : [removeCamera,idx]
             if (text === 'Add') {
               const add = Object.values(props.cameras).map((c)=>{
                 if (c.interface === cam.interface && c.index === cam.index) {

@@ -244,7 +244,7 @@ export default function Configuration(props) {
   // Send settings to Python
   const handleConfigure = () => {
     // TODO: Send values to Python API
-    fetch('/api/settings/arduino', {
+    fetch('/api/system/arduino', {
       method: "PUT",
       headers: {
         'Accept': 'application/json',
@@ -260,7 +260,7 @@ export default function Configuration(props) {
   };
 
   useEffect(() => {
-    fetch('/api/settings/arduino')
+    fetch('/api/system/arduino')
       .then(resp => {
         if (resp.ok) {return resp.json()}
         else { console.error(resp) } } )

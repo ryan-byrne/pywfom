@@ -1,15 +1,11 @@
 from flask import Response, jsonify, request
 import json
 
-from pywfom.server.api import api
-
-configs = {
-    "hello":{
-        "file":{},
-        "arduino":{},
-        "cameras":{}
-    }
-}
+from . import api
+from .system import System
+from ..models import Configuration, User
+from ...devices.arduino import Arduino
+from ...devices.cameras import Camera
 
 @api.route('/file/<name>', methods=["DELETE"])
 def delete_configuration(name):
@@ -25,10 +21,8 @@ def post_configuration(name):
 @api.route('/file/<name>', methods=["GET"])
 def get_configurations(name=None):
     # Return all saved configurations if name not specified
-    if name == None:
-        return jsonify(configs)
-    else:
-        return jsonify(configs[name])
+    if name == 'default':
+        return User.objects(name='ryan')[0].default.to_json()
 
 @api.route('/file/<name>', methods=["PUT"])
 def put_configuration(name):
