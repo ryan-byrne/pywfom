@@ -7,18 +7,10 @@ import Table from 'react-bootstrap/Table';
 
 export default function LoadConfig(props){
 
-  const [configs, setConfigs] = useState({});
-
-  const handleLoad = (config) => {
-    props.setArduino(config.arduino);
-    props.setCameras(config.cameras);
-    props.setFile(config.file);
-  }
-
   useEffect(() => {
-    fetch('/api/file')
+    fetch('/api/file/default')
       .then( resp => { if (resp.ok) {return resp.json()} })
-      .then( data => setConfigs(data) )
+      .then( data => console.log(data))
   },[]);
 
   return(
@@ -27,21 +19,6 @@ export default function LoadConfig(props){
           <Modal.Header>
             <Modal.Title>Saved Configurations:</Modal.Title>
           </Modal.Header>
-          <Modal.Body>
-            <Table>
-            {
-              Object.entries(configs).map(([setting, value], idx) => {
-                return (
-                  <tr>
-                    <td>{setting}</td>
-                    <td><Button variant="secondary">Delete</Button></td>
-                    <td><Button onClick={()=>handleLoad(value)}>Load</Button></td>
-                  </tr>
-                )
-              })
-            }
-            </Table>
-          </Modal.Body>
           <Modal.Footer>
             <Button variant="secondary" onClick={props.onHide}>Close</Button>
           </Modal.Footer>

@@ -10,6 +10,7 @@ import Image from 'react-bootstrap/Image';
 import Start from './popups/Start';
 import LoadConfig from './popups/LoadConfig';
 import SaveConfig from './popups/SaveConfig';
+import YesNo from './popups/YesNo';
 
 // Each Tab's Components
 import File from './tabs/File/Main';
@@ -48,7 +49,7 @@ export default function Main() {
 
   const handleLoad = () => setPopup({
     visible:true,
-    content:<LoadConfig onHide={hidePopup} config={config} setFile={setFile} setArduino={setArduino} setCameras={setCameras}/>
+    content:<LoadConfig onHide={hidePopup} setFile={setFile} setArduino={setArduino} setCameras={setCameras}/>
   })
 
   const handleSave = () => setPopup({
@@ -56,19 +57,14 @@ export default function Main() {
     content:<SaveConfig onHide={hidePopup} config={config}/>
   })
 
-  const handleLoadDefault = () => {
-    fetch('/api/file/default')
-      .then(resp => {if(resp.ok){return resp.json()}})
-      .then(data => console.log(data))
-      .catch(error => console.log(error))
-  }
-
-  const loadSystemSettings = () => {
-    fetch('/api/system')
-      .then(resp => {if(resp.ok){return resp.json()}})
-      .then(data => {
-        setConfig({file:data.file,arduino:data.arduino,cameras:cameras})
-      })
+  const handleLoadDefault = async () => {
+    const resp = await fetch('/api/file/default');
+    const data = await resp.json();
+    setPopup({
+      visible:true,
+      content:<YesNo question="Load Default System Settings?" settings={data}
+      onYes={()=>console.log("yes")} onNo={hidePopup}/>
+    })
   }
 
   const handleSaveDefault = () => {}
@@ -80,8 +76,15 @@ export default function Main() {
   },[file, arduino, cameras])
 
   useEffect(()=> {
-    // Get default settings for specified user
-    loadSystemSettings();
+    // get current system settings
+    fetch('/api/system')
+      .then(resp => {if(resp.ok){return resp.json()}})
+      .then(data => {
+        const {file, arduino, cameras} = data;
+        setFile(file);
+        setArduino(arduino);
+        setCameras(cameras)
+      })
   },[]);
 
   return (
