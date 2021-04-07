@@ -3,13 +3,10 @@ import traceback
 
 from . import api
 
-from pywfom.devices.arduino import Arduino
-from pywfom.devices.camera import Camera
+from ...devices.arduino import Arduino
+from ...devices.camera import Camera
 
-class System:
-    arduino = None
-    cameras = []
-    file = {}
+from ...system import System
 
 # ****** Create Responses ********
 
@@ -20,7 +17,6 @@ def _get_response(id):
         'cameras':[cam.json() for cam in System.cameras]
     }
     return jsonify(_settings[id] if id else _settings)
-
 
 def _post_response(id, settings):
 

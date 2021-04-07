@@ -2,7 +2,7 @@ import Modal from 'react-bootstrap/Modal';
 import Container from 'react-bootstrap/Container';
 import Button from 'react-bootstrap/Button';
 
-export default function LoadSettings(props) {
+export default function YesNo(props) {
 
   return(
     <div>{
@@ -10,10 +10,8 @@ export default function LoadSettings(props) {
           <Modal.Header>
             <Modal.Title>{props.question}</Modal.Title>
           </Modal.Header>
-          <Modal.Body>
-          </Modal.Body>
           <Modal.Footer>
-            <Button onClick={props.onNo} variant='secondary'>Nevermind</Button>
+            <Button onClick={props.onNo} variant='secondary'>No</Button>
             <Button onClick={props.onYes}>Yes</Button>
           </Modal.Footer>
         </div>

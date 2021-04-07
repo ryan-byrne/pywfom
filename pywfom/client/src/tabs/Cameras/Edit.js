@@ -76,7 +76,7 @@ export default function EditCameras(props){
   useEffect(()=> {
     searchCameras(null)
   },[])
-  
+
   const cameraTable = (cameras, text) => {
     return (
       <Table className="text-center">
@@ -136,8 +136,7 @@ export default function EditCameras(props){
               {
                 isSearching ?
                 <Alert variant='info'>
-                  <Spinner animation="border" size='sm'/>
-                    Searching for Cameras...
+                  <Spinner animation="border" size='sm'/>  Searching for Cameras...
                 </Alert> : null
               }
               {
