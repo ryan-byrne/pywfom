@@ -17,16 +17,7 @@ export default function Cameras(props){
   const [editing, showEditing] = useState(false);
   const [selectedCamera, setSelectedCamera] = useState(null);
 
-  const setCameras = (data) => props.setConfig({...props.config, cameras:data})
-
-  useEffect(() => {
-    // Get System's current cameras
-    fetch('/api/system/cameras')
-      .then(resp => {
-        if (resp.ok){ return resp.json() }
-        else { console.error(resp) } })
-      .then(data => setCameras(data))
-  },[])
+  const setCameras = (data) => props.setConfig({...props.config, cameras:data});
 
   return (
     <div className="mt-3">
@@ -35,7 +26,7 @@ export default function Cameras(props){
           {props.config.cameras.map((cam, idx) => {
             return (
               <Col key={idx}>
-                <Image src={"api/feed/"+idx} fluid style={{cursor:'pointer'}}
+                <Image src={'/api/feed/'+cam.id} fluid style={{cursor:'pointer'}}
                   onClick={()=>setSelectedCamera(idx)} alt={idx}/>
               </Col>
             )

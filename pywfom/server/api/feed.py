@@ -22,8 +22,13 @@ def camera_feed(id):
             _generate_arduino_feed()
         )
     else:
-        camera = System.cameras[int(id)]
-        return Response(
-            _generate_camera_feed(camera),
-            mimetype='multipart/x-mixed-replace; boundary=frame'
-        )
+        camera = [cam for cam in System.cameras if cam.json()['id'] == id]
+        if len(camera) == 0:
+            return "Could not find an active camera with id={id}", 404
+        elif len(camera) > 1:
+            return "Multiple cameras found with id={id}",
+        else:
+            return Response(
+                _generate_camera_feed(camera[0]),
+                mimetype='multipart/x-mixed-replace; boundary=frame'
+            )

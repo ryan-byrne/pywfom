@@ -21,17 +21,9 @@ export default function File(props){
 
   const setFile = (data) => props.setConfig({...props.config, file:data})
 
-  useEffect(() => {
-    fetch('/api/system/file')
-      .then(resp => {
-        if (resp.ok) {return resp.json()}
-        else { console.error(resp) }})
-      .then(data=>setFile(data))
-  },[])
-
   return (
     <div>{
-      <Container>
+      !props.config.file ? null : <Container>
         <Form.Group as={Row} className="mt-3 justify-content-center">{
           [["Enter Username", "user"], ["Enter MouseID", "mouse"]].map(([pl,lbl], idx) => {
             return (
@@ -77,7 +69,7 @@ export default function File(props){
       <Row className="justify-content-center">
           <ButtonGroup>
             <Button variant="danger" className='ml-1' onClick={props.handleClose}>
-              Close
+              Clear
             </Button>
             <DropdownButton variant="secondary" className='ml-1' as={ButtonGroup}
               title="File">

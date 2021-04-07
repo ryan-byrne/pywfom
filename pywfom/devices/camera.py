@@ -1,4 +1,4 @@
-import cv2, threading, time, sys, queue
+import cv2, threading, time, sys, queue, os
 import numpy as np
 
 from pywfom.devices.utils import *
@@ -104,6 +104,7 @@ class _OpenCV(object):
 
         self.index = index
         self.interface = 'opencv'
+        self.id = os.urandom(6).hex()
 
         self._video_cap = cv2.VideoCapture(self.index)
         self._capturing = False

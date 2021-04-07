@@ -32,8 +32,11 @@ class Arduino(object):
             self.firmware_version = self._serial.readline().decode("utf-8")[:-2]
             print("Connected to Arduino. Firmware Version : {}".format(self.firmware_version))
         except serial.serialutil.SerialException as e:
+            print('Unable to connect to Arduino at {}'.format(port))
             self._serial = None
             self.firmware_version = None
+        except Exception as e:
+            print('Another error')
 
     def start(self):
         self.active = True

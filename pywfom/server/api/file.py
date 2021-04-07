@@ -5,7 +5,7 @@ from . import api
 from .system import System
 from ..models import Configuration, User
 from ...devices.arduino import Arduino
-from ...devices.cameras import Camera
+from ...devices.camera import Camera
 
 @api.route('/file/<name>', methods=["DELETE"])
 def delete_configuration(name):

@@ -60,22 +60,46 @@ export default function Main() {
     setPopup({
       visible:true,
       content:<LoadSettings question="Load Default Settings?" settings={data}
-      onYes={(e)=>setConfig(data)} onNo={hidePopup}/>
+      onYes={(e)=>deploySettings(data)} onNo={hidePopup}/>
     })
+  }
+
+  const clearSettings =  async () => {
+    const resp = await fetch('/api/system', {method:"DELETE"});
+    if (resp.ok) {setConfig({file:{},cameras:[],arduino:{}})}
+    return null;
+  }
+
+  const deploySettings = (data) => {
+    //Clear all current settings
+    fetch('/api/system', {method:"DELETE"})
+      .then(resp=> {
+        if(resp.ok){
+          fetch('/api/system', {
+            method: "POST",
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)})
+            .then(resp => {
+              if (resp.ok) { return resp.json()}
+              else { console.error(resp.message) }
+            })
+            .then(data => setConfig(data))
+          }
+      })
+    // Deploy settings to the System
   }
 
   const handleSaveDefault = () => {}
 
-  const handleClose = () => {}
-
   useEffect(()=> {
-    // get current system settings
+    // get current system settings (even after refresh)
     fetch('/api/system')
       .then(resp => {if(resp.ok){return resp.json()}})
       .then(data => setConfig(data))
   },[]);
-
-  console.log(config);
 
   return (
     <div>
@@ -83,7 +107,7 @@ export default function Main() {
         <Tabs defaultActiveKey="profile" id="uncontrolled-tab-example">
           <Tab eventKey='runTab' title={<span><img height="25px" src={runIcon}/> Run</span>}>
             <File config={config} setConfig={setConfig} handleStart={handleStart}
-              handleLoad={handleLoad} handleSave={handleSave} handleClose={handleClose}
+              handleLoad={handleLoad} handleSave={handleSave} handleClose={clearSettings}
               handleLoadDefault={handleLoadDefault} handleSaveDefault={handleSaveDefault}/>
           </Tab>
           <Tab eventKey='camerasTab' title={<span><img height="25px" src={camIcon}/> Cameras</span>}>

@@ -76,6 +76,7 @@ export default function EditCameras(props){
   useEffect(()=> {
     searchCameras(null)
   },[])
+  
   const cameraTable = (cameras, text) => {
     return (
       <Table className="text-center">

@@ -1,6 +1,6 @@
 from flask import jsonify, Blueprint
 from pywfom.devices.arduino import find_arduinos
-from pywfom.devices.cameras import find_cameras
+from pywfom.devices.camera import find_cameras
 
 from pywfom.server.api import api
 

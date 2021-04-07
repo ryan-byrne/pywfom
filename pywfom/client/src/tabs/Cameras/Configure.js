@@ -82,7 +82,7 @@ const ImageDraw = (props) => {
 export default function ConfigureCamera(props) {
 
   // Store temprary viewing settings
-  const [camera, setCamera] = useState({aoi:{binning:null}});
+  const [camera, setCamera] = useState(null);
 
   const handleSave = () => console.log(camera);
 
@@ -116,6 +116,8 @@ export default function ConfigureCamera(props) {
 
   const calculateFrameSize = () => {return "4898"}
 
+  useEffect(()=> { setCamera(props.cameras[props.selected]) },[props])
+
   return (
     <div>{
     <Modal show={props.selected === null ? false : true}
@@ -127,7 +129,7 @@ export default function ConfigureCamera(props) {
             Configuring Camera
           </Modal.Title>
         </Modal.Header>
-        { !camera.aoi ? null :
+        { !camera ? null :
           <Modal.Body>
             <Row className="justify-content-center"><ImageDraw camera={camera} setCamera={setCamera}/></Row>
             <Tabs className="mt-3">

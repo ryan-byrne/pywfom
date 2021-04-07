@@ -32,7 +32,7 @@ export default function Arduino(props){
 
   const handleInfo = () => showInfo(!info);
 
-  const setArduino = (data) => props.setConfig({...props.confing, arduino:data})
+  const setArduino = (data) => props.setConfig({...props.config, arduino:data})
 
   const listPorts = () => {
     setAvailablePorts([]);
@@ -62,7 +62,7 @@ export default function Arduino(props){
     const arduinoSettings = {port:port.device}
 
     fetch('/api/system/arduino', {
-      method: "PUT",
+      method: "POST",
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
@@ -102,6 +102,8 @@ export default function Arduino(props){
         }
       })
     }
+
+  const startArduino = () => {}
 
   useEffect(() => {
     if (availablePorts.length === 0) {}
