@@ -1,5 +1,5 @@
 from flask import jsonify, Blueprint
-from pywfom.server.api import api
+from . import api
 
 from ...system import System
 
@@ -18,5 +18,13 @@ def stop_acquisition():
     try:
         System.stop_acquisition(System)
         return "Successfully stopped acquisition", 200
+    except Exception as e:
+        return str(e), 400
+
+@api.route('/acquisition', methods=['GET'])
+def get_acquisition():
+    # Retrieve the current settings of the session
+    try:
+        return jsonify(System.get_acquisition_status(System))
     except Exception as e:
         return str(e), 400

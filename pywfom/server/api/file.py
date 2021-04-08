@@ -3,7 +3,7 @@ import json
 
 from . import api
 from .system import System
-from ..models import Configuration, User
+from .. import models
 from ...devices.arduino import Arduino
 from ...devices.camera import Camera
 
@@ -17,12 +17,13 @@ def post_configuration(name):
     # Establish settings from specified configuration
     pass
 
-@api.route('/file', methods=["GET"])
-@api.route('/file/<name>', methods=["GET"])
-def get_configurations(name=None):
+@api.route('/file/configuration/<user>/<name>', methods=["GET"])
+def get_configurations(user=None, name=None):
     # Return all saved configurations if name not specified
     if name == 'default':
-        return User.objects(name='ryan')[0].default.to_json()
+        config = json.loads(models.User.objects(username=user)[0].default.to_json())
+        config['username'] = user
+        return config
 
 @api.route('/file/<name>', methods=["PUT"])
 def put_configuration(name):

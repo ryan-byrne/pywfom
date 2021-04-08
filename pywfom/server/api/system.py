@@ -14,7 +14,8 @@ def _get_response(id):
     _settings = {
         'file':System.file,
         'arduino':System.arduino.json() if System.arduino else {},
-        'cameras':[cam.json() for cam in System.cameras]
+        'cameras':[cam.json() for cam in System.cameras],
+        'username':System.username
     }
     return jsonify(_settings[id] if id else _settings)
 
@@ -22,6 +23,7 @@ def _post_response(id, settings):
 
     if id == None:
         System.file = settings['file']
+        System.username = settings['username']
         # Send create new Arduino
         if System.arduino:
             return "Arduino is already initialized. It must be empty to POST", 403
@@ -33,7 +35,8 @@ def _post_response(id, settings):
         else:
             System.cameras = [Camera(**cam) for cam in settings['cameras']]
         return jsonify({
-            "file":System.file,"arduino":System.arduino.json(),"cameras":[cam.json() for cam in System.cameras]
+            "file":System.file,"arduino":System.arduino.json(),
+            "cameras":[cam.json() for cam in System.cameras], "username":settings["username"]
         })
     elif id == 'file':
         System.file = settings

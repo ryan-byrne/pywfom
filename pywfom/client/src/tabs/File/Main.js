@@ -21,21 +21,23 @@ export default function File(props){
 
   const setFile = (data) => props.setConfig({...props.config, file:data})
 
+  const handleLogout = () => {}
+
   return (
     <div>{
-      !props.config.file ? null : <Container>
-        <Form.Group as={Row} className="mt-3 justify-content-center">{
-          [["Enter Username", "user"], ["Enter MouseID", "mouse"]].map(([pl,lbl], idx) => {
-            return (
-              <Form.Group as={Col} sm={1} md={2} key={idx}>
-                <Form.Control placeholder={pl} id={lbl} onChange={handleChange}
-                  value={props.config.file[lbl]}/>
-                <Form.Text muted>{lbl.charAt(0).toUpperCase() + lbl.slice(1)}</Form.Text>
-              </Form.Group>
-            )
-          })
-        }</Form.Group>
-      {
+      !props.config.file ? null :
+      <Container>
+        <Form.Group as={Row} className="mt-3 justify-content-center">
+            <Form.Group as={Col}>
+              <Form.Control value={props.config.username} disabled={true}/>
+              <Form.Text muted>
+                User <a href="#" onClick={handleLogout}>Switch</a>
+              </Form.Text>
+            </Form.Group>
+            <Form.Group as={Col}>
+              <Form.Control value={props.config.file.mouse}></Form.Control>
+            </Form.Group>
+        </Form.Group>
         <Form.Group as={Row} className="justify-content-center">
           <Form.Group as={Col} xs={4} md={1} className="pr-0">
             <Form.Control type="number" min="0" step="0.01" placeholder="Enter Length of Run"
@@ -58,7 +60,6 @@ export default function File(props){
             <Form.Text muted>Number of Runs</Form.Text>
           </Form.Group>
         </Form.Group>
-      }
       <Form.Group as={Row} className="justify-content-center">
         <Col md={4}>
           <Alert variant="success" className="text-center">
@@ -69,7 +70,7 @@ export default function File(props){
       <Row className="justify-content-center">
           <ButtonGroup>
             <Button variant="danger" className='ml-1' onClick={props.handleClose}>
-              Clear
+              Close
             </Button>
             <DropdownButton variant="secondary" className='ml-1' as={ButtonGroup}
               title="File">

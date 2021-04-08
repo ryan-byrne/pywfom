@@ -1,4 +1,4 @@
-from flask import jsonify, Blueprint
+from flask import jsonify
 from pywfom.devices.arduino import find_arduinos
 from pywfom.devices.camera import find_cameras
 

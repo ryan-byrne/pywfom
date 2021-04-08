@@ -27,6 +27,7 @@ class Camera(EmbeddedDocument):
     index = IntField()
     id = StringField()
     aoi = EmbeddedDocumentField(Aoi)
+    primary = BooleanField()
 
 # ********** File *************
 
@@ -39,13 +40,31 @@ class File(EmbeddedDocument):
 # ********** Configuration *********
 
 class Configuration(Document):
-    name = StringField()
+    name = StringField(unique=True)
     arduino = EmbeddedDocumentField(Arduino)
     cameras = EmbeddedDocumentListField(Camera)
     file = EmbeddedDocumentField(File)
 
+# User
+
 class User(Document):
-    name = StringField()
+    username = StringField(unique=True, required=True)
     email = EmailField()
+    password = StringField(required=True)
     default = ReferenceField(Configuration)
     configurations = ListField(ReferenceField(Configuration))
+
+class Mouse(Document):
+    name = StringField(required=True)
+
+# Frame
+class Frame(Document):
+    image = ImageField()
+    index = IntField()
+    data = StringField()
+
+class Run(Document):
+    frames = ListField(ReferenceField(Frame))
+    user = ReferenceField(User)
+    mouse = ReferenceField(Mouse)
+    configuration = ReferenceField(Configuration)

@@ -2,8 +2,11 @@ class System():
     arduino = None
     cameras = []
     file = {}
-    _acquiring = False
+    username = None
+    acquiring = False
     def start_acquisition(self):
-        print(self._acquiring)
+        print(self.acquiring)
     def stop_acquisition(self):
-        print(self._acquiring)
+        print(self.acquiring)
+    def get_acquisition_status(self):
+        return {}

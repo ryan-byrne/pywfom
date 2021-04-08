@@ -18,6 +18,8 @@ import Arduino from './tabs/Arduino/Main';
 
 // Windows
 import Acquisition from './windows/Acquisition';
+import Error from './windows/Error';
+import Login from './windows/Login';
 
 // Images
 import arduinoIcon from './img/arduino.png';
@@ -40,6 +42,8 @@ export default function Main() {
 
   const [popup, setPopup] = useState({visible:false,content:null});
   const [acquiring, setAcquiring] = useState(false);
+  const [error, setError] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(false);
   const [config, setConfig] = useState({arduino:{},file:{},cameras:[]})
 
   const hidePopup = () => setPopup({...popup, visible:false})
@@ -60,8 +64,9 @@ export default function Main() {
   })
 
   const handleLoadDefault = async () => {
-    setPopup({...popup, status:(<div>Loading Default Settings</div>)})
-    const resp = await fetch('/api/file/default');
+    setPopup({...popup, status:(<div>Loading Default Settings</div>)});
+    const user = "ryan";
+    const resp = await fetch(`/api/file/configuration/${user}/default`);
     const data = await resp.json();
     setPopup({
       visible:true,
@@ -76,7 +81,7 @@ export default function Main() {
 
   const handleClear = () => setPopup({
     visible:true,
-    content:<YesNo question="Clear Settings?" onYes={clearSettings} onNo={hidePopup}/>
+    content:<YesNo question="Close Current Session?" onYes={clearSettings} onNo={hidePopup}/>
   })
 
   const deploySettings = (data) => {
@@ -109,14 +114,19 @@ export default function Main() {
   useEffect(()=> {
     // get current system settings (even after refresh)
     fetch('/api/system')
-      .then(resp => {if(resp.ok){return resp.json()}})
+      .then(resp => {
+        if(resp.ok){ return resp.json() }
+        else { setError(true); }
+      })
       .then(data => setConfig(data))
   },[]);
 
   return (
     <div>
       {
-        acquiring ? <Acquisition config={config} setAcquiring={setAcquiring}/> :
+        error ? <Error/> :
+        !config.username ? <Login deploySettings={deploySettings}/> :
+        config.acquiring ? <Acquisition config={config} setAcquiring={setAcquiring}/> :
         <Tabs defaultActiveKey="profile" id="uncontrolled-tab-example">
           <Tab eventKey='runTab' title={<span><img height="25px" src={runIcon}/> Run</span>}>
             <File config={config} setConfig={setConfig} handleStart={handleStart}

@@ -9,6 +9,7 @@ export default function SaveConfig(props){
   const [configName, setConfigName] = useState("");
 
   const handleSave = () => {
+    
     console.log(configName, props.config);
   }
 
