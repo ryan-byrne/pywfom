@@ -35,7 +35,6 @@ class File(EmbeddedDocument):
     run_length = FloatField()
     run_length_unit = StringField()
     number_of_runs = IntField()
-    directory = StringField()
 
 # ********** Configuration *********
 
@@ -54,17 +53,14 @@ class User(Document):
     default = ReferenceField(Configuration)
     configurations = ListField(ReferenceField(Configuration))
 
-class Mouse(Document):
-    name = StringField(required=True)
-
-# Frame
 class Frame(Document):
-    image = ImageField()
     index = IntField()
-    data = StringField()
+    timestamp = DateTimeField()
+    image = BinaryField()
+    leds = ListField(BooleanField())
+    daq = ListField(IntField())
 
 class Run(Document):
-    frames = ListField(ReferenceField(Frame))
-    user = ReferenceField(User)
-    mouse = ReferenceField(Mouse)
+    username = ReferenceField(User)
     configuration = ReferenceField(Configuration)
+    frames = ListField(ReferenceField(Frame))

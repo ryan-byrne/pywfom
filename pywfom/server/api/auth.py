@@ -18,5 +18,4 @@ def login():
     else:
         config = json.loads(user[0].default.to_json())
         config['username'] = data['username']
-        print(config)
         return jsonify(config)

@@ -70,7 +70,9 @@ def _delete_response(id):
         if System.arduino:
             System.arduino.close()
         System.arduino = None
-        [System.cameras.pop(i).close() for i in range(len(System.cameras))]
+        [cam.close() for cam in System.cameras]
+        System.cameras = []
+        System.username = None
     elif id == 'file':
         System.file = {}
     elif id == 'arduino':

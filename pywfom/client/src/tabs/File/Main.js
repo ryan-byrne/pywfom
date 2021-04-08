@@ -21,8 +21,6 @@ export default function File(props){
 
   const setFile = (data) => props.setConfig({...props.config, file:data})
 
-  const handleLogout = () => {}
-
   return (
     <div>{
       !props.config.file ? null :
@@ -31,11 +29,12 @@ export default function File(props){
             <Form.Group as={Col}>
               <Form.Control value={props.config.username} disabled={true}/>
               <Form.Text muted>
-                User <a href="#" onClick={handleLogout}>Switch</a>
+                User <a href="#" onClick={props.handleClose}>Switch</a>
               </Form.Text>
             </Form.Group>
             <Form.Group as={Col}>
               <Form.Control value={props.config.file.mouse}></Form.Control>
+              <Form.Text muted>Mouse</Form.Text>
             </Form.Group>
         </Form.Group>
         <Form.Group as={Row} className="justify-content-center">
@@ -60,25 +59,21 @@ export default function File(props){
             <Form.Text muted>Number of Runs</Form.Text>
           </Form.Group>
         </Form.Group>
-      <Form.Group as={Row} className="justify-content-center">
-        <Col md={4}>
-          <Alert variant="success" className="text-center">
-            Files to be Saved to: <b>{props.config.file.directory}</b>
-          </Alert>
-        </Col>
-      </Form.Group>
       <Row className="justify-content-center">
           <ButtonGroup>
             <Button variant="danger" className='ml-1' onClick={props.handleClose}>
               Close
             </Button>
             <DropdownButton variant="secondary" className='ml-1' as={ButtonGroup}
-              title="File">
-              <Dropdown.Item eventKey="1" onClick={props.handleSave}>
-                Save Configuration
+              title="Configuration">
+              <Dropdown.Item eventKey="0" onClick={props.handleSave}>
+                Save
+              </Dropdown.Item>
+              <Dropdown.Item eventKey="1" onClick={props.handleSaveAs}>
+                Save As...
               </Dropdown.Item>
               <Dropdown.Item eventKey="2" onClick={props.handleLoad}>
-                Load Configuration
+                Load
               </Dropdown.Item>
               <Dropdown.Item eventKey="3" onClick={props.handleLoadDefault}>
                 Load Default
@@ -87,7 +82,9 @@ export default function File(props){
                 Save As Default
               </Dropdown.Item>
             </DropdownButton>
-            <Button className='ml-1' onClick={props.handleStart}>Start Acquisition</Button>
+            <Button className='ml-1' onClick={props.handleStart}>
+              Start Acquisition
+            </Button>
           </ButtonGroup>
       </Row>
       </Container>

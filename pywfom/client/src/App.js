@@ -75,8 +75,9 @@ export default function Main() {
   }
 
   const clearSettings =  async () => {
-    const resp = await fetch('/api/system', {method:"DELETE"});
-    if (resp.ok) {setConfig({file:{},cameras:[],arduino:{}});hidePopup();}
+    fetch('/api/system', {method:"DELETE"}).then(resp=>{
+      if (resp.ok) {setConfig({file:{},cameras:[],arduino:{}, username:null});hidePopup();}
+    })
   }
 
   const handleClear = () => setPopup({
@@ -97,11 +98,8 @@ export default function Main() {
             },
             body: JSON.stringify(data)})
             .then(resp => {
-              if (resp.ok) { return resp.json()}
-              else { console.error(resp.message) }
-            })
-            .then(data => {
-              setConfig(data);
+              if (resp.ok) { resp.json().then( data => setConfig(data))}
+              else { resp.text().then(txt=>console.error(txt)) }
               setPopup({visible:false})
             })
           }
@@ -120,6 +118,8 @@ export default function Main() {
       })
       .then(data => setConfig(data))
   },[]);
+
+  console.log(config);
 
   return (
     <div>

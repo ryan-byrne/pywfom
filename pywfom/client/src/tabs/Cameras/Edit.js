@@ -21,11 +21,14 @@ export default function EditCameras(props){
       .then(resp => resp.json()
       .then(data => {
         // Filter out cameras that are already added
-        let filteredCameras = data
-        Object.values(props.cameras).map(cam=> {
-          console.log(cam);
+        props.cameras.map(cam=> {
+          data.map((dcam, idx) => {
+            if (dcam.index === cam.index && dcam.interface === cam.interface) {
+              data.splice(idx, 1);
+            }
+          })
         })
-        setFoundCameras(filteredCameras);
+        setFoundCameras(data);
         setSearching(false);
       }))
   }
