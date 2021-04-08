@@ -55,8 +55,8 @@ export default function Main() {
 
   const handleLoad = () => setPopup({
     visible:true,
-    content:<LoadConfig onHide={hidePopup}/>
-  })
+    content:<LoadConfig user={config.username} name={config.name} onHide={hidePopup} deploy={deploySettings}/>
+  });
 
   const handleSave = () => setPopup({
     visible:true,
@@ -66,7 +66,7 @@ export default function Main() {
   const handleLoadDefault = async () => {
     setPopup({...popup, status:(<div>Loading Default Settings</div>)});
     const user = "ryan";
-    const resp = await fetch(`/api/file/configuration/${user}/default`);
+    const resp = await fetch(`/api/file/${user}/default`);
     const data = await resp.json();
     setPopup({
       visible:true,

@@ -15,29 +15,34 @@ def _get_response(id):
         'file':System.file,
         'arduino':System.arduino.json() if System.arduino else {},
         'cameras':[cam.json() for cam in System.cameras],
-        'username':System.username
+        'username':System.username,
+        'name':System.name
     }
     return jsonify(_settings[id] if id else _settings)
 
 def _post_response(id, settings):
 
     if id == None:
-        System.file = settings['file']
-        System.username = settings['username']
-        # Send create new Arduino
-        if System.arduino:
-            return "Arduino is already initialized. It must be empty to POST", 403
-        else:
-            System.arduino = Arduino(**settings['arduino'])
-        # Add new cameras
-        if len(System.cameras) > 0:
-            return "Camera array must be empty before POST", 403
-        else:
-            System.cameras = [Camera(**cam) for cam in settings['cameras']]
-        return jsonify({
-            "file":System.file,"arduino":System.arduino.json(),
-            "cameras":[cam.json() for cam in System.cameras], "username":settings["username"]
-        })
+        resp = {}
+        for key, setting in settings.items():
+            if key == 'arduino':
+                if System.arduino:
+                    return "Arduino is already initialized. It must be empty to POST", 403
+                else:
+                    System.arduino = Arduino(**setting)
+                    resp['arduino'] = System.arduino.json()
+            elif key == 'cameras':
+                if len(System.cameras) > 0:
+                    return "Camera array must be empty before POST", 403
+                else:
+                    System.cameras = [Camera(**cam) for cam in setting]
+                    resp['cameras'] = [cam.json() for cam in System.cameras]
+            else:
+                setattr(System, key, setting)
+                resp[key] = setting
+        print(resp)
+        return jsonify(resp)
+
     elif id == 'file':
         System.file = settings
         return jsonify(settings)
