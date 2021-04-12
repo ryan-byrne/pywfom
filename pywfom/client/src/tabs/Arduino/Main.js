@@ -61,7 +61,7 @@ export default function Arduino(props){
 
     const arduinoSettings = {port:port.device}
 
-    fetch('/api/system/arduino', {
+    fetch('/api/system/settings/arduino', {
       method: "POST",
       headers: {
         'Accept': 'application/json',

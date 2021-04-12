@@ -1,17 +1,23 @@
-from flask import Flask, render_template
-import argparse, os, json, webbrowser
+import argparse, json
 
-from pywfom.server import run_server, test_server
+from .server import start
+
+from .server.api.system import system
 
 def _get_arguments():
     parser = argparse.ArgumentParser()
-    parser.add_argument('command', choices=['start', 'test'])
+    parser.add_argument('command', choices=['start', 'test', 'view'])
     parser.add_argument('path', nargs="?", default="")
     return parser.parse_args()
 
 def main():
     args = _get_arguments()
     if args.command == 'test':
-        test_server()
+        # TODO:
+        print('test')
     elif args.command == 'start':
-        run_server()
+        system.set_from_path(args.path)
+        start()
+    elif args.command == 'view':
+        # TODO:
+        print('view')

@@ -29,7 +29,7 @@ export default function File(props){
             <Form.Group as={Col}>
               <Form.Control value={props.config.username} disabled={true}/>
               <Form.Text muted>
-                User <a href="#" onClick={props.handleClose}>Switch</a>
+                User <a href="#" onClick={props.close}>Switch</a>
               </Form.Text>
             </Form.Group>
             <Form.Group as={Col}>
@@ -61,28 +61,25 @@ export default function File(props){
         </Form.Group>
       <Row className="justify-content-center">
           <ButtonGroup>
-            <Button variant="danger" className='ml-1' onClick={props.handleClose}>
+            <Button variant="danger" className='ml-1' onClick={props.close}>
               Close
             </Button>
             <DropdownButton variant="secondary" className='ml-1' as={ButtonGroup}
               title="Configuration">
-              <Dropdown.Item eventKey="0" onClick={props.handleSave}>
+              <Dropdown.Item eventKey="0" onClick={props.save}>
                 Save
               </Dropdown.Item>
-              <Dropdown.Item eventKey="1" onClick={props.handleSaveAs}>
-                Save As...
-              </Dropdown.Item>
-              <Dropdown.Item eventKey="2" onClick={props.handleLoad}>
+              <Dropdown.Item eventKey="2" onClick={props.load}>
                 Load
               </Dropdown.Item>
-              <Dropdown.Item eventKey="3" onClick={props.handleLoadDefault}>
+              <Dropdown.Item eventKey="3" onClick={props.loadDefault}>
                 Load Default
               </Dropdown.Item>
-              <Dropdown.Item eventKey="4" onClick={props.handleSaveDefault}>
+              <Dropdown.Item eventKey="4" onClick={props.saveDefault}>
                 Save As Default
               </Dropdown.Item>
             </DropdownButton>
-            <Button className='ml-1' onClick={props.handleStart}>
+            <Button className='ml-1' onClick={props.start}>
               Start Acquisition
             </Button>
           </ButtonGroup>

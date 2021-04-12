@@ -10,14 +10,22 @@ import ListGroup from 'react-bootstrap/ListGroup';
 export default function LoadConfig(props){
 
   const [configs, setConfigs] = useState([]);
+  const [message, setMessage] = useState(null)
 
-  const selectConfig = (idx) => props.deploy({...configs[idx], username:props.user});
+  const selectConfig = (idx) => {
+    setMessage(<Alert variant="warning">Deploying Settings...</Alert>)
+    props.deploy({...configs[idx], username:props.user});
+  }
 
   useEffect(() => {
-    fetch(`/api/file/${props.user}/`)
+    setMessage(<Alert variant="info">Loading Configurations...</Alert>)
+    fetch(`/api/db/${props.user}/`)
       .then( resp => {
-        if (resp.ok) { resp.json().then(data=>setConfigs(data))}
-        else { resp.text().then(txt=>console.error(txt)) }
+        if (resp.ok) { resp.json().then(data=>{
+          setConfigs(data);
+          setMessage(null)
+        })}
+        else { resp.text().then(txt=>setMessage(<Alert variant="danger">{txt}</Alert>)) }
       })
   },[]);
 
@@ -42,6 +50,7 @@ export default function LoadConfig(props){
             }
             </ListGroup>
           </Modal.Body>
+          {message}
           <Modal.Footer>
             <Button variant="secondary" onClick={props.onHide}>Close</Button>
           </Modal.Footer>

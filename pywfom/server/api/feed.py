@@ -4,7 +4,7 @@ from flask import Response, render_template_string
 import time
 
 from . import api
-from .system import System
+from .system import system
 
 def _generate_camera_feed(cam):
     while cam.active:
@@ -22,7 +22,7 @@ def camera_feed(id):
             _generate_arduino_feed()
         )
     else:
-        camera = [cam for cam in System.cameras if cam.json()['id'] == id]
+        camera = [cam for cam in system.cameras if cam.json()['id'] == id]
         if len(camera) == 0:
             return "Could not find an active camera with id={id}", 404
         elif len(camera) > 1:

@@ -28,13 +28,10 @@ export default function Login(props) {
       body: JSON.stringify(login)})
       .then(resp=> {
         if (resp.ok) { resp.json().then(data=>{
-          setMessage({
-            text:<span><Spinner animation="border" size="sm"></Spinner> Successfully Logged in. Loading Settings...</span>,
-            variant:"success"
-          })
-          props.deploySettings(data);
+          setMessage({text:"Successfully logged in", variant:"Success"})
+          props.setConfig(data);
         })}
-        else { resp.text().then(txt=>setMessage({text:txt, variant:"danger"})) }
+        else { resp.text().then() }
       })
   }
 

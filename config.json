@@ -1,0 +1,9 @@
+{
+  "arduino":{
+    "port":"COM1"
+  },
+  "cameras":[
+    {"interface":"opencv", "index":0}
+  ],
+  "file":{}
+}

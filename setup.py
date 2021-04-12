@@ -20,7 +20,7 @@ setup(
         "Flask"
     ],
     zip_safe=False,
-    entry_points = {"console_scripts": ["pywfom = pywfom.cli:main"]},
+    entry_points = {"console_scripts": ["pywfom = pywfom:main"]},
     long_description=long_description,
     long_description_content_type='text/markdown',
     python_requires='>3.5',

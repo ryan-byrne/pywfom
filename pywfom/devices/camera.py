@@ -170,3 +170,51 @@ class _Spinnaker(object):
 
     def __init__(self):
         pass
+
+class _Test(object):
+
+    def __init__ (self, **config):
+
+        self.set(**config)
+
+        self.interface = 'test'
+        self.id = os.urandom(6).hex()
+
+        self._capturing = False
+
+        self.aoi = {
+            "x":0,
+            "y":0,
+            "width":int(self.get('width')),
+            "height":int(self.get('height')),
+            "fullHeight":int(self.get('height')),
+            "fullWidth":int(self.get('width')),
+            "binning":"1x1",
+            "centered":False
+        }
+        self.framerate = self.get('framerate')
+        self.primary = False
+        self.dtype = '8-bit'
+
+    def set(self, **settings):
+        [setattr(self,k,v) for k,v in settings.items()]
+
+    def get_next_frame(self):
+        return np.random.randint(0, self.dtype[0], size=self.size, dtype=self.dtype[1])
+
+    def close(self):
+        pass
+
+    def get(self, setting):
+        return getattr(self, setting)
+
+    def json(self):
+        # Return Camera settings as a dictionary
+
+        json_settings = {}
+
+        for k, v in self.__dict__.items():
+            if k[0] != '_' and k:
+                json_settings[k] = v
+
+        return json_settings

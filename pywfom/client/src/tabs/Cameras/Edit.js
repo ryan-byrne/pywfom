@@ -37,7 +37,7 @@ export default function EditCameras(props){
     event.target.textContent = 'Adding...';
     event.target.disabled = true;
     // Send Message to API
-    fetch('/api/system/camera', {
+    fetch('/api/system/settings/cameras', {
       method: "POST",
       headers: {
         'Accept': 'application/json',
@@ -52,6 +52,7 @@ export default function EditCameras(props){
         let oldCameras = [...foundCameras]
         oldCameras.splice(idx, 1)
         setFoundCameras(oldCameras);
+        console.log(data);
         props.setCameras(data)
       })
 
@@ -59,7 +60,7 @@ export default function EditCameras(props){
 
   const removeCamera = (event, idx) => {
     //Send Message to API
-    fetch('/api/system/'+idx, {
+    fetch('/api/system/settings/'+idx, {
       method: "DELETE",
       headers: {
         'Accept': 'application/json',

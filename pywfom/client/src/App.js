@@ -58,15 +58,15 @@ export default function Main() {
     content:<LoadConfig user={config.username} name={config.name} onHide={hidePopup} deploy={deploySettings}/>
   });
 
-  const handleSave = () => setPopup({
+  const handleSave = (as) => setPopup({
     visible:true,
-    content:<SaveConfig onHide={hidePopup} config={config}/>
+    content:<SaveConfig onHide={hidePopup} config={config} as={as}/>
   })
 
   const handleLoadDefault = async () => {
     setPopup({...popup, status:(<div>Loading Default Settings</div>)});
     const user = "ryan";
-    const resp = await fetch(`/api/file/${user}/default`);
+    const resp = await fetch(`/api/db/${user}/default`);
     const data = await resp.json();
     setPopup({
       visible:true,
@@ -75,7 +75,7 @@ export default function Main() {
   }
 
   const clearSettings =  async () => {
-    fetch('/api/system', {method:"DELETE"}).then(resp=>{
+    fetch('/api/system/settings', {method:"DELETE"}).then(resp=>{
       if (resp.ok) {setConfig({file:{},cameras:[],arduino:{}, username:null});hidePopup();}
     })
   }
@@ -87,10 +87,10 @@ export default function Main() {
 
   const deploySettings = (data) => {
     //Clear all current settings
-    fetch('/api/system', {method:"DELETE"})
+    fetch('/api/system/settings', {method:"DELETE"})
       .then(resp=> {
         if(resp.ok){
-          fetch('/api/system', {
+          fetch('/api/system/settings', {
             method: "POST",
             headers: {
               'Accept': 'application/json',
@@ -98,7 +98,7 @@ export default function Main() {
             },
             body: JSON.stringify(data)})
             .then(resp => {
-              if (resp.ok) { resp.json().then( data => setConfig(data))}
+              if (resp.ok) { resp.json().then( data => setConfig({...data, username:config.username}))}
               else { resp.text().then(txt=>console.error(txt)) }
               setPopup({visible:false})
             })
@@ -111,7 +111,7 @@ export default function Main() {
 
   useEffect(()=> {
     // get current system settings (even after refresh)
-    fetch('/api/system')
+    fetch('/api/system/settings')
       .then(resp => {
         if(resp.ok){ return resp.json() }
         else { setError(true); }
@@ -119,19 +119,17 @@ export default function Main() {
       .then(data => setConfig(data))
   },[]);
 
-  console.log(config);
-
   return (
     <div>
       {
         error ? <Error/> :
-        !config.username ? <Login deploySettings={deploySettings}/> :
+        !config.username ? <Login setConfig={setConfig}/> :
         config.acquiring ? <Acquisition config={config} setAcquiring={setAcquiring}/> :
         <Tabs defaultActiveKey="profile" id="uncontrolled-tab-example">
           <Tab eventKey='runTab' title={<span><img height="25px" src={runIcon}/> Run</span>}>
-            <File config={config} setConfig={setConfig} handleStart={handleStart}
-              handleLoad={handleLoad} handleSave={handleSave} handleClose={handleClear}
-              handleLoadDefault={handleLoadDefault} handleSaveDefault={handleSaveDefault}
+            <File config={config} setConfig={setConfig} start={handleStart}
+              load={handleLoad} save={()=>handleSave(false)} close={handleClear}
+              loadDefault={handleLoadDefault} saveDefault={handleSaveDefault}
               acquiring={acquiring}/>
           </Tab>
           <Tab eventKey='camerasTab' title={<span><img height="25px" src={camIcon}/> Cameras</span>}>

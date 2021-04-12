@@ -2,8 +2,8 @@ from flask import jsonify, Blueprint, request
 import json
 
 from . import api
+from .system import system
 from .. import models
-from ...system import System
 
 @api.route('/auth/user/<username>')
 def get_user(username):
@@ -16,6 +16,5 @@ def login():
     if len(user) == 0:
         return "Could not find a user with that name and password", 400
     else:
-        config = json.loads(user[0].default.to_json())
-        config['username'] = data['username']
-        return jsonify(config)
+        system.username = data['username']
+        return jsonify( system.get() )

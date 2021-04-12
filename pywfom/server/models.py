@@ -6,25 +6,29 @@ class Pin(EmbeddedDocument):
     name = StringField()
     pin = IntField()
 
+class Stim(EmbeddedDocument):
+    pins = EmbeddedDocumentListField(Pin)
+
 class Arduino(EmbeddedDocument):
     port = StringField()
     trigger = IntField()
     leds = EmbeddedDocumentListField(Pin)
     daq = EmbeddedDocumentListField(Pin)
+    stim = EmbeddedDocumentListField(Stim)
 
 # ********** Camera *************
 
 class Aoi(EmbeddedDocument):
-    binning = StringField()
+    binning = StringField(choices=['1x1','2x2','4x4','8x8'], max_length=3)
     x = IntField()
     y = IntField()
-    height = IntField()
-    width = IntField()
+    height = IntField(required=True)
+    width = IntField(required=True)
     centered = BooleanField()
 
 class Camera(EmbeddedDocument):
-    interface = StringField()
-    index = IntField()
+    interface = StringField(required=True, choices=['opencv','spinnaker','andor','test'])
+    index = IntField(required=True)
     id = StringField()
     aoi = EmbeddedDocumentField(Aoi)
     primary = BooleanField()
@@ -53,14 +57,18 @@ class User(Document):
     default = ReferenceField(Configuration)
     configurations = ListField(ReferenceField(Configuration))
 
+class Mouse(Document):
+    name = StringField(required=True, unique=True)
+
 class Frame(Document):
-    index = IntField()
-    timestamp = DateTimeField()
-    image = BinaryField()
-    leds = ListField(BooleanField())
-    daq = ListField(IntField())
+    timestamp = DateTimeField(required=True)
+    daq = ListField(IntField)
+    leds = ListField(BooleanField)
+    stim = ListField(IntField)
+    images = StringField(required=True)
 
 class Run(Document):
-    username = ReferenceField(User)
-    configuration = ReferenceField(Configuration)
+    config = ReferenceField(Configuration)
+    mouse = ReferenceField(Mouse)
+    user = ReferenceField(User)
     frames = ListField(ReferenceField(Frame))
