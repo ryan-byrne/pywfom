@@ -8,7 +8,12 @@ from .. import models
 @api.route('/db/<user>/<name>', methods=['GET'])
 def get_configurations(user=None, name=None):
     # Return all saved configurations if name not specified
-    if not name:
+    if user == 'mice':
+        return jsonify([mouse.name for mouse in models.Mouse.objects])
+    elif user == 'mouse':
+        models.Mouse(name=name).save()
+        return "Success", 200
+    elif not name:
         configs = models.User.objects(username=user)[0].configurations
         return jsonify([json.loads(config.to_json()) for config in configs])
     elif name == 'default':
@@ -17,7 +22,7 @@ def get_configurations(user=None, name=None):
         return config
 
 @api.route('/db/<user>/<name>', methods=['POST'])
-def make_new_configuration(user=None, name=None):
+def make_new(user=None, name=None):
     # Return all saved configurations if name not specified
     # Create Configuration
     data = request.get_json()

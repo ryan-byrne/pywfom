@@ -57,15 +57,15 @@ class User(Document):
     default = ReferenceField(Configuration)
     configurations = ListField(ReferenceField(Configuration))
 
-class Mouse(Document):
-    name = StringField(required=True, unique=True)
-
 class Frame(Document):
     timestamp = DateTimeField(required=True)
     daq = ListField(IntField)
     leds = ListField(BooleanField)
     stim = ListField(IntField)
     images = StringField(required=True)
+
+class Mouse(Document):
+    name = StringField(required=True, unique=True)
 
 class Run(Document):
     config = ReferenceField(Configuration)

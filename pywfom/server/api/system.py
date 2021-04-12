@@ -2,6 +2,7 @@ from flask import request, jsonify, session
 import traceback, json
 
 from . import api
+from .. import models
 
 from ...devices.arduino import Arduino
 from ...devices.camera import Camera
@@ -18,17 +19,21 @@ class _System(object):
         self.username = None
 
     def set_from_path(self, path):
-
+        # Clear existing settings
         self.delete()
+        # Start system from specified path, otherwise ignore
+        with open(path, 'r') as f:
+            settings = json.load(f)
+            self.post(settings)
+        f.close()
 
-        if path != "":
-            # Start system from specified path, otherwise ignore
-            with open(path, 'r') as f:
-                config = json.load(f)
-                self.arduino = Arduino(**config['arduino'])
-                self.cameras = [Camera(**settings) for settings in config['cameras']]
-                self.file = config['file']
-            f.close()
+    def set_from_user_default(self, user):
+        # Clear existing settings
+        self.delete()
+        # Retrieve settings from MongoDB
+        default = models.User.objects(username=user).get().default
+        # Post the settings
+        self.post(id=None, settings=json.loads(default.to_json()))
 
     def get(self, setting=None):
         resp = {
@@ -93,7 +98,7 @@ class _System(object):
         elif id == None:
             self.file = settings['file']
             self.cameras = [Camera(**config) for config in settings['cameras']]
-            self.arduino = Arduino(**settings['arduino']) 
+            self.arduino = Arduino(**settings['arduino'])
 
         return self.get(id)
 

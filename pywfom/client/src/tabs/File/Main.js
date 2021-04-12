@@ -10,14 +10,79 @@ import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import Button from 'react-bootstrap/Button';
 import Dropdown from 'react-bootstrap/Dropdown';
 import DropdownButton from 'react-bootstrap/DropdownButton';
+import Modal from 'react-bootstrap/Modal';
+
+const AddMouse = (props) => {
+
+  const [mouseName, setMouseName] = useState("");
+  const [taken, setTaken] = useState(false)
+
+  const handleAdd = ()=> {
+    // Send new mouse to database
+    fetch(`/api/db/mouse/${mouseName}`)
+      .then(resp=>{
+        if (resp.ok){
+          // Add to array
+          props.setMice([...props.mice, mouseName]);
+          // Set in configuration
+          props.setConfig({...props.config, mouse:mouseName});
+          props.onHide()
+        } else {
+          resp.text().then(txt=>console.error(txt))
+        }
+      })
+  }
+
+  useEffect(()=> {
+    const mice = props.mice.map(mouse=>(mouse===mouseName))
+    setTaken(mice.includes(true))
+  }, [mouseName]);
+
+  return(
+    <div>{
+      <Modal show={props.visible} onHide={props.onHide}>
+        <Modal.Header>
+          <Modal.Title>Add a Mouse</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form.Group>
+            <Form.Control placeholder="Enter a Mouse Name..." value={mouseName}
+              onChange={(e)=>setMouseName(e.target.value)}/>
+            <Form.Text muted>Name</Form.Text>
+          </Form.Group>
+        </Modal.Body>
+        <Modal.Footer>
+          {
+            !taken ? null : <Alert variant="danger">{mouseName} already exists</Alert>
+          }
+          <Button variant="secondary" onClick={()=>props.onHide()}>Cancel</Button>
+          <Button onClick={handleAdd} disabled={taken}>Add</Button>
+        </Modal.Footer>
+
+      </Modal>
+    }</div>
+  )
+}
 
 export default function File(props){
+
+  const [mice, setMice] = useState([]);
+  const [addMouse, setAddMouse] = useState(false);
 
   const handleChange = (event) => {
     let prevFile = {...props.config.file}
     prevFile[event.target.id] = event.target.value;
     setFile(prevFile);
   }
+
+  const handleAddMouse = () => setAddMouse(true);
+
+  const setMouse = (mouse) => props.setConfig({...props.config, mouse:mouse})
+
+  useEffect(()=> {
+    fetch('/api/db/mice/')
+      .then(resp=>{if(resp.ok){resp.json().then(data=>setMice(data))}})
+  }, [])
 
   const setFile = (data) => props.setConfig({...props.config, file:data})
 
@@ -33,7 +98,11 @@ export default function File(props){
               </Form.Text>
             </Form.Group>
             <Form.Group as={Col}>
-              <Form.Control value={props.config.file.mouse}></Form.Control>
+              <Form.Control placeholder="Select a Mouse..." custom as="select"
+                value={props.config.mouse} onChange={(e)=>setMouse(e.target.value)}>
+                {mice.map(mouse=><option key={mouse}>{mouse}</option>)}
+                <option onClick={handleAddMouse}>Add Mouse...</option>
+              </Form.Control>
               <Form.Text muted>Mouse</Form.Text>
             </Form.Group>
         </Form.Group>
@@ -84,6 +153,8 @@ export default function File(props){
             </Button>
           </ButtonGroup>
       </Row>
+      <AddMouse visible={addMouse} onHide={()=>setAddMouse(false)}
+        mice={mice} setMice={setMice} config={props.config} setConfig={props.setConfig}/>
       </Container>
     }</div>
   )
