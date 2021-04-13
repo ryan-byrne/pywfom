@@ -44,6 +44,8 @@ class _System(object):
         }
         if not setting:
             return resp
+        elif setting not in resp:
+            return self.cameras[int(setting)].json()
         else:
             return resp[setting]
 
@@ -80,7 +82,7 @@ class _System(object):
             else:
                 self.arduino.set(**settings)
         else:
-            self.cameras[id].set(**settings)
+            self.cameras[int(id)].set(**settings)
 
         return self.get(id)
 

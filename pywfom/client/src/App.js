@@ -119,6 +119,18 @@ export default function Main() {
       .then(data => setConfig(data))
   },[]);
 
+  useEffect(()=>{
+    // Calculate the size of the file each time cameras change
+    let size = 0;
+    config.cameras.map(cam=>{
+      const {height, width, binning} = cam.aoi;
+      const pixelSize = parseInt(cam.dtype.substring(4))/8;
+      const bin = parseInt(binning.charAt(0));
+      size += pixelSize*height*width/bin
+    })
+    setConfig({...config, file:{...config.file, size:size}})
+  },[config.cameras])
+
   return (
     <div>
       {

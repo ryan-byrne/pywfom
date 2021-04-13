@@ -82,7 +82,7 @@ class Camera(object):
         self._camera.stop()
 
     def set(self, **settings):
-        self._camera.set(settings)
+        self._camera.set(**settings)
 
     def close(self):
         self.active = False
@@ -129,7 +129,7 @@ class _OpenCV(object):
         }
         self.framerate = self.get('framerate')
         self.primary = False
-        self.dtype = '8-bit'
+        self.dtype = 'uint16'
 
     def set(self, **settings):
         [setattr(self,k,v) for k,v in settings.items()]
@@ -139,10 +139,13 @@ class _OpenCV(object):
             return None
         else:
             ret, img = self._video_cap.read()
+            img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            x, y, w, h = self.aoi['x'], self.aoi['y'], self.aoi['width'], self.aoi['height']
+            frame = img_gray[y:h+y, x:w+x]
             if not ret:
                 return None
             else:
-                return img
+                return frame
 
     def close(self):
         pass

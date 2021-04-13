@@ -13,44 +13,60 @@ import Form from 'react-bootstrap/Form';
 
 const ImageDraw = (props) => {
 
-  const [coor, setCoor] = useState({draw:false,x:0,y:0,ix:0,iy:0});
-  const [cropper, setCropper] = useState({height:null,width:null,objectFit:'cover'})
+  const [rect, setRect] = useState({draw:false,x:0,y:0,ix:0,iy:0});
+  const [cropper, setCropper] = useState({overflow:"hidden", width:"100%"})
+  const [image, setImage] = useState({width:"100%"})
 
   const canvasRef = useRef();
   const imageRef = useRef();
+  const divRef = useRef();
 
   const handleUp = (event) => {
-    const { height, naturalHeight } = imageRef.current;
-    const scale = height/naturalHeight;
-    const { x, y, iy, ix } = coor;
-    const { fullHeight, fullWidth } = props.camera.aoi;
-    let aoi;
-    if (event.button === 2) {
-      aoi = { ...props.camera.aoi, height:fullHeight, width:fullWidth, x:0, y:0 }
+    if (event.button === 2){
+      setCropper({...cropper, height:"100%",width:"100%"})
+      setImage({width:"100%"})
+      const {fullHeight, fullWidth} = props.camera.aoi
+      props.setCamera({...props.camera,
+        aoi:{...props.camera.aoi, x:0,y:0,height:fullHeight,width:fullWidth}})
     } else {
-      setCropper({...cropper, height:Math.abs(y-iy)+"px",width:Math.abs(x-ix)+"px"})
-      aoi = {
-        ...props.camera.aoi,
-        height:parseInt(Math.abs(y-iy)/scale),
-        width:parseInt(Math.abs(x-ix)/scale),
-        x:parseInt(Math.min(x, ix)/scale),
-        y:parseInt(Math.min(y, iy)/scale)
+      // Get Rect Coordinates
+      const {x,y,ix,iy} = rect;
+      const aoi = {
+        height:Math.abs(iy-y),
+        width:Math.abs(ix-x),
+        top:Math.min(iy,y),
+        left:Math.min(ix,x)
       }
+      // Set Size of Container
+      setCropper({...cropper, width:aoi.width, height:aoi.height});
+      // Get Size of Image
+      const {naturalHeight, naturalWidth, height, width} = imageRef.current;
+      const scale = naturalHeight/height;
+      props.setCamera({...props.camera,
+        aoi:{
+          ...props.camera.aoi,
+          x:parseInt(aoi.left*scale),
+          y:parseInt(aoi.top*scale),
+          width:parseInt(aoi.width*scale),
+          height:parseInt(aoi.height*scale)
+      }})
+      // Set Viewing Image Frame
+      setImage({...image, height:height, width:width,marginLeft:-aoi.left,marginTop:-aoi.top})
+
     }
-    props.setCamera({...props.camera, aoi:aoi})
-    setCoor({draw:false,x:0,y:0,ix:0,iy:0})
+    setRect({draw:false,x:0,y:0,ix:0,iy:0})
   }
 
   const handleDown = (event) => {
     const { left, top} =  canvasRef.current.getBoundingClientRect()
     const { clientX, clientY } = event;
-    setCoor({ix:clientX-left,iy:clientY-top,x:clientX-left,y:clientY-top,draw:true})
+    setRect({ix:clientX-left,iy:clientY-top,x:clientX-left,y:clientY-top,draw:true})
   }
 
   const handleMove = (event) => {
     const { left, top} =  canvasRef.current.getBoundingClientRect()
     const { clientX, clientY } = event;
-    if (coor.draw) { setCoor({...coor, x:clientX-left,y:clientY-top}) }
+    if (rect.draw) { setRect({...rect, x:clientX-left,y:clientY-top}) }
   }
 
   useEffect(()=>{
@@ -61,20 +77,16 @@ const ImageDraw = (props) => {
     canvas.width = width;
     ctx.clearRect(0,0,canvas.width,canvas.height)
     ctx.strokeStyle = 'red';
-    const { ix, iy, x, y } = coor;
-    if (coor.draw) {ctx.strokeRect(ix,iy,x-ix,y-iy)}
+    const { ix, iy, x, y } = rect;
+    if (rect.draw) {ctx.strokeRect(ix,iy,x-ix,y-iy)}
   })
 
-  useEffect(()=>{
-    const scale = imageRef.current.naturalHeight/imageRef.current.height;
-  },[props.camera.aoi])
-
   return (
-    <div onMouseDown={handleDown} onMouseMove={handleMove} onMouseUp={handleUp}>
-      <canvas ref={canvasRef} onContextMenu={(e)=>e.preventDefault()} className="position-absolute"
-        style={cropper}/>
-      <Image ref={imageRef} src={"/api/feed/"+props.camera.id} fluid draggable={false}
-        style={cropper}/>
+    <div onMouseDown={handleDown} onMouseMove={handleMove} onMouseUp={handleUp}
+      style={cropper} ref={divRef}>
+      <canvas ref={canvasRef} onContextMenu={(e)=>e.preventDefault()} className="position-absolute"/>
+      <Image ref={imageRef} src={"/api/feed/"+props.camera.id} draggable={false} onContextMenu={(e)=>e.preventDefault()}
+        style={image}/>
     </div>
   )
 }
@@ -84,7 +96,25 @@ export default function ConfigureCamera(props) {
   // Store temprary viewing settings
   const [camera, setCamera] = useState(null);
 
-  const handleSave = () => console.log(camera);
+  const handleSave = () => {
+    fetch(`/api/system/settings/${props.selected}`,{
+      method:"PUT",
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(camera)
+    })
+      .then(resp=>{
+        if(resp.ok){ resp.json().then(data=>{
+          let cams = [...props.cameras]
+          cams[props.selected] = camera;
+          props.setCameras(cams);
+          props.onHide();
+        })}
+        else { resp.text().then(txt=>console.error(txt)) }
+      })
+  };
 
   const handleSwitch = (event) => {
     if (event.target.id === 'primary'){
@@ -114,7 +144,7 @@ export default function ConfigureCamera(props) {
     }});
   }
 
-  const calculateFrameSize = () => {return "4898"}
+  const calculateFrameSize = () => {}
 
   useEffect(()=> { setCamera(props.cameras[props.selected]) },[props])
 
@@ -131,7 +161,9 @@ export default function ConfigureCamera(props) {
         </Modal.Header>
         { !camera ? null :
           <Modal.Body>
-            <Row className="justify-content-center"><ImageDraw camera={camera} setCamera={setCamera}/></Row>
+            <Row className="justify-content-center">
+              <ImageDraw camera={camera} setCamera={setCamera}/>
+            </Row>
             <Tabs className="mt-3">
               <Tab eventKey="aoiTab" title="AOI">
                 <Container>
@@ -190,7 +222,7 @@ export default function ConfigureCamera(props) {
                     <Form.Group>
                       <Form.Control as="select" custom value={camera.dtype}
                           onChange={handleSelect}>
-                          {['8-bit','12-bit','16-bit','32-bit'].map(bit=>{
+                          {['uint8','uint16','uint32'].map(bit=>{
                             return(<option key={bit}>{bit}</option>)
                           })}
                       </Form.Control>

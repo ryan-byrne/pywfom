@@ -103,7 +103,7 @@ export default function File(props){
                 {mice.map(mouse=><option key={mouse}>{mouse}</option>)}
                 <option onClick={handleAddMouse}>Add Mouse...</option>
               </Form.Control>
-              <Form.Text muted>Mouse</Form.Text>
+              <Form.Text muted>Select a Mouse</Form.Text>
             </Form.Group>
         </Form.Group>
         <Form.Group as={Row} className="justify-content-center">

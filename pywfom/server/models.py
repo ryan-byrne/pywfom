@@ -29,6 +29,7 @@ class Aoi(EmbeddedDocument):
 class Camera(EmbeddedDocument):
     interface = StringField(required=True, choices=['opencv','spinnaker','andor','test'])
     index = IntField(required=True)
+    dtype = StringField(choices=['uint8','uint16','uint32'])
     id = StringField()
     aoi = EmbeddedDocumentField(Aoi)
     primary = BooleanField()

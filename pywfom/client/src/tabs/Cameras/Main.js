@@ -16,6 +16,7 @@ export default function Cameras(props){
   // Viewing states
   const [editing, showEditing] = useState(false);
   const [selectedCamera, setSelectedCamera] = useState(null);
+  const [frameSize, setFrameSize] = useState(0);
 
   const setCameras = (data) => props.setConfig({...props.config, cameras:data});
 
