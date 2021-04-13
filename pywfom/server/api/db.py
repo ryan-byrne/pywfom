@@ -22,7 +22,8 @@ def get_configurations(user=None, name=None):
         return config
 
 @api.route('/db/<user>/<name>', methods=['POST'])
-def make_new(user=None, name=None):
+@api.route('/db/<user>/<name>/<default>', methods=['POST'])
+def make_new(user=None, name=None, default=None):
     # Return all saved configurations if name not specified
     # Create Configuration
     data = request.get_json()
@@ -33,6 +34,8 @@ def make_new(user=None, name=None):
         config = models.Configuration(name=name, **data).save()
         user = models.User.objects(username=user).get()
         user.configurations.append(config)
+        if default == "default":
+            user.update(default=config)
         user.save()
         return "Success", 200
     except Exception as e:
@@ -40,17 +43,19 @@ def make_new(user=None, name=None):
         return str(e), 400
 
 @api.route('/db/<user>/<name>', methods=['PUT'])
-def save_configuration_settings(user=None, name=None):
+@api.route('/db/<user>/<name>/<default>', methods=['PUT'])
+def save_configuration_settings(user=None, name=None, default=None):
     # Return all saved configurations if name not specified
     data = request.get_json()
     data.pop('username', None)
     data['arduino'].pop('firmware_version',None)
     data['arduino'].pop('active',None)
     try:
-        print(data)
         config = models.Configuration.objects(name=name)[0]
+        if default == "default":
+            user = models.User.objects(username=user)[0]
+            user.update(default=config)
         config.update(**data)
-        print(config.cameras[0].aoi.height)
         return "Success", 200
     except Exception as e:
         traceback.print_exc()

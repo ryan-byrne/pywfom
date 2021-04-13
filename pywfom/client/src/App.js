@@ -10,6 +10,7 @@ import Image from 'react-bootstrap/Image';
 import LoadConfig from './popups/LoadConfig';
 import SaveConfig from './popups/SaveConfig';
 import YesNo from './popups/YesNo';
+import MakeDefault from './popups/MakeDefault';
 
 // Each Tab's Components
 import File from './tabs/File/Main';
@@ -107,7 +108,20 @@ export default function Main() {
     // Deploy settings to the System
   }
 
-  const handleSaveDefault = () => {}
+  const setAsDefault = () => {
+    fetch(`/api/db/${config.username}/default`, {
+      method: "PUT",
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(config)})
+  }
+
+  const handleSaveDefault = () => setPopup({
+    visible:true,
+    content:<MakeDefault onHide={hidePopup} config={config}/>
+  })
 
   useEffect(()=> {
     // get current system settings (even after refresh)
@@ -130,6 +144,8 @@ export default function Main() {
     })
     setConfig({...config, file:{...config.file, size:size}})
   },[config.cameras])
+
+  console.log(config);
 
   return (
     <div>
