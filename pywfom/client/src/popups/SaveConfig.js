@@ -21,7 +21,7 @@ export default function SaveConfig(props){
       body: JSON.stringify(props.config)})
       .then(resp=>resp.text().then(txt => {
         if (resp.ok) {
-
+          props.onHide()
         } else {
             console.error(txt);
         }
@@ -38,7 +38,7 @@ export default function SaveConfig(props){
       body: JSON.stringify(props.config)})
       .then(resp=>resp.text().then(txt => {
         if (resp.ok) {
-
+          props.onHide()
         } else {
             console.error(txt);
         }

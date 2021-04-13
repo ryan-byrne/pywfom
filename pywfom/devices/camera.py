@@ -31,7 +31,7 @@ class CameraException(Exception):
 
 class Camera(object):
 
-    def __init__(self, interface=None, index=None, primary=False, **config):
+    def __init__(self, **config):
 
         """
 
@@ -41,17 +41,17 @@ class Camera(object):
 
         """
 
-        if None in [interface, index]:
+        if 'interface' not in config or 'index' not in config:
             raise CameraException("Incomplete camera configuration")
 
-        print("Initialzing {}:{}".format(interface, index))
+        print("Initialzing {}:{}".format(config['interface'], config['index']))
 
-        if ( interface == 'opencv' ):
-            self._camera = _OpenCV(index=index, **config)
-        elif ( interface == 'andor' ):
-            self._camera = _Andor(index=index, **config)
-        elif ( interface == 'spinnaker' ):
-            self._camera = _Spinnaker(index=index, **config)
+        if ( config['interface'] == 'opencv' ):
+            self._camera = _OpenCV(**config)
+        elif ( config['interface'] == 'andor' ):
+            self._camera = _Andor(**config)
+        elif ( config['interface'] == 'spinnaker' ):
+            self._camera = _Spinnaker(**config)
 
         self.start()
 
@@ -98,16 +98,11 @@ class Camera(object):
 class _OpenCV(object):
     """docstring for _OpenCV."""
 
-    def __init__(self, index=None, **config):
+    def __init__(self, **config):
 
-        self.set(**config)
-
-        self.index = index
-        self.interface = 'opencv'
         self.id = os.urandom(6).hex()
 
-        self._video_cap = cv2.VideoCapture(self.index)
-        self._capturing = False
+        self._video_cap = cv2.VideoCapture(config['index'])
 
         self._PROPS = {
             "fullWidth":3,
@@ -130,6 +125,10 @@ class _OpenCV(object):
         self.framerate = self.get('framerate')
         self.primary = False
         self.dtype = 'uint16'
+
+        self.set(**config)
+
+        self._capturing = False
 
     def set(self, **settings):
         [setattr(self,k,v) for k,v in settings.items()]

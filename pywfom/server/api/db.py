@@ -27,6 +27,8 @@ def make_new(user=None, name=None):
     # Create Configuration
     data = request.get_json()
     data.pop('username', None)
+    data['arduino'].pop('firmware_version',None)
+    data['arduino'].pop('active',None)
     try:
         config = models.Configuration(name=name, **data).save()
         user = models.User.objects(username=user).get()
@@ -42,8 +44,13 @@ def save_configuration_settings(user=None, name=None):
     # Return all saved configurations if name not specified
     data = request.get_json()
     data.pop('username', None)
+    data['arduino'].pop('firmware_version',None)
+    data['arduino'].pop('active',None)
     try:
-        config = models.Configuration(name=name, **data).update()
+        print(data)
+        config = models.Configuration.objects(name=name)[0]
+        config.update(**data)
+        print(config.cameras[0].aoi.height)
         return "Success", 200
     except Exception as e:
         traceback.print_exc()

@@ -58,9 +58,9 @@ export default function Main() {
     content:<LoadConfig user={config.username} name={config.name} onHide={hidePopup} deploy={deploySettings}/>
   });
 
-  const handleSave = (as) => setPopup({
+  const handleSave = () => setPopup({
     visible:true,
-    content:<SaveConfig onHide={hidePopup} config={config} as={as}/>
+    content:<SaveConfig onHide={hidePopup} config={config}/>
   })
 
   const handleLoadDefault = async () => {

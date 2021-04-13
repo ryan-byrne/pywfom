@@ -24,6 +24,8 @@ class Aoi(EmbeddedDocument):
     y = IntField()
     height = IntField(required=True)
     width = IntField(required=True)
+    fullHeight = IntField()
+    fullWidth = IntField()
     centered = BooleanField()
 
 class Camera(EmbeddedDocument):
@@ -32,6 +34,7 @@ class Camera(EmbeddedDocument):
     dtype = StringField(choices=['uint8','uint16','uint32'])
     id = StringField()
     aoi = EmbeddedDocumentField(Aoi)
+    framerate = FloatField()
     primary = BooleanField()
 
 # ********** File *************
@@ -40,6 +43,7 @@ class File(EmbeddedDocument):
     run_length = FloatField()
     run_length_unit = StringField()
     number_of_runs = IntField()
+    size = IntField()
 
 # ********** Configuration *********
 

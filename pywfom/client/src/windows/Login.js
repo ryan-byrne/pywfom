@@ -28,10 +28,10 @@ export default function Login(props) {
       body: JSON.stringify(login)})
       .then(resp=> {
         if (resp.ok) { resp.json().then(data=>{
-          setMessage({text:"Successfully logged in", variant:"Success"})
+          setMessage({text:"Successfully logged in", variant:"success"})
           props.setConfig(data);
         })}
-        else { resp.text().then() }
+        else { resp.text().then(txt=>setMessage({text:txt,variant:"danger"})) }
       })
   }
 
