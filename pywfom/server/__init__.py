@@ -4,19 +4,20 @@ import os, threading, webbrowser, pywfom, waitress
 import numpy as np
 
 from .api import api
-from . import models
+from . import models, viewer
 
 CLIENT_PATH = os.path.join(pywfom.__path__[0], "client/build/")
 
-app = Flask('pywfom', static_folder=CLIENT_PATH+"/static", template_folder=CLIENT_PATH)
+app = Flask('pywfom', static_folder=os.path.join(CLIENT_PATH,"static"), template_folder=CLIENT_PATH)
 app.secret_key = os.urandom(12).hex()
 app.register_blueprint(api, url_prefix='/api')
+app.register_blueprint(viewer.bp, url_prefix='/viewer')
 
 print('Connecting to MongoDB...')
 connect(host="mongodb://localhost:27017/pywfom0")
 
 @app.route('/')
-def serve_page():
+def serve_main():
     return render_template('index.html')
 
 def test():

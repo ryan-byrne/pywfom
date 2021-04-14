@@ -63,7 +63,6 @@ class User(Document):
     configurations = ListField(ReferenceField(Configuration))
 
 class Frame(Document):
-    timestamp = DateTimeField(required=True)
     daq = ListField(IntField)
     leds = ListField(BooleanField)
     stim = ListField(IntField)
@@ -73,6 +72,7 @@ class Mouse(Document):
     name = StringField(required=True, unique=True)
 
 class Run(Document):
+    timestamp = DateTimeField()
     configuration = ReferenceField(Configuration)
     mouse = ReferenceField(Mouse)
     user = ReferenceField(User)

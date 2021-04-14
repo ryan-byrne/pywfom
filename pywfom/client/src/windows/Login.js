@@ -62,6 +62,7 @@ export default function Login(props) {
           </Modal.Body>
           <Alert variant={message.variant}>{message.text}</Alert>
           <Modal.Footer>
+            <Button variant="secondary" onClick={()=>props.setRegistering(true)}>Register</Button>
             <Button onClick={onLogin} disabled={['info', 'success'].includes(message.variant)? true : false}>
               Login
             </Button>

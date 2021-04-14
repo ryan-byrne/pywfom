@@ -30,11 +30,15 @@ def post_default(user=None, name=None):
     user.update(default=config)
     return jsonify(config.to_json())
 
+@api.route('/db/configurations', methods=["GET"])
 @api.route('/db/configurations/<user>', methods=["GET"])
 @api.route('/db/configurations/<user>/<name>', methods=['GET'])
 def get_configurations(user=None, name=None):
     # Return all saved configurations if name not specified
-    if user == 'mice':
+    if not user:
+        configs = models.Configuration.objects()
+        return jsonify([json.loads(config.to_json()) for config in configs ])
+    elif user == 'mice':
         return jsonify([mouse.name for mouse in models.Mouse.objects])
     elif user == 'mouse':
         models.Mouse(name=name).save()

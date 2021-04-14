@@ -5,6 +5,7 @@ import Tabs from 'react-bootstrap/Tabs';
 import Tab from 'react-bootstrap/Tab';
 import Modal from 'react-bootstrap/Modal';
 import Image from 'react-bootstrap/Image';
+import Container from 'react-bootstrap/Container';
 
 // Popup Components
 import LoadConfig from './popups/LoadConfig';
@@ -16,16 +17,19 @@ import MakeDefault from './popups/MakeDefault';
 import File from './tabs/File/Main';
 import Cameras from './tabs/Cameras/Main';
 import Arduino from './tabs/Arduino/Main';
+import Viewer from './tabs/Viewer/Main';
 
 // Windows
 import Acquisition from './windows/Acquisition';
 import Error from './windows/Error';
 import Login from './windows/Login';
+import Register from './windows/Register';
 
 // Images
 import arduinoIcon from './img/arduino.png';
 import runIcon from './img/run.png';
 import camIcon from './img/cam.png';
+import viewIcon from './img/view.png';
 
 const Popup = (props) => {
 
@@ -45,6 +49,8 @@ export default function Main() {
   const [acquiring, setAcquiring] = useState(false);
   const [error, setError] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
+  const [viewing, setViewing] = useState(false);
+  const [registering, setRegistering] = useState(false)
   const [config, setConfig] = useState({arduino:{},file:{},cameras:[]})
 
   const hidePopup = () => setPopup({...popup, visible:false})
@@ -138,22 +144,29 @@ export default function Main() {
     <div>
       {
         error ? <Error/> :
-        !config.username ? <Login setConfig={setConfig}/> :
+        registering ? <Register onHide={()=>setRegistering(false)} setConfig={setConfig}/> :
+        !config.username ? <Login setConfig={setConfig} setRegistering={setRegistering}/> :
+        viewing ? <Viewer/> :
         config.acquiring ? <Acquisition config={config} setAcquiring={setAcquiring}/> :
-        <Tabs defaultActiveKey="profile" id="uncontrolled-tab-example">
-          <Tab eventKey='runTab' title={<span><img height="25px" src={runIcon}/> Run</span>}>
-            <File config={config} setConfig={setConfig} start={handleStart}
-              load={handleLoad} save={()=>handleSave(false)} close={handleClear}
-              loadDefault={handleLoadDefault} saveDefault={handleSaveDefault}
-              acquiring={acquiring}/>
-          </Tab>
-          <Tab eventKey='camerasTab' title={<span><img height="25px" src={camIcon}/> Cameras</span>}>
-            <Cameras config={config} setConfig={setConfig} acquiring={acquiring}/>
-          </Tab>
-          <Tab eventKey='arduinoTab' title={<span><img height="25px" src={arduinoIcon}/> Arduino</span>}>
-            <Arduino config={config} setConfig={setConfig} acquiring={acquiring}/>
-          </Tab>
-        </Tabs>
+        <Container>
+          <Tabs defaultActiveKey="runTab" id="uncontrolled-tab-example">
+            <Tab eventKey='runTab' title={<span><img height="25px" src={runIcon}/> Run</span>}>
+              <File config={config} setConfig={setConfig} start={handleStart}
+                load={handleLoad} save={()=>handleSave(false)} close={handleClear}
+                loadDefault={handleLoadDefault} saveDefault={handleSaveDefault}
+                acquiring={acquiring}/>
+            </Tab>
+            <Tab eventKey='camerasTab' title={<span><img height="25px" src={camIcon}/> Cameras</span>}>
+              <Cameras config={config} setConfig={setConfig} acquiring={acquiring}/>
+            </Tab>
+            <Tab eventKey='arduinoTab' title={<span><img height="25px" src={arduinoIcon}/> Arduino</span>}>
+              <Arduino config={config} setConfig={setConfig} acquiring={acquiring}/>
+            </Tab>
+            <Tab eventKey='viewerTab' title={<span><img height="25px" src={viewIcon}/> Viewer</span>}>
+              <Viewer user={config.username}/>
+            </Tab>
+          </Tabs>
+        </Container>
       }
       <Popup content={popup.content} visible={popup.visible} status={popup.status} onHide={hidePopup}/>
     </div>
