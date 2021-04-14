@@ -12,13 +12,13 @@ export default function MakeDefault(props){
   const [overwrite, setOverwrite] = useState(null);
 
   const handleSave = () => {
-    fetch(`/api/db/${props.config.username}/${configName}/default`, {
+    fetch(`/api/db/default/${props.config.username}/${configName}`, {
       method: "POST",
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(props.config)})
+      body: JSON.stringify(...props.config)})
       .then(resp=>resp.text().then(txt => {
         if (resp.ok) {
           props.onHide()
@@ -29,7 +29,7 @@ export default function MakeDefault(props){
   }
 
   const handleOverwrite = () => {
-    fetch(`/api/db/${props.config.username}/${configName}/default`, {
+    fetch(`/api/db/default/${props.config.username}/${configName}`, {
       method: "PUT",
       headers: {
         'Accept': 'application/json',
@@ -51,7 +51,7 @@ export default function MakeDefault(props){
   },[configName])
 
   useEffect(()=> {
-    fetch(`/api/db/${props.config.username}/`)
+    fetch(`/api/db/configurations/${props.config.username}`)
       .then(resp=>{if(resp.ok){
         resp.json().then(data=>setConfigs(data))
       }})

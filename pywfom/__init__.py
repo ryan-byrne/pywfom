@@ -1,7 +1,6 @@
-import argparse, json
+import argparse, json, getpass
 
-from .server import start
-
+from .server import start, test
 from .server.api.system import system
 
 def _get_arguments():
@@ -12,17 +11,21 @@ def _get_arguments():
     return parser.parse_args()
 
 def main():
+
     args = _get_arguments()
+
+    if args.path != "":
+        system.set_from_path(args.path)
+    elif args.user:
+        pwd = getpass.getpass(f"Enter Password for {args.user}: ")
+        system.set_from_user_default(args.user, pwd)
+
     if args.command == 'test':
-        # TODO:
-        print('test')
-    elif args.command == 'start':
-        if args.path != "":
-            system.set_from_path(args.path)
-        elif args.user:
-            system.set_from_user_default(args.user)
-        system.username = args.user
-        start()
+        test()
     elif args.command == 'view':
-        # TODO:
-        print('view')
+        pass
+    elif args.command == 'acquire':
+        system.set_from_file('/Users/rbyrne/projects/pywfom/config.json')
+        e = system.start_acquisition()
+    else:
+        start()

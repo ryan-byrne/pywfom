@@ -3,7 +3,12 @@
     "port":"COM1"
   },
   "cameras":[
-    {"interface":"opencv", "index":0}
+    {"interface":"opencv", "index":0, "primary":true,"height":500,"width":500},
+    {"interface":"opencv", "index":0, "primary":true,"height":1000,"width":1000}
   ],
-  "file":{}
+  "file":{
+    "number_of_runs":3,
+    "run_length_unit":"sec",
+    "run_length":1.0
+  }
 }

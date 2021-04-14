@@ -17,7 +17,8 @@ setup(
         "opencv-python",
         "pyserial",
         "numpy",
-        "Flask"
+        "Flask",
+        "waitress"
     ],
     zip_safe=False,
     entry_points = {"console_scripts": ["pywfom = pywfom:main"]},

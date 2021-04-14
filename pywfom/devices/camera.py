@@ -18,11 +18,10 @@ def find_cameras():
     # OpenCV
     for i in range(10):
         cap = cv2.VideoCapture(i)
-        if cap.read()[0]:
-            cameras.append({'interface':'opencv','index':i})
-        else:
+        if cap is None or not cap.isOpened():
             continue
-        cap.release()
+        else:
+            cameras.append({'interface':'opencv','index':i})
 
     return cameras
 
@@ -43,7 +42,8 @@ class Camera(object):
 
         if 'interface' not in config or 'index' not in config:
             raise CameraException("Incomplete camera configuration")
-
+        else:
+            self.interface, self.index = config['interface'], config['index']
         print("Initialzing {}:{}".format(config['interface'], config['index']))
 
         if ( config['interface'] == 'opencv' ):
@@ -55,25 +55,24 @@ class Camera(object):
 
         self.start()
 
-    def _loading_feed(self):
-        return (np.zeros(
-            (self._camera.aoi['height'], self._camera.aoi['width']),
-            np.uint8)
-        )
-
     def start(self):
-        self.active = True
+        self.active, self.acquiring = True, False
         self.feed = queue.Queue()
+        self.acquired_frames = queue.Queue()
         threading.Thread(target=self._capture_frames).start()
 
     def _capture_frames(self):
         while self.active:
             # Keep the buffer size small for the feed
+            frame = self._camera.get_next_frame()
             if self.feed.qsize() > 1:
                 with self.feed.mutex:
                     self.feed.queue.clear()
             else:
-                self.feed.put(self._camera.get_next_frame())
+                self.feed.put(frame)
+
+            if self.acquiring:
+                self.acquired_frames.put(frame)
 
     def get(self, setting):
         self._camera.get(setting)

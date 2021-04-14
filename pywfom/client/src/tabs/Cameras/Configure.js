@@ -109,6 +109,7 @@ export default function ConfigureCamera(props) {
         if(resp.ok){ resp.json().then(data=>{
           let cams = [...props.cameras]
           cams[props.selected] = camera;
+          console.log(cams);
           props.setCameras(cams);
           props.onHide();
         })}

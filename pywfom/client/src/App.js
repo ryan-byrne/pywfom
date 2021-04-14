@@ -65,9 +65,8 @@ export default function Main() {
   })
 
   const handleLoadDefault = async () => {
-    setPopup({...popup, status:(<div>Loading Default Settings</div>)});
     const user = "ryan";
-    const resp = await fetch(`/api/db/${user}/default`);
+    const resp = await fetch(`/api/db/default/${user}`);
     const data = await resp.json();
     setPopup({
       visible:true,
@@ -108,16 +107,6 @@ export default function Main() {
     // Deploy settings to the System
   }
 
-  const setAsDefault = () => {
-    fetch(`/api/db/${config.username}/default`, {
-      method: "PUT",
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(config)})
-  }
-
   const handleSaveDefault = () => setPopup({
     visible:true,
     content:<MakeDefault onHide={hidePopup} config={config}/>
@@ -144,8 +133,6 @@ export default function Main() {
     })
     setConfig({...config, file:{...config.file, size:size}})
   },[config.cameras])
-
-  console.log(config);
 
   return (
     <div>

@@ -15,9 +15,9 @@ class Arduino(object):
     """docstring for Arduino."""
 
     def __init__(self, **config):
-        self.active = False
+        self._active = False
         [setattr(self, key, []) for key in ['leds','stim','daq']]
-        [setattr(self, key, None) for key in ['trigger', '_serial', 'firmware_version', 'port']]
+        [setattr(self, key, None) for key in ['trigger', '_serial', '_firmware_version', 'port']]
         self.trigger = None
         self.set(**config)
 
@@ -29,17 +29,17 @@ class Arduino(object):
             time.sleep(2)
             print("Checking Arduino Firmware Version...")
             self._serial.write("<f>".encode())
-            self.firmware_version = self._serial.readline().decode("utf-8")[:-2]
+            self._firmware_version = self._serial.readline().decode("utf-8")[:-2]
             print("Connected to Arduino. Firmware Version : {}".format(self.firmware_version))
         except serial.serialutil.SerialException as e:
             print('Unable to connect to Arduino at {}'.format(port))
             self._serial = None
-            self.firmware_version = None
+            self._firmware_version = None
         except Exception as e:
             print('Another error')
 
     def start(self):
-        self.active = True
+        self._active = True
         while self.active:
             self.feed = self._read_serial_message()
 
@@ -58,7 +58,7 @@ class Arduino(object):
         return self._serial.readline()
 
     def close(self):
-        self.active = False
+        self._active = False
         try:
             self._serial.close()
         except:

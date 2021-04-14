@@ -12,7 +12,7 @@ export default function SaveConfig(props){
   const [overwrite, setOverwrite] = useState(null);
 
   const handleSave = () => {
-    fetch(`/api/db/${props.config.username}/${configName}`, {
+    fetch(`/api/db/configurations/${props.config.username}/${configName}`, {
       method: "POST",
       headers: {
         'Accept': 'application/json',
@@ -29,7 +29,7 @@ export default function SaveConfig(props){
   }
 
   const handleOverwrite = () => {
-    fetch(`/api/db/${props.config.username}/${configName}`, {
+    fetch(`/api/db/configurations/${props.config.username}/${configName}`, {
       method: "PUT",
       headers: {
         'Accept': 'application/json',
@@ -51,7 +51,7 @@ export default function SaveConfig(props){
   },[configName])
 
   useEffect(()=> {
-    fetch(`/api/db/${props.config.username}/`)
+    fetch(`/api/db/configurations/${props.config.username}`)
       .then(resp=>{if(resp.ok){
         resp.json().then(data=>setConfigs(data))
       }})

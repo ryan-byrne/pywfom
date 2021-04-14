@@ -19,7 +19,7 @@ export default function LoadConfig(props){
 
   useEffect(() => {
     setMessage(<Alert variant="info">Loading Configurations...</Alert>)
-    fetch(`/api/db/${props.user}/`)
+    fetch(`/api/db/configurations/${props.user}`)
       .then( resp => {
         if (resp.ok) { resp.json().then(data=>{
           setConfigs(data);

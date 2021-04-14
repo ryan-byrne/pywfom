@@ -48,10 +48,10 @@ class File(EmbeddedDocument):
 # ********** Configuration *********
 
 class Configuration(Document):
-    name = StringField(unique=True)
-    arduino = EmbeddedDocumentField(Arduino)
-    cameras = EmbeddedDocumentListField(Camera)
-    file = EmbeddedDocumentField(File)
+    name = StringField(unique=True, required=True)
+    arduino = EmbeddedDocumentField(Arduino, required=True)
+    cameras = EmbeddedDocumentListField(Camera, required=True)
+    file = EmbeddedDocumentField(File, required=True)
 
 # User
 
@@ -67,13 +67,13 @@ class Frame(Document):
     daq = ListField(IntField)
     leds = ListField(BooleanField)
     stim = ListField(IntField)
-    images = StringField(required=True)
+    file = StringField(required=True)
 
 class Mouse(Document):
     name = StringField(required=True, unique=True)
 
 class Run(Document):
-    config = ReferenceField(Configuration)
+    configuration = ReferenceField(Configuration)
     mouse = ReferenceField(Mouse)
     user = ReferenceField(User)
     frames = ListField(ReferenceField(Frame))

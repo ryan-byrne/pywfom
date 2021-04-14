@@ -1,5 +1,7 @@
 from flask import request, jsonify, session
-import traceback, json
+from tqdm import tqdm
+import traceback, json, time, os, datetime, threading
+import numpy as np
 
 from . import api
 from .. import models
@@ -16,22 +18,25 @@ class _System(object):
         self.cameras = []
         self.file = {}
         self.acquiring = False
-        self.username = None
+        self.username = "ryan"
+        self.name = "ryan's default"
+        self.mouse = "cm105"
 
-    def set_from_path(self, path):
+    def set_from_file(self, path):
         # Clear existing settings
         self.delete()
         # Start system from specified path, otherwise ignore
         with open(path, 'r') as f:
             settings = json.load(f)
-            self.post(settings)
+            self.post(None, settings)
         f.close()
 
-    def set_from_user_default(self, user):
+    def set_from_user_default(self, user, pwd):
         # Clear existing settings
         self.delete()
+        self.username = user
         # Retrieve settings from MongoDB
-        default = models.User.objects(username=user).get().default
+        default = models.User.objects(username=user, password=pwd).get().default
         # Post the settings
         self.post(id=None, settings=json.loads(default.to_json()))
 
@@ -44,10 +49,10 @@ class _System(object):
         }
         if not setting:
             return resp
-        elif setting not in resp:
-            return self.cameras[int(setting)].json()
-        else:
+        elif setting in resp:
             return resp[setting]
+        else:
+            return self.cameras[int(setting)].json()
 
     def delete(self, id=None):
 
@@ -101,6 +106,8 @@ class _System(object):
             self.file = settings['file']
             self.cameras = [Camera(**config) for config in settings['cameras']]
             self.arduino = Arduino(**settings['arduino'])
+        else:
+            setattr(self, id, settings)
 
         return self.get(id)
 
@@ -108,10 +115,97 @@ class _System(object):
         self.acquiring = False
 
     def start_acquisition(self):
-        self.acquiring = True
+
+        _path, _num_frms, _errors = self._check_system_settings()
+
+        # Create save directory
+        os.mkdir(_path)
+
+        if len(_errors) > 0:
+            return _errors
+
+        for cam in self.cameras:
+            cam.acquiring = True
+
+        t = time.time()
+        for i in range(self.file['number_of_runs']):
+            run = self._create_run()
+            if not run:
+                break
+            else:
+                os.mkdir(_path+f"/run{i}")
+            for j in range(_num_frms):
+                # Place latest frame from each camera in dict
+                frames = {
+                    f"{cam.interface}{cam.index}":cam.acquired_frames.get() for cam in self.cameras
+                }
+                # Create thread arguments
+                args = (f'{_path}/run{i}/frame{j}.npz', frames, run)
+                # Start a thread to write to file and mongodb
+                threading.Thread(target=self._write_to_file, args=args).start()
+            run.save()
+        print(_num_frms*(i+1)/(time.time()-t))
+
+        for cam in self.cameras:
+            cam.acquiring = False
+
+    def _create_run(self):
+        # Check to see if MongoDB keys are valid
+        try:
+            mouse = models.Mouse.objects(name=self.mouse).get()
+            user = models.User.objects(username=self.username).get()
+            config = models.Configuration.objects(name=self.name).get()
+            return models.Run(mouse=mouse,user=user,configuration=config,frames=[])
+        except Exception as e:
+            traceback.print_exc()
+            return None
+
+    def _write_to_file(self, fname, frames, run):
+        np.savez(fname, **frames)
+        frame = models.Frame(timestamp=datetime.datetime.now(), file=fname)
+        frame.save()
+        run.frames.append(frame)
+
+    def _check_system_settings(self):
+
+        errors = []
+        _rlu, _rl, framerate, path, run = "sec",0.0,0.0,"", None
+
+        # Check to see if the directory is configured
+        try:
+            _dir = os.environ['PYWFOM_DIR']
+            _ = os.mkdir(_dir) if not os.path.exists(_dir) else None
+            dt = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+            path = _dir + '/' + dt
+        except KeyError:
+            errors.append("PYWFOM_DIR is not declared in the PATH")
+
+        # Check run settings
+        for key in ['run_length', 'run_length_unit', 'number_of_runs']:
+            if key not in self.file:
+                errors.append(f"{key} is missing from file settings")
+            elif key == 'run_length':
+                _rl = self.file['run_length']
+            elif key == 'run_length_unit':
+                _rlu = self.file['run_length_unit']
+        _run_dur = {"sec":1.0,"min":60.0,"hr":3600.0}[_rlu]*_rl
+        # Check camera settings
+        if len(self.cameras) == 0:
+            errors.append("No cameras added.")
+        framerate = [cam.json()['framerate'] for cam in self.cameras if cam.json()['primary']]
+        if len(framerate) > 1:
+            errors.append("More than one primary camera indicated.")
+        elif len(framerate) == 0:
+            errors.append("A primary camera must be indicated")
+        else:
+            framerate = framerate[0]
+
+        return path, int(framerate*_run_dur), errors
+
 
     def get_acquisition_status(self):
         return self.acquiring
+
 #  ****** Initialize System System ********
 system = _System()
 # ************* System Settings API Calls ******************
@@ -137,18 +231,7 @@ def put_settings(id):
 def delete_settings(id=None):
     # Delete settings in the current session
     return system.delete(id)
-# ************* System Acquisition API Calls ******************
+
 @api.route('/system/acquisition', methods=["GET"])
-def get_acquisition(id=None):
-    # Delete settings in the current session
-    return jsonify( system.get_acquisition_status() )
-
-@api.route('/system/acquisition', methods=["POST"])
-def post_acquisition(id=None):
-    # Delete settings in the current session
-    return jsonify( system.start_acquisition() )
-
-@api.route('/system/acquisition', methods=["DELETE"])
-def delete_acquisition(id=None):
-    # Delete settings in the current session
-    return jsonify( system.stop_acquisition() )
+def get_acquisition():
+    system.get_acquisition()

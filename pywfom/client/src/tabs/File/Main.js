@@ -19,7 +19,7 @@ const AddMouse = (props) => {
 
   const handleAdd = ()=> {
     // Send new mouse to database
-    fetch(`/api/db/mouse/${mouseName}`)
+    fetch(`/api/db/configurations/mouse/${mouseName}`)
       .then(resp=>{
         if (resp.ok){
           // Add to array
@@ -80,7 +80,7 @@ export default function File(props){
   const setMouse = (mouse) => props.setConfig({...props.config, mouse:mouse})
 
   useEffect(()=> {
-    fetch('/api/db/mice/')
+    fetch('/api/db/configurations/mice')
       .then(resp=>{if(resp.ok){resp.json().then(data=>setMice(data))}})
   }, [])
 

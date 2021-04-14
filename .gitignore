@@ -10,6 +10,8 @@
 # dependencies
 /pywfom/client/node_modules
 /pywfom/client/.pnp
+/pywfom/viewer/node_modules
+/pywfom/viewer/.pnp
 .pnp.js
 /pywfom/env/
 
