@@ -86,6 +86,16 @@ export default function File(props){
 
   const setFile = (data) => props.setConfig({...props.config, file:data})
 
+  useEffect(() => {
+    fetch(`/api/system/settings/file`, {
+      method: "POST",
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(props.config.file)})
+  },[props.config.file])
+
   return (
     <div>{
       !props.config.file ? null :

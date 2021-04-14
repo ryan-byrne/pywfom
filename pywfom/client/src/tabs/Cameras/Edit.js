@@ -52,7 +52,6 @@ export default function EditCameras(props){
         let oldCameras = [...foundCameras]
         oldCameras.splice(idx, 1)
         setFoundCameras(oldCameras);
-        console.log(data);
         props.setCameras(data)
       })
 

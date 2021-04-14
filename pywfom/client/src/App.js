@@ -147,7 +147,7 @@ export default function Main() {
         registering ? <Register onHide={()=>setRegistering(false)} setConfig={setConfig}/> :
         !config.username ? <Login setConfig={setConfig} setRegistering={setRegistering}/> :
         viewing ? <Viewer/> :
-        config.acquiring ? <Acquisition config={config} setAcquiring={setAcquiring}/> :
+        acquiring ? <Acquisition config={config} setAcquiring={setAcquiring}/> :
         <Container>
           <Tabs defaultActiveKey="runTab" id="uncontrolled-tab-example">
             <Tab eventKey='runTab' title={<span><img height="25px" src={runIcon}/> Run</span>}>

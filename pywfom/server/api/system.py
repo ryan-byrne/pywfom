@@ -10,6 +10,11 @@ from ...devices.arduino import Arduino
 from ...devices.camera import Camera
 
 # ****** Create Controllable System ********
+
+class _SystemException(Exception):
+    pass
+
+
 class _System(object):
     """docstring for _System."""
 
@@ -94,7 +99,7 @@ class _System(object):
     def post(self, id=None, settings={}):
 
         if id == 'file':
-            self.file == settings
+            self.file = settings
         elif id == 'cameras':
             self.cameras.append( Camera(**settings) )
         elif id == 'arduino':
@@ -116,13 +121,15 @@ class _System(object):
 
     def start_acquisition(self):
 
+        print("Starting an acquisition")
+
         _path, _num_frms, _errors = self._check_system_settings()
+
+        if len(_errors) > 0:
+            return False, _errors
 
         # Create save directory
         os.mkdir(_path)
-
-        if len(_errors) > 0:
-            return _errors
 
         for cam in self.cameras:
             cam.acquiring = True
@@ -149,6 +156,8 @@ class _System(object):
         for cam in self.cameras:
             cam.acquiring = False
 
+        return True, []
+
     def _create_run(self):
         # Check to see if MongoDB keys are valid
         try:
@@ -167,6 +176,8 @@ class _System(object):
         run.frames.append(frame)
 
     def _check_system_settings(self):
+
+        print("Checking System Settings...")
 
         errors = []
         _rlu, _rl, framerate, path, run = "sec",0.0,0.0,"", None
@@ -196,12 +207,12 @@ class _System(object):
         if len(framerate) > 1:
             errors.append("More than one primary camera indicated.")
         elif len(framerate) == 0:
+            framerate = 0.0
             errors.append("A primary camera must be indicated")
         else:
             framerate = framerate[0]
 
         return path, int(framerate*_run_dur), errors
-
 
     def get_acquisition_status(self):
         return self.acquiring
@@ -235,3 +246,15 @@ def delete_settings(id=None):
 @api.route('/system/acquisition', methods=["GET"])
 def get_acquisition():
     system.get_acquisition()
+
+@api.route('/system/acquisition', methods=["DELETE"])
+def stop_acquisition():
+    return "Success", 200
+
+@api.route('/system/acquisition', methods=['POST'])
+def start_acquisition():
+    result, errors = system.start_acquisition()
+    if not result:
+        return jsonify(errors), 404
+    else:
+        return "Success", 200
