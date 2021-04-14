@@ -18,7 +18,9 @@ setup(
         "pyserial",
         "numpy",
         "Flask",
-        "waitress"
+        "waitress",
+        "mongoengine",
+        "tqdm"
     ],
     zip_safe=False,
     entry_points = {"console_scripts": ["pywfom = pywfom:main"]},
