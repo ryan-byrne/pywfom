@@ -77,8 +77,6 @@ export default function File(props){
 
   const handleAddMouse = () => setAddMouse(true);
 
-  const setMouse = (mouse) => props.setConfig({...props.config, mouse:mouse})
-
   useEffect(()=> {
     fetch('/api/db/configurations/mice')
       .then(resp=>{if(resp.ok){resp.json().then(data=>setMice(data))}})
@@ -109,7 +107,7 @@ export default function File(props){
             </Form.Group>
             <Form.Group as={Col}>
               <Form.Control placeholder="Select a Mouse..." custom as="select"
-                value={props.config.mouse} onChange={(e)=>setMouse(e.target.value)}>
+                value={props.config.mouse} onChange={(e)=>props.setConfig({...props.config, mouse:e.target.value})}>
                 {mice.map(mouse=><option key={mouse}>{mouse}</option>)}
                 <option onClick={handleAddMouse}>Add Mouse...</option>
               </Form.Control>
@@ -117,12 +115,12 @@ export default function File(props){
             </Form.Group>
         </Form.Group>
         <Form.Group as={Row} className="justify-content-center">
-          <Form.Group as={Col} xs={4} md={1} className="pr-0">
+          <Form.Group as={Col} xs={4} lg={2} className="pr-0">
             <Form.Control type="number" min="0" step="0.01" placeholder="Enter Length of Run"
               id="run_length" value={props.config.file.run_length} onChange={handleChange}/>
             <Form.Text muted>Run Duration</Form.Text>
           </Form.Group>
-          <Form.Group as={Col} xs={4} md={1} className="pl-0">
+          <Form.Group as={Col} xs={4} xl={1} className="pl-0">
             <Form.Control as="select" value={props.config.file.run_length_unit}
               onChange={handleChange} id="run_length_unit" custom>
               {['sec', 'min', 'hr'].map(dur=>{
@@ -132,7 +130,7 @@ export default function File(props){
               })}
             </Form.Control>
           </Form.Group>
-          <Form.Group as={Col} xs={4} md={1} >
+          <Form.Group as={Col} xs={4} xl={2}>
             <Form.Control type="number" min="0" step="1" placeholder="Enter Number of Runs"
               value={props.config.file.number_of_runs}  onChange={handleChange} id="number_of_runs"/>
             <Form.Text muted>Number of Runs</Form.Text>

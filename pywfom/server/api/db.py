@@ -15,6 +15,7 @@ def put_default(user=None, name=None):
     print(user, name)
     data = request.get_json()
     data.pop('username', None)
+    data.pop('mouse', None)
     config = models.Configuration.objects(name=name).get()
     config.update(**data)
     user = models.User.objects(username=user).get()
@@ -25,6 +26,7 @@ def put_default(user=None, name=None):
 def post_default(user=None, name=None):
     data = request.get_json()
     data.pop('username', None)
+    data.pop('mouse', None)
     config = models.Configuration(name=name, **data).save()
     user = models.User.objects(username=user).get()
     user.update(default=config)
@@ -53,6 +55,7 @@ def make_new(user=None, name=None):
     # Create Configuration
     data = request.get_json()
     data.pop('username', None)
+    data.pop('mouse', None)
     data['arduino'].pop('firmware_version',None)
     data['arduino'].pop('active',None)
     try:
@@ -70,6 +73,7 @@ def save_configuration_settings(user=None, name=None, default=None):
     # Return all saved configurations if name not specified
     data = request.get_json()
     data.pop('username', None)
+    data.pop('mouse', None)
     data['arduino'].pop('firmware_version',None)
     data['arduino'].pop('active',None)
     try:

@@ -23,9 +23,13 @@ class _System(object):
         self.cameras = []
         self.file = {}
         self.acquiring = False
-        self.username = "ryan"
-        self.name = "ryan's default"
-        self.mouse = "cm105"
+        self.username = None
+        self.name = None
+        self.mouse = None
+        self.write_speed = 0
+
+    def benchmark_disk(self):
+        pass
 
     def set_from_file(self, path):
         # Clear existing settings
@@ -50,7 +54,9 @@ class _System(object):
             "file":self.file,
             "cameras":[cam.json() for cam in self.cameras],
             "arduino":self.arduino.json() if self.arduino else {},
-            "username":self.username
+            "username":self.username,
+            "name":self.name,
+            "mouse":self.mouse
         }
         if not setting:
             return resp
@@ -80,7 +86,7 @@ class _System(object):
             cam = self.cameras.pop(int(id))
             cam.close()
 
-        return "Successfully cleared system", 200
+        return self.get(id)
 
     def put(self, id=None, settings={}):
 
@@ -91,6 +97,8 @@ class _System(object):
                 return "Arduino is not initialized", 400
             else:
                 self.arduino.set(**settings)
+        elif id == 'mouse':
+            self.mouse = settings
         else:
             self.cameras[int(id)].set(**settings)
 
@@ -111,6 +119,8 @@ class _System(object):
             self.file = settings['file']
             self.cameras = [Camera(**config) for config in settings['cameras']]
             self.arduino = Arduino(**settings['arduino'])
+            self.name = settings['name']
+            self.username = settings['username']
         else:
             setattr(self, id, settings)
 
@@ -118,62 +128,6 @@ class _System(object):
 
     def stop_acquisition(self):
         self.acquiring = False
-
-    def start_acquisition(self):
-
-        print("Starting an acquisition")
-
-        _path, _num_frms, _errors = self._check_system_settings()
-
-        if len(_errors) > 0:
-            return False, _errors
-
-        # Create save directory
-        os.mkdir(_path)
-
-        for cam in self.cameras:
-            cam.acquiring = True
-
-        t = time.time()
-        for i in range(self.file['number_of_runs']):
-            run = self._create_run()
-            if not run:
-                break
-            else:
-                os.mkdir(_path+f"/run{i}")
-            for j in range(_num_frms):
-                # Place latest frame from each camera in dict
-                frames = {
-                    f"{cam.interface}{cam.index}":cam.acquired_frames.get() for cam in self.cameras
-                }
-                # Create thread arguments
-                args = (f'{_path}/run{i}/frame{j}.npz', frames, run)
-                # Start a thread to write to file and mongodb
-                threading.Thread(target=self._write_to_file, args=args).start()
-            run.save()
-        print(_num_frms*(i+1)/(time.time()-t))
-
-        for cam in self.cameras:
-            cam.acquiring = False
-
-        return True, []
-
-    def _create_run(self):
-        # Check to see if MongoDB keys are valid
-        try:
-            mouse = models.Mouse.objects(name=self.mouse).get()
-            user = models.User.objects(username=self.username).get()
-            config = models.Configuration.objects(name=self.name).get()
-            return models.Run(mouse=mouse,user=user,configuration=config,frames=[])
-        except Exception as e:
-            traceback.print_exc()
-            return None
-
-    def _write_to_file(self, fname, frames, run):
-        np.savez(fname, **frames)
-        frame = models.Frame(timestamp=datetime.datetime.now(), file=fname)
-        frame.save()
-        run.frames.append(frame)
 
     def _check_system_settings(self):
 
@@ -199,6 +153,7 @@ class _System(object):
                 _rl = self.file['run_length']
             elif key == 'run_length_unit':
                 _rlu = self.file['run_length_unit']
+
         _run_dur = {"sec":1.0,"min":60.0,"hr":3600.0}[_rlu]*_rl
         # Check camera settings
         if len(self.cameras) == 0:
@@ -212,7 +167,71 @@ class _System(object):
         else:
             framerate = framerate[0]
 
+
+        for key in ['name', 'username', 'mouse']:
+            if not getattr(self, key):
+                errors.append(f"{key} was not specified")
+
         return path, int(framerate*_run_dur), errors
+
+    def start_acquisition(self):
+
+        print("Starting an acquisition")
+
+        _path, _num_frms, _errors = self._check_system_settings()
+
+        if len(_errors) > 0:
+            print("\nERROR: Could not start acquisition due to the following errors:")
+            [print(f"   * {err}") for err in _errors]
+            print('')
+            return False, _errors
+
+        # Create save directory
+        os.mkdir(_path)
+
+        for cam in self.cameras:
+            cam.acquiring = True
+
+        for i in tqdm(range(self.file['number_of_runs']), unit="run"):
+
+            run = self._create_run()
+
+            if not run:
+                break
+            else:
+                os.mkdir(_path+f"/run{i}")
+            for j in tqdm(range(_num_frms), leave=False, unit="frame"):
+                # Place latest frame from each camera in dict
+                frames = {
+                    f"{cam.interface}{cam.index}":cam.acquired_frames.get() for cam in self.cameras
+                }
+                # Create thread arguments
+                args = (f'{_path}/run{i}/frame{j}.npz', frames, run)
+                # Start a thread to write to file and mongodb
+                threading.Thread(target=self._write_to_file, args=args).start()
+            run.save()
+
+        for cam in self.cameras:
+            cam.acquiring = False
+
+        return True, []
+
+    def _create_run(self):
+        # Check to see if MongoDB keys are valid
+        try:
+            mouse = models.Mouse.objects(name=self.mouse).get()
+            user = models.User.objects(username=self.username).get()
+            config = models.Configuration.objects(name=self.name).get() if self.name else None
+            return models.Run(mouse=mouse,user=user,configuration=config,frames=[], timestamp=datetime.datetime.now())
+        except Exception as e:
+            traceback.print_exc()
+            return None
+
+    def _write_to_file(self, fname, frames, run):
+        np.savez(fname, **frames)
+        frame = models.Frame(file=fname)
+        frame.save()
+        run.frames.append(frame)
 
     def get_acquisition_status(self):
         return self.acquiring

@@ -65,14 +65,8 @@ class Camera(object):
         while self.active:
             # Keep the buffer size small for the feed
             frame = self._camera.get_next_frame()
-            if self.feed.qsize() > 1:
-                with self.feed.mutex:
-                    self.feed.queue.clear()
-            else:
-                self.feed.put(frame)
-
-            if self.acquiring:
-                self.acquired_frames.put(frame)
+            _ = None if self.feed.qsize() > 1 else self.feed.put(frame)
+            _ = None if not self.acquiring else self.acquired_frames.put(frame)
 
     def get(self, setting):
         self._camera.get(setting)

@@ -5,6 +5,7 @@ import numpy as np
 
 from .api import api
 from . import models, viewer
+from .api.system import system
 
 CLIENT_PATH = os.path.join(pywfom.__path__[0], "client/build/")
 
@@ -20,10 +21,17 @@ connect(host="mongodb://localhost:27017/pywfom0")
 def serve_main():
     return render_template('index.html')
 
-def test():
+def develop():
     app.run(debug=True)
     print('Disconnecting from MongoDB')
     disconnect()
+
+def test():
+    system.mouse = "cm105"
+    system.username = "ryan"
+    system.set_from_file("/Users/rbyrne/projects/pywfom/config.json")
+    system.start_acquisition()
+    system.delete()
 
 def start():
     waitress.serve(app, host="0.0.0.0", port=8080)

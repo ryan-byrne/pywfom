@@ -118,6 +118,18 @@ export default function Main() {
     content:<MakeDefault onHide={hidePopup} config={config}/>
   })
 
+  useEffect(()=>{
+    fetch('/api/system/settings/mouse', {
+      method: "PUT",
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(config.mouse)}).then(resp=>resp.text().then(txt=>{
+        console.log(txt);
+      }))
+  },[config.mouse])
+
   useEffect(()=> {
     // get current system settings (even after refresh)
     fetch('/api/system/settings')

@@ -72,8 +72,8 @@ class Mouse(Document):
     name = StringField(required=True, unique=True)
 
 class Run(Document):
-    timestamp = DateTimeField()
+    timestamp = DateTimeField(required=True)
     configuration = ReferenceField(Configuration)
     mouse = ReferenceField(Mouse)
     user = ReferenceField(User)
-    frames = ListField(ReferenceField(Frame))
+    frames = ListField(ReferenceField(Frame), required=True)
