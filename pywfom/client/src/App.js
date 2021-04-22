@@ -51,7 +51,7 @@ export default function Main() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [viewing, setViewing] = useState(false);
   const [registering, setRegistering] = useState(false)
-  const [config, setConfig] = useState({arduino:{},file:{},cameras:[]})
+  const [config, setConfig] = useState({arduino:{},file:{},cameras:[],username:"",mouse:"",name:""})
 
   const hidePopup = () => setPopup({...popup, visible:false})
 

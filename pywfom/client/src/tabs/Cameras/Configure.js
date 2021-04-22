@@ -82,12 +82,12 @@ const ImageDraw = (props) => {
   })
 
   return (
-    <div onMouseDown={handleDown} onMouseMove={handleMove} onMouseUp={handleUp}
-      style={cropper} ref={divRef}>
-      <canvas ref={canvasRef} onContextMenu={(e)=>e.preventDefault()} className="position-absolute"/>
-      <Image ref={imageRef} src={"/api/feed/"+props.camera.id} draggable={false} onContextMenu={(e)=>e.preventDefault()}
-        style={image}/>
-    </div>
+      <div onMouseDown={handleDown} onMouseMove={handleMove} onMouseUp={handleUp}
+        style={cropper} ref={divRef}>
+        <canvas ref={canvasRef} onContextMenu={(e)=>e.preventDefault()} className="position-absolute"/>
+        <Image ref={imageRef} src={props.index===null?null:`/api/feed/${props.index}`} 
+          draggable={false} onContextMenu={(e)=>e.preventDefault()} style={image} alt=""/>
+      </div>
   )
 }
 
@@ -109,7 +109,6 @@ export default function ConfigureCamera(props) {
         if(resp.ok){ resp.json().then(data=>{
           let cams = [...props.cameras]
           cams[props.selected] = camera;
-          console.log(cams);
           props.setCameras(cams);
           props.onHide();
         })}
@@ -163,7 +162,7 @@ export default function ConfigureCamera(props) {
         { !camera ? null :
           <Modal.Body>
             <Row className="justify-content-center">
-              <ImageDraw camera={camera} setCamera={setCamera}/>
+              <ImageDraw index={props.selected} camera={camera} setCamera={setCamera}/>
             </Row>
             <Tabs className="mt-3">
               <Tab eventKey="aoiTab" title="AOI">

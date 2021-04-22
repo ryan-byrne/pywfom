@@ -17,9 +17,7 @@ def main():
     if args.path != "":
         system.set_from_path(args.path)
     elif args.user:
-        pwd = getpass.getpass(f"Enter Password for {args.user}: ")
-        system.set_from_user_default(args.user, pwd)
-
+        system.username = args.user
     if args.command == 'develop':
         develop()
     elif args.command == 'test':

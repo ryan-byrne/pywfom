@@ -46,6 +46,8 @@ class Camera(object):
             self.interface, self.index = config['interface'], config['index']
         print("Initialzing {}:{}".format(config['interface'], config['index']))
 
+        self.id = os.urandom(6).hex() if 'id' not in config else config['id']
+
         if ( config['interface'] == 'opencv' ):
             self._camera = _OpenCV(**config)
         elif ( config['interface'] == 'andor' ):
@@ -92,8 +94,6 @@ class _OpenCV(object):
     """docstring for _OpenCV."""
 
     def __init__(self, **config):
-
-        self.id = os.urandom(6).hex()
 
         self._video_cap = cv2.VideoCapture(config['index'])
 
@@ -173,7 +173,6 @@ class _Test(object):
         self.set(**config)
 
         self.interface = 'test'
-        self.id = os.urandom(6).hex()
 
         self._capturing = False
 

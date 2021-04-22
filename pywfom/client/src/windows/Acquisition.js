@@ -54,7 +54,7 @@ export default function Acquisition(props){
               props.config.cameras.map((cam, idx)=> {
                 return (
                   <Col>
-                    <Image fluid src={'/api/feed/'+cam.id}/>
+                    <Image fluid src={'/api/feed/system/'+cam.id}/>
                   </Col>
                 )
               })

@@ -27,7 +27,7 @@ export default function Cameras(props){
           {props.config.cameras.map((cam, idx) => {
             return (
               <Col key={idx}>
-                <Image src={'/api/feed/'+cam.id} fluid style={{cursor:'pointer'}}
+                <Image src={`/api/feed/${idx}`} fluid style={{cursor:'pointer'}}
                   onClick={()=>setSelectedCamera(idx)} alt={idx}/>
               </Col>
             )

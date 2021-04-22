@@ -18,7 +18,7 @@ export default function MakeDefault(props){
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(props.config)})
+      body: JSON.stringify({...props.config, name:configName})})
       .then(resp=>resp.text().then(txt => {
         if (resp.ok) {
           props.onHide()
@@ -35,7 +35,7 @@ export default function MakeDefault(props){
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(props.config)})
+      body: JSON.stringify({...props.config, name:configName})})
       .then(resp=>resp.text().then(txt => {
         if (resp.ok) {
           props.onHide()

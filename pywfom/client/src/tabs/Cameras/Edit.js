@@ -20,9 +20,11 @@ export default function EditCameras(props){
     fetch('/api/devices/cameras')
       .then(resp => resp.json()
       .then(data => {
-        // Filter out cameras that are already added
+        // Cycle through currently added cameras
         props.cameras.map(cam=> {
+          // Cycle through the found cameras
           data.map((dcam, idx) => {
+            // If a camera is already added, remove it
             if (dcam.index === cam.index && dcam.interface === cam.interface) {
               data.splice(idx, 1);
             }
@@ -49,10 +51,12 @@ export default function EditCameras(props){
         else { console.error(resp.message) }
       })
       .then(data => {
-        let oldCameras = [...foundCameras]
-        oldCameras.splice(idx, 1)
-        setFoundCameras(oldCameras);
-        props.setCameras(data)
+        let prevCameras = [...foundCameras]
+        prevCameras.splice(idx, 1)
+        setFoundCameras(prevCameras);
+        props.setCameras([...props.cameras, data]);
+        event.target.textContent = 'Add';
+        event.target.disabled = false;
       })
 
   }
@@ -68,9 +72,10 @@ export default function EditCameras(props){
       body: JSON.stringify({config:null})})
     .then(resp => {
       if (resp.ok) {
-        let newCameras = [...props.cameras];
-        newCameras.splice(idx, 1);
-        props.setCameras(newCameras);
+        let prevCameras = [...props.cameras];
+        setFoundCameras([...foundCameras, prevCameras[idx]]);
+        prevCameras.splice(idx, 1);
+        props.setCameras(prevCameras);
       }
     })
     .catch(err=> console.log(err))

@@ -50,6 +50,7 @@ class _System(object):
         self.post(id=None, settings=json.loads(default.to_json()))
 
     def get(self, setting=None):
+
         resp = {
             "file":self.file,
             "cameras":[cam.json() for cam in self.cameras],
@@ -68,7 +69,6 @@ class _System(object):
     def delete(self, id=None):
 
         if id == None:
-            print("clearing all")
             self.file = {}
             _ = self.arduino.close() if self.arduino else None
             self.arduino = None
@@ -86,7 +86,7 @@ class _System(object):
             cam = self.cameras.pop(int(id))
             cam.close()
 
-        return self.get(id)
+        return f"Successfully delete {id}", 200
 
     def put(self, id=None, settings={}):
 
@@ -109,7 +109,9 @@ class _System(object):
         if id == 'file':
             self.file = settings
         elif id == 'cameras':
-            self.cameras.append( Camera(**settings) )
+            _newcam = Camera(**settings)
+            self.cameras.append( _newcam )
+            return _newcam.json()
         elif id == 'arduino':
             if self.arduino:
                 return "Cannot POST to Initialized Arduino", 400
@@ -154,7 +156,7 @@ class _System(object):
             elif key == 'run_length_unit':
                 _rlu = self.file['run_length_unit']
 
-        _run_dur = {"sec":1.0,"min":60.0,"hr":3600.0}[_rlu]*_rl
+        _run_dur = {"sec":1.0,"min":60.0,"hr":3600.0}[_rlu]*float(_rl)
         # Check camera settings
         if len(self.cameras) == 0:
             errors.append("No cameras added.")
@@ -192,7 +194,7 @@ class _System(object):
         for cam in self.cameras:
             cam.acquiring = True
 
-        for i in tqdm(range(self.file['number_of_runs']), unit="run"):
+        for i in tqdm(range(int(self.file['number_of_runs'])), unit="run"):
 
             run = self._create_run()
 
@@ -203,7 +205,7 @@ class _System(object):
             for j in tqdm(range(_num_frms), leave=False, unit="frame"):
                 # Place latest frame from each camera in dict
                 frames = {
-                    f"{cam.interface}{cam.index}":cam.acquired_frames.get() for cam in self.cameras
+                    f"{cam.id}":cam.acquired_frames.get() for cam in self.cameras
                 }
                 # Create thread arguments
                 args = (f'{_path}/run{i}/frame{j}.npz', frames, run)

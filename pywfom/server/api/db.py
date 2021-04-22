@@ -4,6 +4,8 @@ import json, traceback
 from . import api
 from .. import models
 
+# TODO: Create a run Viewer
+
 @api.route('/db/default/<user>', methods=["GET"])
 def get_default(user=None):
     config = json.loads(models.User.objects(username=user)[0].default.to_json())
@@ -12,7 +14,6 @@ def get_default(user=None):
 
 @api.route('/db/default/<user>/<name>', methods=["PUT"])
 def put_default(user=None, name=None):
-    print(user, name)
     data = request.get_json()
     data.pop('username', None)
     data.pop('mouse', None)
@@ -83,3 +84,28 @@ def save_configuration_settings(user=None, name=None, default=None):
     except Exception as e:
         traceback.print_exc()
         return str(e), 400
+
+@api.route('/db/runs/')
+@api.route('/db/runs/<user>')
+def get_saved_runs(user=None):
+    runs = []
+    if user:
+        user_id = models.User.objects(username=user).get()
+        run_iter = models.Run.objects(user=user_id)
+    else:
+        run_iter = models.Run.objects()
+    for run in run_iter:
+        runs.append({
+            "id":str(run.pk),
+            "date":run.timestamp,
+            "user":run.user.username,
+            "mouse":run.mouse.name,
+            "config":json.loads(run.configuration.to_json())
+        })
+        print(run.mouse.name)
+    return jsonify(runs)
+
+@api.route('/db/frames/<run_id>')
+def get_run_frames(run_id):
+    run = models.Run.objects.get(pk=run_id)
+    return "Woohoo!", 200
