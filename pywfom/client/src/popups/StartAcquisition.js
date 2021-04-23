@@ -12,7 +12,17 @@ export default function StartAcquisition(props) {
   const [details, setDetails] = useState(false);
 
   const handleStart = () => {
-    props.onHide();
+    fetch('/api/system/acquisition', {method:['POST']})
+      .then(resp=>{
+        if (resp.ok) {
+          props.setAcquiring(true);
+          props.onHide();
+        } else {
+          resp.text().then(txt=>{
+            setErrors([...errors, txt])
+          })
+        }
+      })
   }
 
   const calculateTotalSize = () => {
@@ -28,6 +38,7 @@ export default function StartAcquisition(props) {
   }
 
   useEffect(() => {
+    setErrors([]);
     fetch('/api/system/acquisition')
       .then(resp=>resp.json().then(data=>setErrors(data)))
   },[])
@@ -42,7 +53,7 @@ export default function StartAcquisition(props) {
             {
               errors.length > 0 ?
               <Alert variant="danger">
-                <Alert.Heading>Found the Following Errors:</Alert.Heading>
+                <Alert.Heading>The Following Error(s) Occured:</Alert.Heading>
                 <ul>{errors.map(err=><li key={err}>{err}</li>)}</ul>
               </Alert> :
               <Alert variant="success">

@@ -29,7 +29,11 @@ def test():
     system.mouse = "cm105"
     system.username = "ryan"
     system.set_from_file("/Users/rbyrne/projects/pywfom/config.json")
-    system.start_acquisition()
+    e = system.check_acquisition_settings()
+    if len(e) > 0:
+        [print(err) for err in e]
+    else:
+        system.start_acquisition()
     system.delete()
 
 def start():

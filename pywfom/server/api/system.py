@@ -33,6 +33,7 @@ class _System(object):
         self.username = None
         self.mouse = None
         self.write_speed = 0
+        self.primary_framerate = 0
 
     def benchmark_disk(self):
         pass
@@ -126,8 +127,6 @@ class _System(object):
             self.file = settings['file']
             self.cameras = [Camera(**config) for config in settings['cameras']]
             self.arduino = Arduino(**settings['arduino'])
-            self.name = settings['name']
-            self.username = settings['username']
         else:
             setattr(self, id, settings)
 
@@ -138,40 +137,47 @@ class _System(object):
 
     def check_acquisition_settings(self):
 
-        errors = []
-
-        # Check run settings
-        for key in ['run_length', 'run_length_unit', 'number_of_runs', 'directory']:
-            if not self.file[key]:
-                errors.append(f"{key} is missing from file settings")
-
-        # CAMERA SETTINGS
-        _camera_settings = [cam.json() for cam in self.cameras]
-        # Check number of cameras
-        if len(_camera_settings) == 0:
-            errors.append("No cameras have been added")
-        # Assert proper number of primary cameras
-        _primary_fr = [cam['framerate'] for cam in _camera_settings if cam['primary']]
-        if len(_primary_fr) == 0:
-            errors.append("You must specify a primary camera")
-        elif len(_primary_fr) > 1:
-            error.append("You can only specify one primary camera")
+        if self.acquiring:
+            return ["All Good"]
         else:
-            fr = _primary_fr[0]
-            _over = [cam['framerate'] < fr for cam in _camera_settings if not cam['primary']]
-            # TODO: Ensure cameras aren't going over their maximum framerate
+            errors = []
+
+            # Check run settings
+            for key in ['run_length', 'run_length_unit', 'number_of_runs', 'directory']:
+                if not self.file[key]:
+                    errors.append(f"{key} is missing from file settings")
+
+            # CAMERA SETTINGS
+            _camera_settings = [cam.json() for cam in self.cameras]
+            # Check number of cameras
+            if len(_camera_settings) == 0:
+                errors.append("No cameras have been added")
+            # Assert proper number of primary cameras
+            _primary_fr = [cam['framerate'] for cam in _camera_settings if cam['primary']]
+            if len(_primary_fr) == 0:
+                errors.append("You must specify a primary camera")
+            elif len(_primary_fr) > 1:
+                error.append("You can only specify one primary camera")
+            else:
+                self.primary_framerate = _primary_fr[0]
+                _over = [cam['framerate'] < fr for cam in _camera_settings if not cam['primary']]
+                # TODO: Ensure cameras aren't going over their maximum framerate
 
 
-        # Check additional data settings
-        for key in ['username', 'mouse']:
-            if not getattr(self, key):
-                errors.append(f"{key} was not specified")
+            # Check additional data settings
+            for key in ['username', 'mouse']:
+                if not getattr(self, key):
+                    errors.append(f"{key} was not specified")
 
-        return errors
+            return errors
 
     def start_acquisition(self):
 
         print("Starting an acquisition")
+
+        path = os.path.join(self.file['directory'], datetime.datetime.now().strftime('%m_%d_%Y_%H%M%S'))
+
+        os.mkdir(path)
 
         for cam in self.cameras:
             cam.acquiring = True
@@ -183,14 +189,18 @@ class _System(object):
             if not run:
                 break
             else:
-                os.mkdir(_path+f"/run{i}")
-            for j in tqdm(range(_num_frms), leave=False, unit="frame"):
+                os.mkdir(f"{path}/run{i}")
+
+            rl, rlu = self.file['run_length'], self.file['run_length_unit']
+
+            num_frames = self.primary_framerate*rl*{"sec":1,"min":60,"hr":3600}[rlu]
+            for j in tqdm(range(int(num_frames)), leave=False, unit="frame"):
                 # Place latest frame from each camera in dict
                 frames = {
                     f"{cam.id}":cam.acquired_frames.get() for cam in self.cameras
                 }
                 # Create thread arguments
-                args = (f'{_path}/run{i}/frame{j}.npz', frames, run)
+                args = (f"{path}/run{i}/frame{j}.npz", frames, run,)
                 # Start a thread to write to file and mongodb
                 threading.Thread(target=self._write_to_file, args=args).start()
             run.save()
@@ -205,7 +215,11 @@ class _System(object):
         try:
             mouse = models.Mouse.objects(name=self.mouse).get()
             user = models.User.objects(username=self.username).get()
-            config = models.Configuration.objects(name=self.name).get() if self.name else None
+            config = models.Configuration(
+                file=self.file,
+                arduino=self.arduino.json(),
+                cameras=[cam.json() for cam in self.cameras]
+            ).save()
             return models.Run(mouse=mouse,user=user,configuration=config,frames=[], timestamp=datetime.datetime.now())
         except Exception as e:
             traceback.print_exc()
@@ -216,9 +230,6 @@ class _System(object):
         frame = models.Frame(file=fname)
         frame.save()
         run.frames.append(frame)
-
-    def get_acquisition_status(self):
-        return self.acquiring
 
 #  ****** Initialize System System ********
 system = _System()
@@ -256,8 +267,9 @@ def stop_acquisition():
 
 @api.route('/system/acquisition', methods=['POST'])
 def start_acquisition():
-    result, errors = system.start_acquisition()
-    if not result:
-        return jsonify(errors), 404
-    else:
+    try:
+        system.start_acquisition()
         return "Success", 200
+    except Exception as e:
+        traceback.print_exc()
+        return str(e), 404

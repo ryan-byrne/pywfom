@@ -20,32 +20,6 @@ export default function Acquisition(props){
       })
   }
 
-  const handleStart = () => {
-    fetch('/api/system/acquisition',{method:"POST"}).then(resp=>resp.json().then(data=>{
-      if (resp.ok){
-
-      } else {
-        setMessage(
-          <div>{
-            <Alert variant="danger">
-              <h3>Unable to Start Acquisition</h3>
-              <p><b>Due to the Following errors:</b></p>
-              <ul>
-              {
-                data.map(error=><li>{error}</li>)
-              }
-              </ul>
-            </Alert>
-          }</div>
-        )
-      }
-    }));
-  }
-
-  useEffect(()=>{
-    handleStart()
-  },[])
-
   return (
     <div>{
         <Container>
@@ -64,7 +38,6 @@ export default function Acquisition(props){
             <Button variant="danger" onClick={handleStop}>
               {acquiring ? "Stop Acquisition" : "Exit"}
             </Button>
-            <Button onClick={handleStart}>Start</Button>
           </Row>
           {message}
         </Container>

@@ -49,7 +49,7 @@ class File(EmbeddedDocument):
 # ********** Configuration *********
 
 class Configuration(Document):
-    name = StringField(unique=True)
+    name = StringField()
     arduino = EmbeddedDocumentField(Arduino, required=True)
     cameras = EmbeddedDocumentListField(Camera, required=True)
     file = EmbeddedDocumentField(File, required=True)

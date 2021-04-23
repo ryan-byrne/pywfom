@@ -58,7 +58,7 @@ export default function Main() {
 
   const handleStart = () => setPopup({
     visible:true,
-    content:<StartAcquisition onHide={hidePopup} config={config}/>
+    content:<StartAcquisition onHide={hidePopup} config={config} setAcquiring={setAcquiring}/>
   })
 
   const handleLoad = () => setPopup({
