@@ -20,7 +20,8 @@ setup(
         "Flask",
         "waitress",
         "mongoengine",
-        "tqdm"
+        "tqdm",
+        "halo"
     ],
     zip_safe=False,
     entry_points = {"console_scripts": ["pywfom = pywfom:main"]},

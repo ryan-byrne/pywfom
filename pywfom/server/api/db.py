@@ -28,7 +28,7 @@ def post_default(user=None, name=None):
     data = request.get_json()
     data.pop('username', None)
     data.pop('mouse', None)
-    config = models.Configuration(name=name, **data).save()
+    config = models.Configuration(**data).save()
     user = models.User.objects(username=user).get()
     user.update(default=config)
     return jsonify(config.to_json())
@@ -60,7 +60,7 @@ def make_new(user=None, name=None):
     data['arduino'].pop('firmware_version',None)
     data['arduino'].pop('active',None)
     try:
-        config = models.Configuration(name=name, **data).save()
+        config = models.Configuration(**data).save()
         user = models.User.objects(username=user).get()
         user.configurations.append(config)
         user.save()

@@ -102,7 +102,7 @@ export default function File(props){
             <Form.Group as={Col}>
               <Form.Control value={props.config.username} disabled={true}/>
               <Form.Text muted>
-                User <a href="#" onClick={props.close}>Switch</a>
+                User <a href="#" onClick={props.close}>Change</a>
               </Form.Text>
             </Form.Group>
             <Form.Group as={Col}>
@@ -135,6 +135,15 @@ export default function File(props){
               value={props.config.file.number_of_runs}  onChange={handleChange} id="number_of_runs"/>
             <Form.Text muted>Number of Runs</Form.Text>
           </Form.Group>
+        </Form.Group>
+        <Form.Group as={Row} className="justify-content-center">
+          {
+            props.config.file.directory ?
+            <Alert variant="info">
+              Acquisition files will save to <b>{props.config.file.directory}</b>
+            </Alert> :
+            <Alert variant="danger">Directory not found</Alert>
+          }
         </Form.Group>
       <Row className="justify-content-center">
           <ButtonGroup>

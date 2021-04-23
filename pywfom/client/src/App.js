@@ -12,6 +12,7 @@ import LoadConfig from './popups/LoadConfig';
 import SaveConfig from './popups/SaveConfig';
 import YesNo from './popups/YesNo';
 import MakeDefault from './popups/MakeDefault';
+import StartAcquisition from './popups/StartAcquisition';
 
 // Each Tab's Components
 import File from './tabs/File/Main';
@@ -57,7 +58,7 @@ export default function Main() {
 
   const handleStart = () => setPopup({
     visible:true,
-    content:<YesNo onYes={()=>{setAcquiring(true);hidePopup();}} onNo={hidePopup} question="Start Acquisition?"/>
+    content:<StartAcquisition onHide={hidePopup} config={config}/>
   })
 
   const handleLoad = () => setPopup({
@@ -126,7 +127,7 @@ export default function Main() {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(config.mouse)}).then(resp=>resp.text().then(txt=>{
-        console.log(txt);
+        //console.log(txt);
       }))
   },[config.mouse])
 
@@ -143,13 +144,15 @@ export default function Main() {
   useEffect(()=>{
     // Calculate the size of the file each time cameras change
     let size = 0;
+    let framerate = 0;
     config.cameras.map(cam=>{
       const {height, width, binning} = cam.aoi;
       const pixelSize = parseInt(cam.dtype.substring(4))/8;
       const bin = parseInt(binning.charAt(0));
+      framerate = cam.primary ? cam.framerate : framerate;
       size += pixelSize*height*width/bin
     })
-    setConfig({...config, file:{...config.file, size:size}})
+    setConfig({...config, file:{...config.file, size:size, framerate:framerate}})
   },[config.cameras])
 
   return (

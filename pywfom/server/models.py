@@ -43,12 +43,13 @@ class File(EmbeddedDocument):
     run_length = FloatField()
     run_length_unit = StringField()
     number_of_runs = IntField()
+    directory = StringField()
     size = IntField()
 
 # ********** Configuration *********
 
 class Configuration(Document):
-    name = StringField(unique=True, required=True)
+    name = StringField(unique=True)
     arduino = EmbeddedDocumentField(Arduino, required=True)
     cameras = EmbeddedDocumentListField(Camera, required=True)
     file = EmbeddedDocumentField(File, required=True)

@@ -3,6 +3,7 @@ import {useState,useEffect, useRef} from 'react';
 
 // Load Components
 import Configuration from './Configuration';
+import Upload from './Upload';
 
 // Bootstrap Components
 import Button from 'react-bootstrap/Button';
@@ -16,6 +17,19 @@ import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 
+const InfoTable = (props) => {
+  console.log(props);
+  return (
+    <Table variant="dark" striped bordered>
+      <tbody>{
+          Object.entries(props.info).map(([key, setting], idx) => (
+            <tr><td>{key}</td><td>{setting}</td></tr>
+          ))
+        }</tbody>
+    </Table>
+  )
+}
+
 export default function Arduino(props){
 
   // UI State Variables
@@ -26,6 +40,7 @@ export default function Arduino(props){
   // Modal View Controllers
   const [configWindow, showConfigWindow] = useState(false);
   const [info, showInfo] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   // Close and open Configuration Window
   const handleConfig = () => showConfigWindow(!configWindow);
@@ -81,7 +96,7 @@ export default function Arduino(props){
               <p>
                 <b>ERROR:</b> Arduino at <b>{port.device}</b> does not have
                 compatible firmware.
-                <Button className='ml-3'>Upload Firmware...</Button>
+                <Button className='ml-3' onClick={()=>setUploading(true)}>Upload Firmware...</Button>
               </p>
             </Alert>
           ))
@@ -110,11 +125,7 @@ export default function Arduino(props){
     else { connectPort() }
   },[availablePorts, selectedPort])
 
-  const getConfiguration = () => {
-
-  }
-
-  useEffect(() => { listPorts(); getConfiguration()},[])
+  useEffect(() => { listPorts() },[])
 
   return(
     <div>{
@@ -151,6 +162,10 @@ export default function Arduino(props){
           <Col xs={12} md={8}>{statusMessage}</Col>
         </Row>
         <Configuration port={availablePorts[selectedPort]} show={configWindow} handleConfig={handleConfig}/>
+        <Upload uploading={uploading} setUploading={setUploading}/>
+        {
+          !info ? null : <InfoTable info={availablePorts[selectedPort]}/>
+        }
       </Container>
     }</div>
   )

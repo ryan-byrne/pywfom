@@ -1,6 +1,6 @@
 from flask import request, jsonify, session
 from tqdm import tqdm
-import traceback, json, time, os, datetime, threading
+import traceback, json, time, os, datetime, threading, pywfom
 import numpy as np
 
 from . import api
@@ -8,6 +8,13 @@ from .. import models
 
 from ...devices.arduino import Arduino
 from ...devices.camera import Camera
+
+DEFAULT_FILE = {
+    "directory":os.environ['PYWFOM_DIR'] if 'PYWFOM_DIR' in os.environ else None,
+    "number_of_runs":"",
+    "run_length":"",
+    "run_length_unit":"sec"
+}
 
 # ****** Create Controllable System ********
 
@@ -19,12 +26,11 @@ class _System(object):
     """docstring for _System."""
 
     def __init__(self):
-        self.arduino = None
+        self.arduino = Arduino()
         self.cameras = []
-        self.file = {}
+        self.file = DEFAULT_FILE
         self.acquiring = False
         self.username = None
-        self.name = None
         self.mouse = None
         self.write_speed = 0
 
@@ -56,7 +62,6 @@ class _System(object):
             "cameras":[cam.json() for cam in self.cameras],
             "arduino":self.arduino.json() if self.arduino else {},
             "username":self.username,
-            "name":self.name,
             "mouse":self.mouse
         }
         if not setting:
@@ -131,65 +136,42 @@ class _System(object):
     def stop_acquisition(self):
         self.acquiring = False
 
-    def _check_system_settings(self):
-
-        print("Checking System Settings...")
+    def check_acquisition_settings(self):
 
         errors = []
-        _rlu, _rl, framerate, path, run = "sec",0.0,0.0,"", None
-
-        # Check to see if the directory is configured
-        try:
-            _dir = os.environ['PYWFOM_DIR']
-            _ = os.mkdir(_dir) if not os.path.exists(_dir) else None
-            dt = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-            path = _dir + '/' + dt
-        except KeyError:
-            errors.append("PYWFOM_DIR is not declared in the PATH")
 
         # Check run settings
-        for key in ['run_length', 'run_length_unit', 'number_of_runs']:
-            if key not in self.file:
+        for key in ['run_length', 'run_length_unit', 'number_of_runs', 'directory']:
+            if not self.file[key]:
                 errors.append(f"{key} is missing from file settings")
-            elif key == 'run_length':
-                _rl = self.file['run_length']
-            elif key == 'run_length_unit':
-                _rlu = self.file['run_length_unit']
 
-        _run_dur = {"sec":1.0,"min":60.0,"hr":3600.0}[_rlu]*float(_rl)
-        # Check camera settings
-        if len(self.cameras) == 0:
-            errors.append("No cameras added.")
-        framerate = [cam.json()['framerate'] for cam in self.cameras if cam.json()['primary']]
-        if len(framerate) > 1:
-            errors.append("More than one primary camera indicated.")
-        elif len(framerate) == 0:
-            framerate = 0.0
-            errors.append("A primary camera must be indicated")
+        # CAMERA SETTINGS
+        _camera_settings = [cam.json() for cam in self.cameras]
+        # Check number of cameras
+        if len(_camera_settings) == 0:
+            errors.append("No cameras have been added")
+        # Assert proper number of primary cameras
+        _primary_fr = [cam['framerate'] for cam in _camera_settings if cam['primary']]
+        if len(_primary_fr) == 0:
+            errors.append("You must specify a primary camera")
+        elif len(_primary_fr) > 1:
+            error.append("You can only specify one primary camera")
         else:
-            framerate = framerate[0]
+            fr = _primary_fr[0]
+            _over = [cam['framerate'] < fr for cam in _camera_settings if not cam['primary']]
+            # TODO: Ensure cameras aren't going over their maximum framerate
 
 
-        for key in ['name', 'username', 'mouse']:
+        # Check additional data settings
+        for key in ['username', 'mouse']:
             if not getattr(self, key):
                 errors.append(f"{key} was not specified")
 
-        return path, int(framerate*_run_dur), errors
+        return errors
 
     def start_acquisition(self):
 
         print("Starting an acquisition")
-
-        _path, _num_frms, _errors = self._check_system_settings()
-
-        if len(_errors) > 0:
-            print("\nERROR: Could not start acquisition due to the following errors:")
-            [print(f"   * {err}") for err in _errors]
-            print('')
-            return False, _errors
-
-        # Create save directory
-        os.mkdir(_path)
 
         for cam in self.cameras:
             cam.acquiring = True
@@ -266,7 +248,7 @@ def delete_settings(id=None):
 
 @api.route('/system/acquisition', methods=["GET"])
 def get_acquisition():
-    system.get_acquisition()
+    return jsonify(system.check_acquisition_settings())
 
 @api.route('/system/acquisition', methods=["DELETE"])
 def stop_acquisition():
